@@ -1,0 +1,99 @@
+# Installing LLVM and GHC on ARM
+
+Recently GHC's LLVM backend gained [registerized build support for
+ARM](http://hackage.haskell.org/trac/ghc/wiki/Building/ARMLinuxGnuEABI). This
+could result in as much as a doubling of performance on ARM, meaning Haskell
+might finally be a first-class citizen on this wonderful architecture. If you
+are as excited about this as me, you'll want to try it out. This is what I did.
+
+This was done on a BeagleBoard XM running [Linaro's Ubuntu
+Natty](http://www.linaro.org/) distribution. Be warned that both LLVM and GHC's
+builds can require large amounts of memory at times. This can be very taxing on
+the system and can be quite slow. Swap was necessary at some points. Be
+prepared to wait the better part of a day as the build proceeds.
+
+## Prerequisites
+
+We'll first need a few packages,
+
+        sudo apt-get install build-essential groff happy alex
+
+## LLVM
+
+First fetching LLVM,
+
+        git clone http://llvm.org/git/llvm.git
+
+Additionally, GHC requires a patch adding its calling convention to LLVM. The
+patch will require a bit of minor forward porting,
+
+        wget http://www.gardas.roznovan.cz/llvm/llvm-2011-07-12.patch
+        cd llvm
+        patch -p1 < ../llvm-2011-07-12.patch
+
+Building is straightforward,
+
+        ./configure
+        make
+        sudo make install
+
+It's never a bad idea to run `make check` as well. In my case (commit
+`1c36ba50ac7fa2c3e531b3f48407fb2eee93e5ed`), this resulted in 12 unexpected
+errors,
+
+        ********************
+        Testing Time: 2886.24s
+        ********************
+        Failing Tests (12):
+            LLVM :: CodeGen/X86/2009-06-05-VariableIndexInsert.ll
+            LLVM :: CodeGen/X86/tail-call-got.ll
+            LLVM :: ExecutionEngine/2002-12-16-ArgTest.ll
+            LLVM :: ExecutionEngine/test-fp.ll
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JIT.GlobalInFunction
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.AvailableExternallyGlobalIsntEmitted
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.EscapedLazyStubStillCallable
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.FunctionPointersOutliveTheirCreator
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/LazyLoadedJITTest.MaterializableAvailableExternallyFunctionIsntCompiled
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.EagerMode
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.JitPool
+            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.LazyMode
+        
+          Expected Passes    : 5508
+          Expected Failures  : 70
+          Unsupported Tests  : 28
+          Unexpected Failures: 12
+
+
+## GHC
+        
+First we'll fetch a few of the
+[prerequisites](http://hackage.haskell.org/trac/ghc/wiki/Building/Preparation/Linux)
+for building GHC,
+
+        sudo apt-get install happy alex
+
+Fetching GHC and beginning the bootstrap process,
+
+        git clone http://darcs.haskell.org/ghc.git
+        ./sync-all
+        ./boot
+
+Like many compilers, GHC's build is a multi-stage process. First, a stage 1
+compiler will be built using the stage 0 compiler already installed on the
+system (e.g. the `ghc6` debian package). After this, a stage 2 compiler will be
+built using this stage 1 compiler. The stage 2 compiler is the end result of
+the build.
+
+Now edit `mk/config.mk`. I chose the `quick` build flavor. We need to adjust
+the build method to account for the fact that the stage 0 compiler we will be
+using does not have a native code generator (since none was available in the
+6.12 series). In lieu of the native code generator, we will tell GHC to compile
+the stage 1 compile into C, which will then be compiled to machine code by
+`gcc`. To accomplish this, modify the values of `GhcStage1HcOpts` and
+`SRC_HS_OPTS` from `-fasm` to `-fvia-C`.  The build process then proceeds as
+usual,
+
+        ./configure
+        make
+        sudo make install
+

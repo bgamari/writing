@@ -1,0 +1,165 @@
+# Installing Amber 11 and AmberTools 1.5 on Ubuntu 11.04
+
+Below I'll detail my procedure for installing Amber on an Ubuntu Natty machine
+in the lab. We will build serial, MPI-enabled (using OpenMPI), and CUDA-enabled
+binaries. In addition to this guide, there are a variety of resources on
+installing Amber available online including,
+
+ * [Ambermd.org](http://ambermd.org/ubuntu.html)
+ * [Somewhereville.com (serial build of Amber10 targetting Ubuntu 8.10)](http://www.somewhereville.com/?p=345)
+ * [Somewhereville.com (parallel build of Amber10 targetting Ubuntu 8.10)](http://www.somewhereville.com/?p=437)
+
+## Preparation 
+First, we'll need a variety of Ubuntu packages,
+
+        sudo apt-get install build-essential gfortran libbz2-dev libz-dev xorg-dev
+
+Unfortunately, Natty's libXt packaging places libXt and friends
+[where Amber can't find them](http://www.quantumdiaries.org/2011/04/29/new-ubuntu-linux-11-04/).
+We'll work around this with some symlinks,
+
+        cd /usr/lib
+        sudo ln -s x86_64-linux-gnu/libX11.so .
+        sudo ln -s x86_64-linux-gnu/libXt.so .
+        sudo ln -s x86_64-linux-gnu/libXt.a .
+
+I'll be placing my Amber tree in `~/amber`,
+
+        export AMBERHOME=~/amber/amber11
+        cd $AMBERHOME
+
+In addition to the Amber (`Amber11.tar.bz2`) and AmberTools
+(`AmberTools-1.5.tar.bz2`) tarballs, we'll want the latest bugfixes (including
+bugfix 17, which supposedly [doubles PME performance on
+GPUs](http://ambermd.org/news.html#GPU_v2.2))
+
+        wget -N http://ambermd.org/bugfixes/11.0/bugfix.1to17.tar.bz2
+        wget -N http://ambermd.org/bugfixes/11.0/apply_bugfix.x
+        chmod 700 apply_bugfix.x
+        wget -N http://ambermd.org/bugfixes/AmberTools/1.5/bugfix.all
+
+Let's start by unpacking the tarballs and applying the patches,
+
+        tar -jxf Amber11.tar.bz2
+        tar -jxf AmberTools-1.5.tar.bz2
+
+        ./apply_bugfix.x bugfix.1to17.tar.bz2
+        cd amber11
+        patch -p0 -N < ../bugfix.all
+
+## Serial build
+Before building any of the parallel binaries we'll start with a serial
+configuration. We start by building and install AmberTools to `$AMBERHOME`,
+
+        cd $AMBERHOME/AmberTools/src
+        ./configure gnu
+        make serial
+        make install
+        cd ../test
+        make
+
+Amber's default configuration uses the `-mtune=generic` gcc flag, which causes the compiler to emit code that will run on pretty much any somewhat modern processor. We know exactly what silicon we are targetting, so those seeking to squeeze every bit of performance from their machine could change this to `-march=native`. This causes the compiler to emit code optimized for the current platform. The actual performance benefit of this has not been tested.
+
+        sed -i "s/-mtune=generic/-march=native/" $AMBERHOME/src/config.h $AMBERHOME/AmberTools/src/config.h
+
+Before we can build Amber, we need to patch it since we are using AmberTools 1.5,
+        
+        cd $AMBERHOME
+        ./AT15_Amber11.py
+
+Next we'll build serial Amber itself,
+        
+        cd $AMBERHOME/src
+        make serial
+        make install
+
+## OpenMPI build
+Natty seems to have the latest stable release of OpenMPI (1.4.3), so we will
+use the distribution's packages for this,
+
+        sudo apt-get install libopenmpi1.3 libopenmpi-dev 
+
+We now need to configure Amber. For some reason, this is done with AmberTools' `configure`
+
+        cd $AMBERHOME/AmberTools/src
+        ./configure -mpi gnu
+
+Finally, we build our MPI-enabled Amber (not forgetting to patch it for AmberTools 1.5),
+
+        cd $AMBERHOME
+        ./AT15_Amber11.py
+        cd src
+        make clean
+        make parallel
+
+Testing,
+
+        cd $AMBERHOME/test
+        export DO_PARALLEL="mpirun -np 4"
+        make test.parallel
+
+## CUDA build
+We'll be using the default hybrid precision CUDA code. First we clean the
+OpenMPI build and configure for a CUDA build,
+
+        cd $AMBERHOME/AmberTools/src
+        make clean
+        export CUDA_HOME=/usr/local/cuda
+        ./configure -cuda gnu
+
+The CUDA 4.0 toolkit used in this case did not support of Natty's default gcc 4.5
+compiler. We work around this by telling `nvcc` to use gcc 4.4.
+Unfortunately, `nvcc` can only be told the path to the directory containing the
+compiler binaries. Thus, we create a directory for the gcc-4.4 executables,
+
+        sudo apt-get install gcc-4.4 g++-4.4
+        sudo mkdir /usr/local/bin/gcc4.4
+        sudo ln -s /usr/bin/gcc-4.4 /usr/local/bin/gcc4.4/gcc
+        sudo ln -s /usr/bin/g++-4.4 /usr/local/bin/gcc4.4/g++
+
+We then add the option `--compiler-bindir /usr/local/bin/gcc4.4` to the
+definition of `NVCC` in both `$AMBERHOME/src/config.h` and
+`$AMBERHOME/AmberTools/src/config.h`. Finally we build Amber,
+
+        cd $AMBERHOME
+        ./AT15_Amber11.py
+        cd src
+        make clean
+        make cuda
+
+And test,
+        
+        cd $AMBERHOME/test
+        ./test_amber_cuda.sh
+
+You're done! You will find your new build in `$AMBERHOME/bin`.
+
+        export PATH=$PATH:$AMBERHOME/bin
+
+## Troubleshooting
+
+### Debug symbols
+To compile with debug symbols, simply add `-g` to
+`$AMBERHOME/AmberTools/src/config.h`. Additionally, disabling optimization
+(`-O0`) can help in debugging many classes of bugs.
+<http://archive.ambermd.org/201005/0373.html>
+
+## Benchmarks
+
+These numbers were taken on our compute server:
+
+ * ASUS Z8NA-D6(C) motherboard
+ * Dual Intel Xeon E5520
+ * 3 2GB DDR3 @ 1066MHz
+ * 3 4GB DDR3 @ 1333MHz
+
+These benchmarks are taken from the [Amber11 Benchmark Suite](http://ambermd.org/amber11_bench_files/Amber11_Benchmark_Suite.tar.gz).
+
+### Serial AMBER
+ + `-mtune=generic`:
+    * `GB/TRPCage`: 
+ + `-march=native`:
+    * `GB/TRPCage`: 
+
+### Parallel AMBER
+ + 

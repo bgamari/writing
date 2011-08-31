@@ -1,0 +1,75 @@
+# Building BeagleDAQ and Tracker environment
+
+## BeagleDAQ
+### Introduction
+
+The BeagleDAQ system is based around the
+[BeagleBoard](http://www.beagleboard.org/) single-board computer. This device
+is a small computer with an ARM processor, similar to the one likely in your
+smart phone. Like most computers, the BeagleBoard needs an operating system to
+be useful. This is almost always Linux. The operating system is stored on a
+MicroSD card which is inserted in a slot on the side of the board.
+
+While any Linux distribution can be used on the BeagleBoard, I prefer to use
+[Linaro's](http://www.linaro.org/) Ubuntu distribution due to its ease of use,
+excellent packaging and good documentation.
+
+### Linaro Image
+While there is a fair bit of documentation in the Linaro
+[Wiki](http://wiki.linaro.org/) (e.g.
+<https://wiki.linaro.org/Platform/DevPlatform/Ubuntu/ImageInstallation>), I'll
+briefly outline the process here as well. The image creation process should be
+conducted on an Ubuntu machine.
+
+First, let's install the `linaro-image-tools` package, which we'll need later
+in the process,
+
+        sudo add-apt-repository ppa:linaro-maintainers/tools
+        sudo apt-get update
+        sudo apt-get install linaro-image-tools
+
+A Linaro image consists of two components,
+
+ * A hardware pack providing details about the platform (e.g. BeagleBoard)
+ * The Linaro distribution tarball
+
+Both of these components can be downloaded from the Linaro
+[releases](http://releases.linaro.org/platform/) server. There are several
+flavors of Linaro's Ubuntu distribution; I generally choose `developer` (e.g.
+<http://releases.linaro.org/platform/linaro-n/developer/latest/>). The names of these files should look something like the following,
+
+ * Hardware pack: `hwpack_linaro-omap3_20110729-1_armel_supported.tar.gz`
+ * Distribution: `developer-n-tar-20110728-1.tar.gz`
+
+To build the image, one must have the target SD card inserted into the SD card
+reader. This device will generally be known as `/dev/sdb`, although the last
+letter could change depending upon the machine. It is critical that you
+double-check the name of the SD card as otherwise you could easily overwrite
+data on the machine you are working on. To build the image (assuming the files listed above are used),
+
+        sudo linaro-media-create --rootfs ext3 --mmc /dev/sdb --binary developer-n-tar-20110728-1.tar.gz --hwpack hwpack_linaro-omap3_20110729-1_armel_supported.tar.gz --dev beagle
+
+### BeagleDAQ kernel
+The BeagleDAQ hardware requires a few modifications to the Linux kernel to work properly.
+
+TODO
+
+
+## Tracker
+The particle tracker (`pytracker`) depends upon a low-level library, `libbeagledaq`, to communicate with the BeagleDAQ hardware. First, we install this and its dependencies,
+
+        sudo apt-get install libboost-dev
+        cd
+        git clone git@goldnerlab:libbeagledaq
+        cd libbeagledaq
+        make
+        sudo make install
+
+Now we install `pytracker`,
+
+        sudo apt-get install python-dev python-scipy
+        cd
+        git clone git@goldnerlab:pytracker
+        cd pytracker
+        ./setup.py build
+

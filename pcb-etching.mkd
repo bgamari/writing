@@ -1,0 +1,157 @@
+# Toner transfer PCB etching in a (bio)physics laboratory
+
+While with the recent advent of [batch PCB services](http://www.batchpcb.com)
+one-off PCB etching has become remarkable inexpensive. That being said,
+sometimes you need the board yesterday. Also PCB etching can be quite
+convenient even for simple circuits, where point-to-point prototyping would be
+possible but labor intensive. Moreover, the use of even large (1206) surface
+mount parts allow the board to be much smaller than possible with other
+prototyping methods.
+
+Thankfully, in a laboratory setting one is blessed with a variety of tools and
+materials that most homes do not have.
+
+One unfortunate limitation of the toner transfer method is the difficulty of
+producing double-sided boards. While it is in principle possible 
+
+# Overview
+
+The toner-transfer method exploits the inability of laser printers to bind
+toner to glossy paper (e.g. photo paper). I have had good luck with all of the
+photo papers I have tried and have even used magazine paper before (although
+its light weight made handling and printing tricky). The procedure goes roughly
+as follows,
+
+ 1. Print a mask on glossy paper
+ 2. Transfer mask to board
+ 3. Etch
+ 4. Post-processing
+
+Board material (known as copper-clad board) consists of a sheet of substrate
+material (usually FR-4 (fiberglass and epoxy) or phenolic plastic) plated on
+either one or both sides with a thin layer of copper.  The board I generally
+use is available from RadioShack, although this is something that can also be
+found for quite cheap on eBay. While many of the items on eBay have surface
+blemishes, this largely doesn't matter since we will be conducting an extensive
+surface preparation process anyways.
+
+# Producing the Mask
+
+I use the wonderful [gEDA](http://www.geda.org/) EDA package and I would
+strongly recommend it to anyone looking into a designing a board. While its
+learning curve is a little steep and integration between tools is sometimes a
+bit weak, to anyone used to working in a UNIX environment it should be easy to
+pick up and unmatched in its flexibility.
+
+When using producing a board, I like to give myself wide tolerances to make the
+process more forgiving. I prefer to use 12 mil clearances on all traces and
+parts. This can be set by selected all parts on the layout (`Alt-A`) and typing
+`:MinClearGap(Selected, =12, mil)`.
+
+Recall when laying down your PCB design that through-hole components should be
+on the opposite side from your traces. 
+
+To produce a mask in PCB, one first exports the board to a Postscript file
+(`File -> Export Layout`, select `PS`, default settings are fine). This will
+produce a document with each of the layers nice formatted with alignment marks.
+
+One thing which has tricked me numerous times in the past has been mirroring of
+the image. For this reason, I will always print a "dry-run" copy of the front
+mask along with the assembly diagram on standard paper. Laminating these
+together with print facing out should look just like the final board. I verify that
+parts' chiralities are correct and that vias line up with this test "board"
+before printing my final transfer mask.
+
+# Surface preparation
+
+Before the mask can be transferred, the surface of the PCB material must be
+cleaned and prepared. One unfortunate property of copper is that it oxidizes
+extremely quickly. This layer of copper oxide will not be etched by the etchant
+and will be unsolderable. Also, for obvious reasons, the board must be free of
+grease and other dirt before the mask transfer.
+
+ 1. Roughen the surface slightly with medium abrasive such as fine grid
+    sandpaper or medium steelwool.
+
+ 2. Drop the board in an organic solvent (e.g. acetone, methanol, or even
+    ethanol; purity doesn't matter) for 5 minutes or so. This will remove any
+    residual grease.
+
+ 3. Rinse in water
+
+ 4. Drop the board in a acid bath for 10 minutes. I usually use a HCl solution
+    with a pH of about 3, although this shouldn't be picky. This will remove
+    any copper oxide remaining on the surface.
+
+# Printing and transferring the mask
+ 
+Print the final transfer mask on glossy paper on a laser printer and cut it
+down to the size of the board. If possible, increase the toner density of the
+print (on my printer, an HP LaserJet P2015dn, this involved setting the "Image
+Quality" setting to "Highest"). I generally wait to do this until I have
+everything prepared for the transfer.
+
+For the transfer, I use a piece of optical breadboard on a Fisher Scientific
+heat plate set at 200 Celcius. This ensures I have a nice flat surface with
+large thermal mass. On top of this I place my board and printed mask (with mask
+on top facing the board). On this I place another sheet of flat aluminum with a
+heavy catalog for weight. After allowing the board and mask to heat up for five
+minutes or so, I'll use a cylindrical roller (e.g. New Focus optical rod) to
+press the mask on. I'll then wait another five minutes and repeat. Ensure that
+every point on the mask has been compressed.
+
+After pressing and waiting several times (usually this takes about 20 minutes),
+I'll pull the board off the heater and put it in a bath of warm water, where it
+soaks for at least 10 minutes. This makes it much easier to remove the paper
+without pulling off the mask. You should be able to remove the first layers of
+paper by rubbing with your fingers. After the first layer is remove, allow the
+board to soak for another 10 minutes before removing the remaining paper.  
+Paper still remaining between small features (e.g. traces) can be removed
+with a pointed object but try not to damage the copper.
+
+This part of the procedure is quite sensitive and it's worth spending time to
+avoid removing any more of the mask than necessary. That being said, if part of
+the mask does come off with the paper, this can be easily corrected with a
+black Sharpie (other colors haven't been tested). Make sure the area is
+thoroughly marked with the Sharpie as experience has shown that Sharpie ink
+doesn't resist the etchant as well as toner.
+
+# Etch
+
+Copper can be etched with a variety of liquid etchants. I use a ferric chloride
+solution from Radioshack, although a little Googling should demonstrate that
+any laboratory with some basic chemicals should have what is necessary to
+produce an etchant solution. If I had not already started using my ferric
+chloride, I would probably use a [copper chloride in HCl
+solution](http://www.instructables.com/id/Stop-using-Ferric-Chloride-etchant!--A-better-etc/).
+
+When using ferric chloride be careful to avoid touching the solution with
+anything you don't want stained. Ferric chloride can be 
+
+After allowing the board to dry, throw the board in a bath of etchant and
+agitate. I use a rocking platform this which works quite nicely. Keep a careful
+eye on the etching process and flip over the board a few times while etching
+(the top usually etches more quickly than the bottom). I find that a good etch
+usually takes around 10 minutes, although this will heavily depend upon the
+strength of your etchant. 
+
+# Post-processing
+
+Removing the toner from the etched board can be accomplished by a combination
+of solvents (e.g. acetone) and mechanical abrasion (e.g. a Scotch-Brite pad).
+
+To drill you can use any suitably sized drill bits (you'll almost certainly
+need more than one for usual via-sized holes) and a drill-press. The board will
+have a tendency to "jump" after drilling through the bottom of the substrate,
+so be sure to hold it securely. I use a set of #63 (0.0370")
+PCB drills purchased on eBay, although it would be nice if they were a
+tad smaller. Drill with the traces facing upwards and ensure the bottom of the
+board is supported with a piece of wood, otherwise the board substrate has a
+nasty tendency to crack. It never hurts to drill more slowly.
+
+Finally, I like to tin all of the traces of the board right after etching to
+ensure they don't oxidize. This makes soldering to the board much easier after
+it has sat for a while. Also, especially with large holes, getting through-hole
+parts to wet to the board is sometimes difficult. This is made much easier by
+pre-wetting the pins of any through-hole parts before soldering.
+
