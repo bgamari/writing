@@ -16,26 +16,31 @@ prepared to wait the better part of a day as the build proceeds.
 
 We'll first need a few packages,
 
-        sudo apt-get install build-essential groff happy alex
+        $ sudo apt-get install build-essential groff happy alex
+
+Since LLVM and GHC builds can be quite large, I'm going to be doing everything in `/mnt/data/ghc`,
+        
+        $ GHCROOT=/mnt/data/ghc
 
 ## LLVM
 
 First fetching LLVM,
 
-        git clone http://llvm.org/git/llvm.git
+        $ cd $GHCROOT
+        $ git clone http://llvm.org/git/llvm.git
 
 Additionally, GHC requires a patch adding its calling convention to LLVM. The
 patch will require a bit of minor forward porting,
 
-        wget http://www.gardas.roznovan.cz/llvm/llvm-2011-07-12.patch
-        cd llvm
-        patch -p1 < ../llvm-2011-07-12.patch
+        $ wget http://www.gardas.roznovan.cz/llvm/llvm-2011-07-12.patch
+        $ cd llvm
+        $ patch -p1 < ../llvm-2011-07-12.patch
 
 Building is straightforward,
 
-        ./configure
-        make
-        sudo make install
+        $ ./configure --prefix=$GHCROOT/usr
+        $ make
+        $ sudo make install
 
 It's never a bad idea to run `make check` as well. In my case (commit
 `1c36ba50ac7fa2c3e531b3f48407fb2eee93e5ed`), this resulted in 12 unexpected
@@ -70,13 +75,18 @@ First we'll fetch a few of the
 [prerequisites](http://hackage.haskell.org/trac/ghc/wiki/Building/Preparation/Linux)
 for building GHC,
 
-        sudo apt-get install happy alex
+        $ sudo apt-get install happy alex
 
 Fetching GHC and beginning the bootstrap process,
 
-        git clone http://darcs.haskell.org/ghc.git
-        ./sync-all
-        ./boot
+        $ cd $GHCROOT
+        $ git clone http://darcs.haskell.org/ghc.git
+        $ cd ghc
+        $ ./sync-all --no-dph get
+        $ ./boot
+
+Note that due to (bug #5105)[http://hackage.haskell.org/trac/ghc/ticket/5105]
+we have disabled Data Parallel Haskell. 
 
 Like many compilers, GHC's build is a multi-stage process. First, a stage 1
 compiler will be built using the stage 0 compiler already installed on the
@@ -84,16 +94,63 @@ system (e.g. the `ghc6` debian package). After this, a stage 2 compiler will be
 built using this stage 1 compiler. The stage 2 compiler is the end result of
 the build.
 
-Now edit `mk/config.mk`. I chose the `quick` build flavor. We need to adjust
+The build requires a small bit of configuration,
+
+        $ cp mk/build.mk.sample build.mk
+        $ edit build.mk
+
+Now edit `mk/config.mk`, I chose the `quick` build flavor. We need to adjust
 the build method to account for the fact that the stage 0 compiler we will be
 using does not have a native code generator (since none was available in the
 6.12 series). In lieu of the native code generator, we will tell GHC to compile
 the stage 1 compile into C, which will then be compiled to machine code by
-`gcc`. To accomplish this, modify the values of `GhcStage1HcOpts` and
-`SRC_HS_OPTS` from `-fasm` to `-fvia-C`.  The build process then proceeds as
-usual,
+`gcc`. To accomplish this, modify the value of `GhcStage1HcOpts` from `-fasm`
+to `-fvia-C` and remove `-fasm` from `SRC_HC_OPTS`. Additionally, if you are
+planning on hacking on the tree, you may want to follow some of the
+recommendations at <http://hackage.haskell.org/trac/ghc/wiki/Building/Using> to
+speed up the build process. The build then proceeds as usual,
 
-        ./configure
-        make
-        sudo make install
+        $ ./configure --prefix=$GHCROOT/usr
+        $ make
+        $ sudo make install
+
+## Test
+
+As with any piece of software under development, it is always a good idea to test,
+
+        $ ./sync-all --testsuite get
+        $ make test
+
+## Enjoy
+
+Enjoy your shiny new compiler,
+
+        $ PATH=$GHCROOT/bin:$PATH
+        $ LD_LIBRARY_PATH=$GHCROOT/lib:$LD_LIBRARY_PATH
+        $ ghc --info
+
+## Updating
+
+To update,
+
+        $ cd $GHCROOT/ghc
+        $ ./sync-all --no-dph pull
+
+Make sure your previously built compiler is not in `$PATH` or else `configure`
+will complain. You'll still want to make sure that LLVM is in `$PATH` however.
+We'll just add the build directory to accomplish this,
+
+        $ PATH=$GHCROOT/llvm/Debug+Asserts/bin:$PATH
+        $ make
+
+## Cleaning
+
+In the unfortunate event that your build tree is somehow put into a funky
+state, you'll need to clean it,
+
+        $ make clean
+
+However, if one of the phases hasn't been completed the build system will try
+to finish building it before cleaning. I have yet to figure out how to work
+around this.
 

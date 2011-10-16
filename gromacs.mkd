@@ -6,36 +6,38 @@ provided by the OpenMM folks. Grab the latest [binary
 package](https://simtk.org/project/xml/downloads.xml?group_id=161) for the
 desired architecture and unpack. Add OpenMM tree to `LD_LIBRARY_PATH`,
         
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/gromacs/OpenMM3.1.1-Linux64/lib
+        $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/gromacs/OpenMM3.1.1-Linux64/lib
 
 The binary package comes with a test in the `bin/` directory. Run it to ensure
 that things are working properly,
 
-        bin $ ./TestReferenceHarmonicBondForce 
+        $ cd bin
+        $ ./TestReferenceHarmonicBondForce 
         Running test...
         PASS - Test succeeded.
 
 ## Installing GROMACS
 Grab latest gromacs tarball. Extract,
 
-        tar -zxf gromacs-4.5.4.tar.gz
-        cd gromacs-4.5.4
+        $ cd ..
+        $ tar -zxf gromacs-4.5.4.tar.gz
+        $ cd gromacs-4.5.4
 
 We'll need a few packages,
 
-        sudo apt-get install libxml2-dev
+        $ sudo apt-get install libxml2-dev
 
 Build,
         
-        cmake .
-        make
-        sudo make install
+        $ cmake .
+        $ make
+        $ sudo make install
 
 ## Installing mdrun-gpu
 First clean out the CPU build,
 
-        make clean
-        rm CMakeCache.txt
+        $ make clean
+        $ rm CMakeCache.txt
 
 Set `OPENMM_ROOT_DIR` and configure GROMACS to compile against OpenMM.
 Unfortunately, as of CUDA 4.0 `nvcc` doesn't like gcc 4.5 and above. Therefore,
@@ -45,10 +47,10 @@ this is not possible; one can only specify the binary directory, using the
 `--compiler-bindir` option. We'll create a directory with the gcc 4.4
 executables,
 
-        sudo apt-get install gcc-4.4 g++-4.4
-        sudo mkdir /usr/local/bin/gcc4.4
-        sudo ln -s /usr/bin/gcc-4.4 /usr/local/bin/gcc4.4/gcc
-        sudo ln -s /usr/bin/g++-4.4 /usr/local/bin/gcc4.4/g++
+        $ sudo apt-get install gcc-4.4 g++-4.4
+        $ sudo mkdir /usr/local/bin/gcc4.4
+        $ sudo ln -s /usr/bin/gcc-4.4 /usr/local/bin/gcc4.4/gcc
+        $ sudo ln -s /usr/bin/g++-4.4 /usr/local/bin/gcc4.4/g++
         
 As seen [here](http://www.alsvartr.de/?p=848), the `cmake` build system allows
 you to pass arbitrary options to `nvcc`; We take advantage of this when
@@ -57,29 +59,29 @@ building the CUDA binaries to specify our host compiler version. Also, when
 gcc 4.4 doesn't recognize all of the options that 4.5 does, so we disable
 propagation of host flags to nvcc's host compiler,
 
-        export OPENMM_ROOT_DIR=~/gromacs/OpenMM3.1.1-Linux64
-        cmake -DGMX_OPENMM=ON -DCUDA_NVCC_FLAGS="--compiler-bindir;/usr/local/bin/gcc4.4" -DCUDA_PROPAGATE_HOST_FLAGS=OFF
-        make mdrun
-        make install-mdrun
+        $ export OPENMM_ROOT_DIR=~/gromacs/OpenMM3.1.1-Linux64
+        $ cmake -DGMX_OPENMM=ON -DCUDA_NVCC_FLAGS="--compiler-bindir;/usr/local/bin/gcc4.4" -DCUDA_PROPAGATE_HOST_FLAGS=OFF
+        $ make mdrun
+        $ make install-mdrun
 
 ## Finish
 
 Add installation path to `PATH`,
         
-        export PATH=$PATH:/usr/local/gromacs/bin
+        $ export PATH=$PATH:/usr/local/gromacs/bin
         
 Prepare a [simple test](http://www.csc.fi/english/research/sciences/chemistry/gmx-files/simple_gromacs_run/),
 
-        mkdir hi
-        wget http://www.csc.fi/english/research/sciences/chemistry/gmx-files/sample-input.tar
-        tar -xf sample-input.tar
-        grompp
+        $ mkdir hi
+        $ wget http://www.csc.fi/english/research/sciences/chemistry/gmx-files/sample-input.tar
+        $ tar -xf sample-input.tar
+        $ grompp
 
 Try the CPU code,
 
-        mdrun
+        $ mdrun
 
 Try the GPU code,
 
-        mdrun-gpu
+        $ mdrun-gpu
 

@@ -1,0 +1,34 @@
+# Cross-compiling LLVM for ARM on Ubuntu
+
+In my efforts to get the GHC compiler set running registerised on ARM, I found
+that I spent a large amount of time waiting for LLVM builds. To avoid this, I
+tried cross-compiling LLVM for my ARM target on my `x86_64` laptop.
+
+Since we are cross-compiling, we will obviously need a cross-compiler on the
+build machine (assuming Ubuntu),
+
+        $ sudo apt-get install gcc-arm-linux-gnueabi
+
+Grab an LLVM tree,
+
+        $ git clone http://llvm.org/git/llvm.git
+        $ cd llvm
+
+At the time of writing, there was an
+[issue](http://comments.gmane.org/gmane.comp.compilers.clang.devel/11458) with
+the LLVM build system which precludes running `configure` from the root of the
+source tree. For this reason, we build within a build directory,
+
+        $ mkdir build
+        $ cd build
+        $ ../configure --prefix=/mnt/data/ghc/usr --target=arm-linux-gnueabi
+
+Building,
+
+        $ make
+
+And now we wait; go for a walk, water your cat, do some laundry, get several
+cups of coffee; whatever it is you'd spend an afternoon doing. Sadly even on a
+\2.2GHz Core 2, LLVM still takes several hours to build.
+
+

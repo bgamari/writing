@@ -24,9 +24,9 @@ conducted on an Ubuntu machine.
 First, let's install the `linaro-image-tools` package, which we'll need later
 in the process,
 
-        sudo add-apt-repository ppa:linaro-maintainers/tools
-        sudo apt-get update
-        sudo apt-get install linaro-image-tools
+        $ sudo add-apt-repository ppa:linaro-maintainers/tools
+        $ sudo apt-get update
+        $ sudo apt-get install linaro-image-tools
 
 A Linaro image consists of two components,
 
@@ -47,7 +47,7 @@ letter could change depending upon the machine. It is critical that you
 double-check the name of the SD card as otherwise you could easily overwrite
 data on the machine you are working on. To build the image (assuming the files listed above are used),
 
-        sudo linaro-media-create --rootfs ext3 --mmc /dev/sdb --binary developer-n-tar-20110728-1.tar.gz --hwpack hwpack_linaro-omap3_20110729-1_armel_supported.tar.gz --dev beagle
+        $ sudo linaro-media-create --rootfs ext3 --mmc /dev/sdb --binary developer-n-tar-20110728-1.tar.gz --hwpack hwpack_linaro-omap3_20110729-1_armel_supported.tar.gz --dev beagle
 
 ### BeagleDAQ kernel
 The BeagleDAQ hardware requires a few modifications to the Linux kernel to work properly.
@@ -58,18 +58,18 @@ TODO
 ## Tracker
 The particle tracker (`pytracker`) depends upon a low-level library, `libbeagledaq`, to communicate with the BeagleDAQ hardware. First, we install this and its dependencies,
 
-        sudo apt-get install libboost-dev
-        cd
-        git clone git@goldnerlab:libbeagledaq
-        cd libbeagledaq
-        make
-        sudo make install
+        $ sudo apt-get install libboost-dev
+        $ cd
+        $ git clone git@goldnerlab:libbeagledaq
+        $ cd libbeagledaq
+        $ make
+        $ sudo make install
 
 Now we install `pytracker`,
 
-        sudo apt-get install python-dev python-scipy
-        cd
-        git clone git@goldnerlab:pytracker
-        cd pytracker
-        ./setup.py build
+        $ sudo apt-get install python-dev python-scipy
+        $ cd
+        $ git clone git@goldnerlab:pytracker
+        $ cd pytracker
+        $ ./setup.py build
 
