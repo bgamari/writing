@@ -14,6 +14,12 @@ Grab an LLVM tree,
         $ git clone http://llvm.org/git/llvm.git
         $ cd llvm
 
+If you want clang, clone it in `tools/`,
+        
+        $ cd tools
+        $ git clone http://llvm.org/git/clang.git
+        $ cd ..
+
 At the time of writing, there was an
 [issue](http://comments.gmane.org/gmane.comp.compilers.clang.devel/11458) with
 the LLVM build system which precludes running `configure` from the root of the
@@ -21,7 +27,7 @@ source tree. For this reason, we build within a build directory,
 
         $ mkdir build
         $ cd build
-        $ ../configure --prefix=/mnt/data/ghc/usr --target=arm-linux-gnueabi
+        $ ../configure --prefix=/mnt/data/ghc/usr --host=arm-linux-gnueabi
 
 Building,
 
@@ -29,6 +35,6 @@ Building,
 
 And now we wait; go for a walk, water your cat, do some laundry, get several
 cups of coffee; whatever it is you'd spend an afternoon doing. Sadly even on a
-\2.2GHz Core 2, LLVM still takes several hours to build.
+2.2GHz Core 2, LLVM still takes several hours to build.
 
 
