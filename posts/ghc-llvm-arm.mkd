@@ -28,6 +28,19 @@ First fetching LLVM,
 
         $ cd $GHCROOT
         $ git clone http://llvm.org/git/llvm.git
+        $ cd llvm
+
+If you want a C/C++ compiler out of the deal as well, you can clone `clang`
+into `tools/`. Note that `clang` seems to be even worse than LLVM itself in
+terms of demand on the system. While my BeagleBoard XM (512MB RAM) made it
+through most of the build, it ultimately ran out of memory while linking the
+`clang` executable. If you need a C compiler, you should consider following the
+LLVM cross-compiling instructions also posted here unless you have a large
+amount of memory and lots of time.
+
+        $ cd tools
+        $ git clone http://llvm.org/git/clang.git
+        $ cd ..
 
 Additionally, GHC requires a patch adding its calling convention to LLVM. The
 patch will require a bit of minor forward porting,
@@ -68,6 +81,36 @@ errors,
           Unsupported Tests  : 28
           Unexpected Failures: 12
 
+### An aside: libc++
+
+I've started using `clang` as my primary compiler on my ARM box due to its
+speed and very modest memory requirements while compiling highly templated C++.
+Unfortunately, it doesn't seem particularly happy using GCC's libstdc++.
+Thankfully, the LLVM project has also produced its own new C++ standard library
+implementation, [`libc++`](http://libcxx.llvm.org/). Building the library is
+quite trivial,
+
+        $ cd $GHCROOT
+        $ git clone http://llvm.org/git/libcxx.git
+        $ cd libcxx/lib
+        $ ./buildit
+
+Installation is quite straightforward,
+
+        $ sudo ln -sf $GHCROOT/libcxx/lib/libc++.so.1.0 /usr/lib/libc++.so.1.0
+        $ sudo ln -sf libc++.so.1.0 /usr/lib/libc++.so.1
+        $ sudo ln -sf libc++.so.1 /usr/lib/libc++.so
+        $ sudo ln -sf $GHCROOT/libcxx/include /usr/include/c++/v1
+
+Of course, we need to test it before use,
+
+        $ cd ../test
+        $ ./testit
+
+To use `libc++` with `clang`, simply say the magic word,
+
+        $ clang++ -stdlib=libc++ test.cpp
+
 
 ## GHC
         
@@ -104,11 +147,16 @@ the build method to account for the fact that the stage 0 compiler we will be
 using does not have a native code generator (since none was available in the
 6.12 series). In lieu of the native code generator, we will tell GHC to compile
 the stage 1 compile into C, which will then be compiled to machine code by
-`gcc`. To accomplish this, modify the value of `GhcStage1HcOpts` from `-fasm`
-to `-fvia-C` and remove `-fasm` from `SRC_HC_OPTS`. Additionally, if you are
-planning on hacking on the tree, you may want to follow some of the
-recommendations at <http://hackage.haskell.org/trac/ghc/wiki/Building/Using> to
-speed up the build process. The build then proceeds as usual,
+`gcc`. To accomplish this, modify the following values,
+
+ * `GhcStage1HcOpts` from `-fasm` to `-fvia-C`
+ * `GhcStage2HcOpts` from `-fasm` to `-fllvm`
+ * `SRC_HC_OPTS` remove `-fasm` (not quite sure what this should be but this works)
+
+Additionally, if you are planning on hacking on the tree, you may want to
+follow some of the recommendations at
+<http://hackage.haskell.org/trac/ghc/wiki/Building/Using> to speed up the build
+process. The build then proceeds as usual,
 
         $ ./configure --prefix=$GHCROOT/usr
         $ make
