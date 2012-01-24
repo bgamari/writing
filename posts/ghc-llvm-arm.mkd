@@ -139,8 +139,8 @@ the build.
 
 The build requires a small bit of configuration,
 
-        $ cp mk/build.mk.sample build.mk
-        $ edit build.mk
+        $ cp mk/build.mk.sample mk/build.mk
+        $ edit mk/build.mk
 
 Now edit `mk/config.mk`, I chose the `quick` build flavor. We need to adjust
 the build method to account for the fact that the stage 0 compiler we will be
