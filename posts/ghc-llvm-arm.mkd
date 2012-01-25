@@ -120,6 +120,10 @@ for building GHC,
 
         $ sudo apt-get install happy alex
 
+Of course, we'll also need our new LLVM build in `PATH`,
+
+        $ PATH=$GHCROOT/root/bin:$PATH
+
 Fetching GHC and beginning the bootstrap process,
 
         $ cd $GHCROOT
