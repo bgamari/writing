@@ -132,6 +132,18 @@ Fetching GHC and beginning the bootstrap process,
         $ ./sync-all --no-dph get
         $ ./boot
 
+It is important to note that by default this will build the
+`master` branch. This is where the bleeding edge of GHC's development
+takes place. For a slightly more conservative build, one might
+consider building the next release branch (e.g. `ghc-7.4` at time of
+writing; depending upon timing this may or may not be more stable than
+`master`). Either way, it is critically important to ensure that the
+`ghc` repository and those of the stage 1 libraries checked out by
+`sync-all` are on the same branch. Thankfully, `sync-all` will take
+care of this for you. For instance, to build the `ghc-7.4` branch,
+
+	$ ./sync-all checkout ghc-7.4
+
 Note that due to (bug #5105)[http://hackage.haskell.org/trac/ghc/ticket/5105]
 we have disabled Data Parallel Haskell. 
 
