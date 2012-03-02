@@ -1,0 +1,159 @@
+# Self-built kernels on Linaro
+
+Tried compiling kernel with `.config` from (http://elinux.org/Panda_How_to_kernel_3_3_rcx).
+
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm uImage
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm tarbz2-pkg
+
+Copy `arch/arm/boot/uImage` to boot partition and unpack modules
+tarball in root partition. First boot doesn't go so well,
+
+     Texas Instruments OMAP4460 ES1.1
+     OMAP SD/MMC: 0
+     reading u-boot.img
+     reading u-boot.img
+     
+     
+     U-Boot 2011.12-rc1 (Dec 19 2011 - 11:02:24)
+     
+     CPU  : OMAP4460 ES1.1
+     Board: OMAP4 Panda
+     I2C:   ready
+     DRAM:  1 GiB
+     WARNING: Caches not enabled
+     MMC:   OMAP SD/MMC: 0
+     Using default environment
+     
+     In:    serial
+     Out:   serial
+     Err:   serial
+     Net:   No ethernet found.
+     Hit any key to stop autoboot:  0 
+     reading uEnv.txt
+     
+     ** Unable to read "uEnv.txt" from mmc 0:1 **
+     reading boot.scr
+     
+     514 bytes read
+     Loaded script from boot.scr
+     Running bootscript from mmc0 ...
+     ## Executing script at 82000000
+     reading uImage
+     
+     3409656 bytes read
+     reading uInitrd
+     
+     1878123 bytes read
+     reading board.dtb
+     
+     340 bytes read
+     ## Booting kernel from Legacy Image at 80200000 ...
+     Image Name:   Linux-3.3.0-rc5-00102-g6b3e075
+     Image Type:   ARM Linux Kernel Image (uncompressed)
+     Data Size:    3409592 Bytes = 3.3 MiB
+     Load Address: 80008000
+     Entry Point:  80008000
+     Verifying Checksum ... OK
+     ## Loading init Ramdisk from Legacy Image at 81600000 ...
+     Image Name:   Ubuntu Initrd
+     Image Type:   ARM Linux RAMDisk Image (uncompressed)
+     Data Size:    1878059 Bytes = 1.8 MiB
+     Load Address: 00000000
+     Entry Point:  00000000
+     Verifying Checksum ... OK
+     ## Flattened Device Tree blob at 815f0000
+     Booting using the fdt blob at 0x815f0000
+     Loading Kernel Image ... OK
+     OK
+     reserving fdt memory region: addr=9d000000 size=3000000
+     Using Device Tree in place at 815f0000, end 815f3153
+     
+     Starting kernel ...
+     
+     Uncompressing Linux... done, booting the kernel.
+     
+Alright, well, let's try enabling `DEBUG_LL` and earlyprintk.
+
+At least now we have an error,
+     
+     Starting kernel ...
+     
+     Uncompressing Linux... done, booting the kernel.
+     
+     Error: unrecognized/unsupported device tree compatible list:
+     [ 'ti,omap4-panda' 'ti,omap4430' ]
+     
+     Available machine support:
+     
+     ID (hex)	NAME
+     ffffffff	Generic OMAP4 (Flattened Device Tree)
+     ffffffff	Generic OMAP3 (Flattened Device Tree)
+     00000870	OMAP4430 4430SDP board
+     00000ae7	OMAP4 Panda board
+     00000bbc	ti8148evm
+     00000af0	ti8168evm
+     
+     Please check your kernel config and/or bootloader.
+
+Ahh, so the devicetree file Linaro installed must not be compatible with this kernel. It seems that the kernel comes with some devicetrees. Let's use one.
+
+     $ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- omap4-panda.dtb
+
+After copying `arch/arm/boot/omap4-panda.dtb` to `board.dtb`, we get
+boot! Sort of... Kernel oops shortly after boot due to bug to be fixed
+before release of 3.3
+(http://www.spinics.net/lists/linux-omap/msg64921.html). After
+applying proposed patch we get a bit further.
+
+     [    1.699340] twl_rtc twl_rtc: setting system clock to 2000-01-01 00:00:00 UTC (946684800)
+     [    1.710784] Freeing init memory: 240K
+     Loading, please wait...
+     modprobe: FATAL: Could not load /lib/modules/3.3.0-rc5-00103-g613a465/modules.dep: No such file or directory
+     
+     mount: mounting udev on /dev failed: No such device
+     W: devtmpfs not available, falling back to tmpfs for /dev
+     Begin: Loading essential drivers ... FATAL: Could not load /lib/modules/3.3.0-rc5-00103-g613a465/modules.dep: No such file or directory
+     FATAL: Could not load /lib/modules/3.3.0-rc5-00103-g613a465/modules.dep: No such file or directory
+     FATAL: Could not load /lib/modules/3.3.0-rc5-00103-g613a465/modules.dep: No such file or directory
+     FATAL: Could not load /lib/modules/3.3.0-rc5-00103-g613a465/modules.dep: No such file or directory
+     done.
+     Begin: Running /scripts/init-premount ... done.
+     Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+     Gave up waiting for root device.  Common problems:
+      - Boot args (cat /proc/cmdline)
+        - Check rootdelay= (did the system wait long enough?)
+        - Check root= (did the system wait for the right device?)
+      - Missing modules (cat /proc/modules; ls /dev)
+     ALERT!  /dev/disk/by-uuid/539e4d72-de69-44ee-9c81-a54cf27ec22d does not exist.  Dropping to a shell!
+
+It seems there's an impedance mismatch between Linaro's handling of
+/dev and my kernel's. Ahh, `CONFIG_DEVTMPFS` and
+`CONFIG_DEVTMPFS_MOUNT` aren't enabled.
+
+While this gets rid of the /dev errors, the root device is still
+unavailable. Ahhh, after much puzzling, it seems that something still
+isn't right in the devicetree. The hint is,
+
+     Uncompressing Linux... done, booting the kernel.
+     [    0.000000] Booting Linux on physical CPU 0
+     [    0.000000] Linux version 3.3.0-rc5-00103-g613a465-dirty (bgamari@goldnerlab) (gcc version 4.5.2 (Ubuntu/Linaro 4.5.2-8ubuntu3) ) #13 SMP Thu Mar 1 18:33:15 EST 2012
+     [    0.000000] CPU: ARMv7 Processor [412fc09a] revision 10 (ARMv7), cr=10c5387d
+     [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+     [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI OMAP4 PandaBoard
+
+`Generic OMAP4` is a machine type alongside in `OMAP4 Panda board` in
+Kconfig. It must be picking the generic board, which has no MMC device
+in its devicetree. Hmmm.
+
+Disabling `Generic OMAP4` in `.config` causes the kernel to complain
+that it doesn't support the devicetree. Pulling board file changes
+from [this
+patch](http://dev.omapzoom.org/?p=integration/kernel-ubuntu.git;a=blobdiff;f=arch/arm/mach-omap2/board-omap4panda.c;h=1c583c7d9752e207ecc9bc9bd7c1383699567e61;hp=9aaa96057666936378e8270e689436f23dabe5fa;hb=a4c3505dc2a89aeea397b2ace08da0fc38dade1b;hpb=c3b92c8787367a8bb53d57d9789b558f1295cc96)
+also doesn't help. Adding the remaining compatibility flags to the
+board's compatbility list gets things booting again.
+
+Still can't mount root however. It seems some ext4 flags aren't
+supported by this kernel. Enable Ext4 and extended attributes in
+Kconfig.
+
+Finally, we have full boot.
