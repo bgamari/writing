@@ -37,7 +37,7 @@ surface preparation process anyways.
 
 # Producing the Mask
 
-I use the wonderful [gEDA](http://www.geda.org/) EDA package and I would
+I use the wonderful [gEDA](http://www.gpleda.org/) EDA package and I would
 strongly recommend it to anyone looking into a designing a board. While its
 learning curve is a little steep and integration between tools is sometimes a
 bit weak, to anyone used to working in a UNIX environment it should be easy to
