@@ -1,0 +1,177 @@
+---
+title: JTAG debugging with a Bus Pirate, OpenOCD, and LPC1768
+description: Debugging an LPC1768 target over JTAG with a Bus Pirate and OpenOCD
+tags: jtag, buspirate, arm
+date: 2012-03-28
+---
+
+# JTAG debugging with a Bus Pirate, OpenOCD, and LPC1768
+
+This was done on an LPCXpresso LPC1769 board.
+The debug harness was wired as follows,
+
+<table>
+	<tr><th>LPCXpresso</th> <th>Signal</th> <th>Bus Pirate</th></tr>
+	<tr><td>2</td>  <td>TMS</td>  <td>CS</td></tr>
+	<tr><td>3</td>  <td>TCLK</td> <td>CLK</td></tr>
+	<tr><td>4</td>  <td>TDO</td>  <td>MISO</td></tr>
+	<tr><td>5</td>  <td>TDI</td>  <td>MOSI</td></tr>
+	<tr><td>8</td>  <td>GND</td>  <td>GND</td></tr>
+<table>
+
+# Preliminaries
+Get OpenOCD from git,
+
+	$ git clone
+
+Compile,
+
+	$ ./bootstrap
+	$ ./configure --enable-bus-pirate
+	$ make
+	$ sudo make install
+	
+Create configuration file,
+	$ cat > openocd.cfg
+	source [find interface/buspirate.cfg]
+	buspirate_port /dev/ttyUSB0
+	buspirate_mode normal
+	
+	gdb_memory_map enable
+	gdb_flash_program enable
+	
+	source [find target/lpc1768.cfg]
+
+Start OpenOCD,
+
+	$ openocd -f openocd.cfg
+	
+# GDB
+Start GDB and attach,
+
+	$ gdb -ex "target remote localhost:3333"GNU gdb (Ubuntu/Linaro 7.3-0ubuntu2) 7.3-2011.08
+	Copyright (C) 2011 Free Software Foundation, Inc.
+	License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+	This is free software: you are free to change and redistribute it.
+	There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+	and "show warranty" for details.
+	This GDB was configured as "x86_64-linux-gnu".
+	For bug reporting instructions, please see:
+	<http://bugs.launchpad.net/gdb-linaro/>.
+	Remote debugging using localhost:3333
+	0x100000bc in ?? ()
+	(gdb) c
+	Continuing.
+	^C
+	Program received signal SIGINT, Interrupt.
+	0x100000bc in ?? ()
+	(gdb) x/4i $pc
+	=> 0x100000bc:	and    0x111400(%esi,%eax,1),%ch
+	0x100000c3:	add    %al,(%eax)
+	0x100000c5:	add    %al,(%eax)
+	0x100000c7:	add    %al,(%eax)
+
+## Directly interacting with OpenOCD
+Start a session,
+
+	$ nc localhost 4444
+	Open On-Chip Debugger
+	
+We can start by dumping the contents of FLASH,
+
+	> flash banks
+	flash banks
+    #0 : lpc1768.flash (lpc2000) at 0x00000000, size 0x00080000, buswidth 0, chipwidth 0
+	> dump_image blinky.bin 0x0 0x80000
+	dump_image blinky.bin 0x0 0x80000
+	dumped 524288 bytes in 222.975830s (2.296 KiB/s)
+	
+Let's check to make sure we can round-trip the contents of FLASH,
+
+	> flash erase 0 0x0 last
+	> reset
+	reset
+	JTAG tap: lpc1768.cpu tap/device found: 0x4ba00477 (mfg: 0x23b, part: 0xba00, ver: 0x4)
+	
+Confirm that the firmware is really gone.
+
+Now let's reflash the old firmware,
+
+	> halt
+	halt
+	target state: halted
+	target halted due to debug-request, current mode: Thread 
+	xPSR: 0xa1000000 pc: 0x1fff0ba2 msp: 0x10007fb8
+	> flash write_image blinky.bin 0x0 bin
+	flash write_image erase blinky.bin 0x0 bin
+	auto erase enabled
+	wrote 524288 bytes from file blinky.bin in 441.431091s (1.160 KiB/s)	
+	> reset
+	reset
+	JTAG tap: lpc1768.cpu tap/device found: 0x4ba00477 (mfg: 0x23b, part: 0xba00, ver: 0x4)
+
+It works!
+
+## Flashing new firmware
+
+First, build a `.bin` of the desired firmware. The LPC1769's ROM
+bootloader verifies that the user code in FLASH is valid before
+booting by way of a checksum of the interrupt vector table. The
+checksum is of the first eight interrupt vectors and is stored in
+vector 7 (0x0000001c). The easiest way to ensure this is set correctly
+is to run the binary image through the following C,
+
+	#include <stdio.h>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <fcntl.h>
+	
+	int main(int argc, char **argv) {
+            int fw, count, crc;
+            char buf[28];
+    
+            fw = open(argv[1], O_RDWR);
+            // read fist 28 bytes
+            read(fw, &buf, 28);
+    
+            // find 2's complement of entries 0 to 6
+            for (count=0, crc=0; count < 7; count++) {
+                    crc += *((int*)(buf+count*4));
+            }
+            crc = (~crc) + 1;
+    
+            // write it at offset 0x0000001C 
+            lseek(fw, 0x0000001C, SEEK_SET);
+            write(fw, &crc, 4);
+            close(fw);
+    
+            return 0;
+    }
+
+## Debugging on ARM
+
+While sometimes my system's native gdb will somehow understand the ARM
+architecture after attaching to the remote target, I haven't figured
+out how to do this reliably. For this reason, I build gdb for
+ARM.
+
+Start by grabbing a GDB source tarball; extract it, and then configure
+and build as follows,
+
+	$ ./configure --target=arm-none-eabi
+	...
+	$ make
+	
+Run,
+
+	$ gdb/gdb
+	(gdb) target remote localhost:3333
+	Remote debugging using localhost:3333
+	0x00000306 in ?? ()
+	(gdb) 
+	
+Do what you desire.
+
+
+
