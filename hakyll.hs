@@ -15,6 +15,10 @@ main = hakyll $ do
                 compile $ pageCompiler
                         >>> applyTemplateCompiler "templates/default.html"
                         >>> relativizeUrlsCompiler
+     
+        match "images/**" $ do
+                route   idRoute
+                compile copyFileCompiler
 
         match "index.html" $ route idRoute
         create "index.html" $ constA mempty
