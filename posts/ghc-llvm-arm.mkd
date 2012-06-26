@@ -1,3 +1,10 @@
+---
+title: Installing LLVM and GHC on ARM
+description: A tutorial for building LLVM and the Glasgow Haskell compiler on a ARM box
+date: 2012-01-27
+tags: ghc, llvm, arm
+---
+
 # Installing LLVM and GHC on ARM
 
 Recently GHC's LLVM backend gained [registerized build support for

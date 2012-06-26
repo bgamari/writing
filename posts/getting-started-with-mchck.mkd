@@ -1,3 +1,10 @@
+---
+title: Getting started with mchck
+description: Initial steps with the mchck microcontroller design
+date: 2012-06-25
+keywords: mchck, arm
+---
+
 # Getting started with mchck
 
 The [mchck](http://www.mchck.org/) is a small microcontroller

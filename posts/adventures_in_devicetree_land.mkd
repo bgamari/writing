@@ -1,3 +1,10 @@
+---
+title: Adventures in devicetree land
+description: One experience debugging the transition to a devicetree-enable kernel on the BeagleBoard
+date: 2011-10-16
+tags: devicetree, kernel, beagleboard, linaro
+---
+
 # Adventures in devicetree land
 
 Building kernel with following script,

@@ -1,3 +1,9 @@
+---
+title: Toner transfer PCB etching in a (bio)physics laboratory
+tags: pcb, etch, toner transfer
+date: 2012-01-20
+---
+
 # Toner transfer PCB etching in a (bio)physics laboratory
 
 While with the recent advent of [batch PCB services](http://www.batchpcb.com)

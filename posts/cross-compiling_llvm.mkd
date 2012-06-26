@@ -1,3 +1,9 @@
+---
+title: Cross-compiling LLVM for ARM on Ubuntu
+date: 2011-10-17
+tags: llvm, arm, ubuntu
+---
+
 # Cross-compiling LLVM for ARM on Ubuntu
 
 In my efforts to get the GHC compiler set running registerised on ARM, I found
