@@ -13,9 +13,25 @@ contained within a droplet for minutes at time, greatly extending the
 timescales accessible by fluorescence spectroscopy.
 
 By applying tools developed in the fields of statistics
-and machine learning, we can draw more meaningful and efficient
-inferences from experimental data. To account for the wide breadth of
-dynamics observed in biomolecular systems, we use 
+and machine learning, I seek to draw more meaningful and efficient
+inferences from experimental data. I use probabilistic graphical
+models along with Bayesian inference to construct generative models of
+experimental data, allowing me to account for a variety of phenomena
+in a principled yet tractable manner.
+
+While fluorescence techniques provide a useful view into the slow,
+large amplitude fluctuations in a molecule, resolution of fast
+dynamics, particularly of the labelling fluorophores themselves, are
+well beyond the abilities of the technique. Sadly, these dynamics can
+often have important implications on the effective information content
+of a molecules dynamics found in data. We employ atomistic molecular
+dynamics simulations to shed light on these fast processes, allowing
+us to more effectively understand the bounds of our inferences.
+
+On the instrumentation side, I designed and implemented an inexpensive
+yet flexible hardware timetagger built around an off-the-shelf
+FPGA. This device has served as the primary timetagging platform for my
+experimental work.
 
 #### Relevant publications
   * ["MD Simulations and FRET Studies of Dye-Labeled RNA"](http://goldnerlab.physics.umass.edu/~peker/2011%20biophys%20Milas%20Poster.pdf)
