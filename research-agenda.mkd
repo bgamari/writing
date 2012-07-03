@@ -4,7 +4,8 @@
 
 In Lori Goldner's group I am working to broaden the applicability of
 Förster Resonance Energy Transfer as a tool to probe biomolecular
-systems.
+systems. In particular, I examine the conformational structure of
+nucleic acid polymers such as DNA and RNA.
 
 Building off existing tools developed by Goldner at NIST, we are seeking to
 use droplets as a means of containment for fluorescent species. With a
@@ -12,12 +13,12 @@ tracking system developed by me, we can track single-molecules
 contained within a droplet for minutes at time, greatly extending the
 timescales accessible by fluorescence spectroscopy.
 
-By applying tools developed in the fields of statistics
-and machine learning, I seek to draw more meaningful and efficient
-inferences from experimental data. I use probabilistic graphical
-models along with Bayesian inference to construct generative models of
-experimental data, allowing me to account for a variety of phenomena
-in a principled yet tractable manner.
+By applying tools developed in the fields of statistics and machine
+learning, I seek to draw more meaningful and efficient inferences from
+experimental data. I use probabilistic graphical models along with
+Bayesian inference to construct generative models of experimental
+data, enabling me to account for a variety of phenomena in a
+principled yet tractable manner.
 
 While fluorescence techniques provide a useful view into the slow,
 large amplitude fluctuations in a molecule, resolution of fast
@@ -29,9 +30,11 @@ dynamics simulations to shed light on these fast processes, allowing
 us to more effectively understand the bounds of our inferences.
 
 On the instrumentation side, I designed and implemented an inexpensive
-yet flexible hardware timetagger built around an off-the-shelf
-FPGA. This device has served as the primary timetagging platform for my
-experimental work.
+yet flexible hardware
+[time-tagger](http://goldnerlab.physics.umass.edu/wiki/FpgaTimeTagger)
+built around an off-the-shelf FPGA. The design and associated software
+is available under an open-source license and serves as the primary
+timetagging platform for my experimental work.
 
 #### Relevant publications
   * ["MD Simulations and FRET Studies of Dye-Labeled RNA"](http://goldnerlab.physics.umass.edu/~peker/2011%20biophys%20Milas%20Poster.pdf)
