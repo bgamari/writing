@@ -22,6 +22,10 @@ dynamics observed in biomolecular systems, we use
     (poster at Biophysical Society meeting, 2011)
   * ["From force-fields to photons: MD simulations of dye-labaled nucleic acids and Monte Carlo modelling of FRET"](http://meetings.aps.org/Meeting/NEF11/Event/158326)
     (poster at APS March Meeting, 2011)
+  * Gamari, *et al.* "Inexpensive hardware and software for photon
+    statistics and correlation spectroscopy"
+    [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
+    American Journal of Physics)
 
 
 ## Previous work

@@ -1,5 +1,9 @@
 # Publications
 
+  * Gamari, *et al.* "Inexpensive hardware and software for photon
+    statistics and correlation spectroscopy"
+    [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
+    American Journal of Physics)
   * L. Dietz, *et al.*
     ["De-layering social networks by shared tastes of friendships"](http://people.cs.umass.edu/~dietz/delayer/dietz-cameraready.pdf)
     (published at AAAI Conference for Weblogs and Social Media, 2012).
