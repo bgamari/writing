@@ -28,7 +28,7 @@ calculation of lattice quantum chromodynamics. This included,
     operations, along with testing framework
   * Devise and implement an optimized implementation of the Wilson
     d-slash operator for nVidia's Fermi architecture, accomplishing a
-    factor of 30 improvement in per-package runtime over existing
+    factor of 30 improvement in per-processor throughput over existing
     optimized CPU implementations
   * Adapt implementation of eigensystem-solver
   * Generalize the code-base to operate across a cluster of GPUs
@@ -43,12 +43,12 @@ calculation of lattice quantum chromodynamics. This included,
     GPUs" [arXiv:1103.5103](http://arxiv.org/pdf/1103.5103) (published
     in the *Journal of Computation Physics*)
 
-## Reeves group: Expermental condensed matter
+## Reeves group: Ablation-aided spectroscopy
 
 During my work in Dr. Mark Reeves'
 [group](http://www.gwu.edu/~condmat/CME/reeves.html) I worked to
-implement a laser ablation technique (via
-[MALDI](http://www.wikipedia.org/wiki/MALDI)) on length scales below
+implement a laser ablation technique
+([MALDI](http://www.wikipedia.org/wiki/MALDI)) on length scales below
 the diffraction limit. This work involved,
   
   * Development and optimization of protocols for near-field tip
