@@ -10,6 +10,18 @@ main = hakyll $ do
                 route   idRoute
                 compile compressCssCompiler
 
+        match "research-agenda.mkd" $ do
+                route   $ setExtension "html"
+                compile $ pageCompiler
+                        >>> applyTemplateCompiler "templates/default.html"
+                        >>> relativizeUrlsCompiler
+
+        match "publications.mkd" $ do
+                route   $ setExtension "html"
+                compile $ pageCompiler
+                        >>> applyTemplateCompiler "templates/default.html"
+                        >>> relativizeUrlsCompiler
+
         match "posts/*.mkd" $ do
                 route   $ setExtension "html"
                 compile $ pageCompiler
