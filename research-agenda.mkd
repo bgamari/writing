@@ -23,7 +23,7 @@ particle tracking system, we can observe single-molecules contained
 within a droplet for minutes at a time, greatly extending the timescales
 accessible to single-molecule FRET. <!-- Mention oligomeric studies? -->
 
-### Better analysis for better inference
+### Probabilistic analysis for better inference
 By applying tools developed in the fields of statistics and machine
 learning, I seek to draw more meaningful and efficient inferences from
 experimental data. I use probabilistic graphical models along with
