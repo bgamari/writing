@@ -1,11 +1,12 @@
 # Research Agenda
 
-In Lori Goldner's group I am working to broaden the applicability of
-Förster Resonance Energy Transfer
-([FRET](http://en.wikipedia.org/wiki/F%C3%B6rster_resonance_energy_transfer)
+I am working to further understanding of the applicability of Förster
+Resonance Energy Transfer
+([FRET](http://en.wikipedia.org/wiki/F%C3%B6rster_resonance_energy_transfer))
 as a tool for probing biomolecular systems. With this tool, I examine
 the geometry and flexibility of nucleic acid polymers such as DNA and
-RNA.
+RNA in [Lori Goldner's](http://people.umass.edu/lgoldner/goldner.html)
+single-molecule biophysics group.
 
 ### Droplets for single-molecule confinement
 One of the most common realizations of FRET experiment is by study of
@@ -25,9 +26,9 @@ accessible to single-molecule FRET.
 By applying tools developed in the fields of statistics and machine
 learning, I seek to draw more meaningful and efficient inferences from
 experimental data. I use probabilistic graphical models along with
-Bayesian inference to construct generative models for data. This
-generative approach enables me to account for a variety of phenomena
-in a principled yet computationally tractable manner.
+Bayesian inference to construct generative models for photon
+data. This generative approach enables me to account for a variety of
+phenomena in a principled yet computationally tractable manner.
 
 While FRET provides a useful view into the slow fluctuations and large
 changes of a molecule, resolution of fast dynamics, particularly of
@@ -38,7 +39,7 @@ employ atomistic molecular dynamics simulations to shed light on these
 fast processes, allowing us to more effectively understand the
 applicability of our inferences.
 
-### Science should be Open
+### Science should be open
 I feel that open access to hardware and software is essential for an
 open and reproducible scientific dialogue. For this reason, I have
 designed and implemented an inexpensive yet flexible hardware
