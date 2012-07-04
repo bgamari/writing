@@ -9,18 +9,19 @@ RNA in [Lori Goldner's](http://people.umass.edu/lgoldner/goldner.html)
 single-molecule biophysics group.
 
 ### Droplets for single-molecule confinement
-One of the most common realizations of FRET experiment is by study of
-labelled freely-diffusing molecules under a common light
+One of the most common realizations of FRET experiment is by studying
+fluorescently-labelled freely-diffusing molecules under a common light
 microscope. While this approach can give details of kinetics and
-geometry for an ensemble, it is severely limited in its ability to
-study single specimens especially over long durations.
+geometry for an ensemble, the inability to follow individual specimens
+precludes the study of dynamics of small numbers of molecules
+especially over long durations.
 
 Building off of a technique developed by Goldner at the
 [NIST](http://www.nist.gov/), we use colloidal droplets as a means of
 containing fluorescently labelled molecules. By way of a novel
 particle tracking system, we can observe single-molecules contained
-within a droplet for minutes at time, greatly extending the timescales
-accessible to single-molecule FRET.
+within a droplet for minutes at a time, greatly extending the timescales
+accessible to single-molecule FRET. <!-- Mention oligomeric studies? -->
 
 ### Better analysis for better inferences
 By applying tools developed in the fields of statistics and machine
