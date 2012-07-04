@@ -1,0 +1,68 @@
+# Past work
+
+For a discussion of my current research efforts, see
+[Research Agenda](/research-agenda.html).
+
+## Extraction of friends' shared tastes from social networks
+
+With [Dr. Laura Dietz](http://people.cs.umass.edu/~dietz/), I
+developed a scalable Gibbs sampling framework and implemented and
+compared several topic models. Furthermore, we demostrated a
+substantial improvement in model performance by incorporating
+friendship network structure.
+
+### Relevant publications
+  * L. Dietz, *et al.*
+    ["De-layering social networks by shared tastes of friendships"](http://people.cs.umass.edu/~dietz/delayer/dietz-cameraready.pdf)
+    (published at AAAI Conference for Weblogs and Social Media, 2012).
+
+
+## Alexandru group: Lattice quantum chromodynamics
+
+With
+[Dr. Andrei Alexandru](http://departments.columbian.gwu.edu/physics/people/138)
+I developed a novel code base to greatly accelerate numerical
+calculation of lattice quantum chromodynamics. This included,
+
+  * Implement a variety of optimized kernels for common linear algebra
+    operations, along with testing framework
+  * Devise and implement an optimized implementation of the Wilson
+    d-slash operator for nVidia's Fermi architecture, accomplishing a
+    factor of 30 improvement in per-package runtime over existing
+    optimized CPU implementations
+  * Adapt implementation of eigensystem-solver
+  * Generalize the code-base to operate across a cluster of GPUs
+  
+### Relevant publications
+  * A. Alexandru, *et al.* "Efficient implementation of the overlap
+    operator on multi-GPUs"
+    [arXiv:1106.4964](http://arxiv.org/pdf/1106.4964) (published at
+    *Symposium on Application Accelerators in High Performance
+    Computing, 2011*)
+  * A. Alexandru, *et al.* "Multi-mass solvers for lattice QCD on
+    GPUs" [arXiv:1103.5103](http://arxiv.org/pdf/1103.5103) (published
+    in the *Journal of Computation Physics*)
+
+## Reeves group: Expermental condensed matter
+
+During my work in Dr. Mark Reeves'
+[group](http://www.gwu.edu/~condmat/CME/reeves.html) I worked to
+implement a laser ablation technique (via
+[MALDI](http://www.wikipedia.org/wiki/MALDI)) on length scales below
+the diffraction limit. This work involved,
+  
+  * Development and optimization of protocols for near-field tip
+    production from chalcogenide fiber
+  * Characterization and optimization of atomic force microscope
+    behavior while measuring soft media
+  * Integration of a variety of laboratory equipment for positioning,
+    mass spectroscopy, and laser excitation.
+  
+### Relevant publications
+  * D. Raghu, *et al.* "Near-field ablation threshold of cellular
+    samples at mid-IR wavelengths"
+    [arXiv:1201.4980](http://arxiv.org/abs/1201.4980) (published in
+    *Applied Physics Letters*).
+  * J. Hoffmann, *et al.* "Tip preparation for near-field ablation at
+    mid-infrared wavelengths" (to be published in *Reviews of
+    Scientific Instrumentation*).
