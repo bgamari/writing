@@ -46,6 +46,6 @@ platform for my experimental work.
   * Gamari, *et al.* "Inexpensive hardware and software for photon
     statistics and correlation spectroscopy"
     [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
-    American Journal of Physics)
+    *American Journal of Physics*)
 
 

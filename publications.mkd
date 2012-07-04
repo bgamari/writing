@@ -3,15 +3,15 @@
   * Gamari, *et al.* "Inexpensive hardware and software for photon
     statistics and correlation spectroscopy"
     [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
-    American Journal of Physics)
+    *American Journal of Physics*)
   * L. Dietz, *et al.*
     ["De-layering social networks by shared tastes of friendships"](http://people.cs.umass.edu/~dietz/delayer/dietz-cameraready.pdf)
     (published at AAAI Conference for Weblogs and Social Media, 2012).
   * A. Alexandru, *et al.* "Efficient implementation of the overlap
     operator on multi-GPUs"
     [arXiv:1106.4964](http://arxiv.org/pdf/1106.4964) (published at
-    *Symposium on Application Accelerators in High Performance
-    Computing, 2011*)
+    Symposium on Application Accelerators in High Performance
+    Computing, 2011)
   * A. Alexandru, *et al.* "Multi-mass solvers for lattice QCD on
     GPUs" [arXiv:1103.5103](http://arxiv.org/pdf/1103.5103) (published
     in the *Journal of Computation Physics*)
@@ -21,4 +21,4 @@
     *Applied Physics Letters*).
   * J. Hoffmann, *et al.* "Tip preparation for near-field ablation at
     mid-infrared wavelengths" (to be published in *Reviews of
-    Scientific Instrumentation*).
+    Scientific Instruments*).
