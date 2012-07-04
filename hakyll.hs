@@ -24,7 +24,7 @@ main = hakyll $ do
                         >>> applyTemplateCompiler "templates/default.html"
                         >>> relativizeUrlsCompiler
      
-        match "images/**" $ do
+        match "media/**" $ do
                 route   idRoute
                 compile copyFileCompiler
 
