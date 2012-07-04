@@ -3,38 +3,42 @@
 ### Goldner group: Experimental biophysics
 
 In Lori Goldner's group I am working to broaden the applicability of
-Förster Resonance Energy Transfer as a tool to probe biomolecular
-systems. In particular, I examine the conformational structure of
+Förster Resonance Energy Transfer (FRET) as a tool to probe biomolecular
+systems. With this tool, I examine the geometry and flexibility of
 nucleic acid polymers such as DNA and RNA.
 
-Building off existing tools developed by Goldner at NIST, we are seeking to
-use droplets as a means of containment for fluorescent species. With a
-tracking system developed by me, we can track single-molecules
-contained within a droplet for minutes at time, greatly extending the
-timescales accessible by fluorescence spectroscopy.
+Building off of existing tools developed by Goldner at NIST, we
+use colloidal droplets as a means of containment for fluorescently
+labelled molecules. By way of a novel particle tracking system, we can
+observed single-molecules contained within a droplet for minutes at
+time, greatly extending the timescales accessible to fluorescence
+spectroscopy.
 
 By applying tools developed in the fields of statistics and machine
 learning, I seek to draw more meaningful and efficient inferences from
 experimental data. I use probabilistic graphical models along with
 Bayesian inference to construct generative models of experimental
-data, enabling me to account for a variety of phenomena in a
-principled yet tractable manner.
+data. This generative modelling approach enables me to account for a
+variety of phenomena in a principled yet computationally tractable
+manner.
 
-While fluorescence techniques provide a useful view into the slow,
-large amplitude fluctuations in a molecule, resolution of fast
-dynamics, particularly of the labelling fluorophores themselves, are
-well beyond the abilities of the technique. Sadly, these dynamics can
-often have important implications on the effective information content
-of a molecules dynamics found in data. We employ atomistic molecular
+While FRET techniques provide a useful view into the slow fluctuations
+and large changes of a molecule, resolution of fast dynamics,
+particularly of the fluorophores themselves, is well beyond the
+abilities of the technique. These dynamics can often have
+significant implications on the information content of a
+molecule's dynamics found in data. We employ atomistic molecular
 dynamics simulations to shed light on these fast processes, allowing
-us to more effectively understand the bounds of our inferences.
+us to more effectively understand the applicability of our inferences.
 
-On the instrumentation side, I designed and implemented an inexpensive
-yet flexible hardware
+I feel that open access to hardware and software is essential for an
+open and reproducible scientific dialogue. For this reason, I have
+designed and implemented an inexpensive yet flexible hardware
 [time-tagger](http://goldnerlab.physics.umass.edu/wiki/FpgaTimeTagger)
-built around an off-the-shelf FPGA. The design and associated software
-is available under an open-source license and serves as the primary
-timetagging platform for my experimental work.
+built around an off-the-shelf FPGA for use in single-photon counting
+applications. The design and associated software is available under an
+open-source license and serves as the primary data acquisition
+platform for my experimental work.
 
 #### Relevant publications
   * ["MD Simulations and FRET Studies of Dye-Labeled RNA"](http://goldnerlab.physics.umass.edu/~peker/2011%20biophys%20Milas%20Poster.pdf)
