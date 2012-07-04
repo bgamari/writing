@@ -31,7 +31,8 @@ Bayesian inference to construct generative models for photon
 data. This generative approach enables me to account for a variety of
 phenomena in a principled yet computationally tractable manner.
 
-While FRET provides a useful view into the slow fluctuations and large
+<!--
+While FRET provides a useful view onto the slow fluctuations and large
 changes of a molecule, resolution of fast dynamics, particularly of
 the fluorophores themselves, is well beyond the reach of the
 technique. These dynamics can often have significant implications on
@@ -39,6 +40,15 @@ the information content of the resulting experimental data. We
 employ atomistic molecular dynamics simulations to shed light on these
 fast processes, allowing us to more effectively understand the
 applicability of our inferences.
+-->
+
+The time scales of events that can be studied with FRET is
+limited. From physical models we expect our observations to be
+perturbed by fast dynamics. In order to account for these
+effects we employ atomistic molecular dynamics simulations to shed
+light on these fast processes, allowing us to understand under which
+constraints our inference is valid.
+
 
 ### Science should be open
 Open access to hardware and software is essential for an open and
