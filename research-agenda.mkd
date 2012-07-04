@@ -1,16 +1,16 @@
 # Research Agenda
 
 In Lori Goldner's group I am working to broaden the applicability of
-Förster Resonance Energy Transfer (FRET) as a tool to probe biomolecular
-systems. With this tool, I examine the geometry and flexibility of
-nucleic acid polymers such as DNA and RNA.
+Förster Resonance Energy Transfer (FRET) as a tool for probing
+biomolecular systems. With this tool, I examine the geometry and
+flexibility of nucleic acid polymers such as DNA and RNA.
 
-Building off of existing tools developed by Goldner at NIST, we
-use colloidal droplets as a means of containment for fluorescently
-labelled molecules. By way of a novel particle tracking system, we can
-observed single-molecules contained within a droplet for minutes at
-time, greatly extending the timescales accessible to fluorescence
-spectroscopy.
+Building off of a technique developed by Goldner at the
+[NIST](http://www.nist.gov/), we use colloidal droplets as a means of
+containing fluorescently labelled molecules. By way of a novel
+particle tracking system, we can observe single-molecules contained
+within a droplet for minutes at time, greatly extending the timescales
+accessible to FRET.
 
 By applying tools developed in the fields of statistics and machine
 learning, I seek to draw more meaningful and efficient inferences from
@@ -20,14 +20,14 @@ data. This generative modelling approach enables me to account for a
 variety of phenomena in a principled yet computationally tractable
 manner.
 
-While FRET techniques provide a useful view into the slow fluctuations
-and large changes of a molecule, resolution of fast dynamics,
-particularly of the fluorophores themselves, is well beyond the
-abilities of the technique. These dynamics can often have
-significant implications on the information content of a
-molecule's dynamics found in data. We employ atomistic molecular
-dynamics simulations to shed light on these fast processes, allowing
-us to more effectively understand the applicability of our inferences.
+While FRET provides a useful view into the slow fluctuations and large
+changes of a molecule, resolution of fast dynamics, particularly of
+the fluorophores themselves, is well beyond the abilities of the
+technique. These dynamics can often have significant implications on
+the information content of a molecule's dynamics found in data. We
+employ atomistic molecular dynamics simulations to shed light on these
+fast processes, allowing us to more effectively understand the
+applicability of our inferences.
 
 I feel that open access to hardware and software is essential for an
 open and reproducible scientific dialogue. For this reason, I have
