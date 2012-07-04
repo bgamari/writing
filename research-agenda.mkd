@@ -41,21 +41,21 @@ fast processes, allowing us to more effectively understand the
 applicability of our inferences.
 
 ### Science should be open
-I feel that open access to hardware and software is essential for an
-open and reproducible scientific dialogue. In pursuit of this goal, I
-have designed and implemented an inexpensive yet flexible hardware
-[time-tagger](http://goldnerlab.physics.umass.edu/wiki/FpgaTimeTagger)
-built around an off-the-shelf FPGA for use in single-photon counting
-applications. The design and associated software is available under an
-open-source license and serves as the primary data acquisition
-platform for my experimental work.
+Open access to hardware and software is essential for an open and
+reproducible scientific dialogue. In pursuit of this goal, 
+I make the components of my experimental apparatus and analysis
+pipeline available for reuse and modification. One example of this 
+is the freely available
+[`fpga-timetagger`](http://goldnerlab.physics.umass.edu/wiki/FpgaTimeTagger),
+designed around an inexpensive off-the-shelf FPGA for use in
+single-photon counting applications. The design and associated
+software is available under an open-source license and serves as the
+primary data acquisition platform for my experimental work.
 
 Additionally, all of my analysis code can be found on the group
-[git repository](http://goldnerlab.physics.umass.edu/git/index.cgi). While
-time constraints often make it challenging to thoroughly document each
-of my tools, I strive to at very least release source. If you are
-interested in any of the projects you find, don't hesitate to send me
-an email.
+[git repository](http://goldnerlab.physics.umass.edu/git/index.cgi)
+If you are interested in any of the projects you find, don't hesitate
+to send me an email.
 
 ## Relevant publications
   * ["MD Simulations and FRET Studies of Dye-Labeled RNA"](http://goldnerlab.physics.umass.edu/~peker/2011%20biophys%20Milas%20Poster.pdf)
