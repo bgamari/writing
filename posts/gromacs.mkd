@@ -1,6 +1,7 @@
 ---
 title: Installing OpenMM and GROMACS with AMBER force-field
 description: Installing the GROMACS molecular dynamics package with GPU acceleration and the AMBER force-field.
+tags: openmm, gromacs, ubuntu, amber
 date: 2011-10-16
 ---
 
