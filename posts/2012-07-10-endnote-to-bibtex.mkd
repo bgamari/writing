@@ -1,0 +1,26 @@
+---
+title: Endnote to Bibtex without pain
+tags: endnote, bibtex, bibliography
+date: 2012-07-10
+---
+
+For others set with the unfortunately task of converting an Endnote
+database to Bibtex: fear not the command line.
+
+After several hours of fiddling around with Endnote's own conversion
+facility, [Zotero](http://www.zotero.org/),
+[Cite-U-Like](http://www.citeulike.org/),
+[Referencer](http://launchpad.net/referencer/), and even writing my
+own poorly performing utility, I finally stumbled upon the one true
+solution: [`bibutils`](http://bibutils.refbase.org/). This wonderful
+little package made this otherwise quite frustrating task as trivial
+as one can expect,
+
+    $ sudo apt-get install bibutils
+    $ endx2xml refs.xml > refs-mods.xml
+    $ xml2bib refs-mods.xml > refs.bib
+
+Beautiful. The
+[UNIX philosophy](http://en.wikipedia.org/wiki/Unix_philosophy) wins
+again.
+
