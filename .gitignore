@@ -1,0 +1,7 @@
+cabal-dev
+_cache
+_site
+github
+\#*\#
+*~
+.*.swp
