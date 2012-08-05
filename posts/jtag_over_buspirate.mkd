@@ -32,6 +32,7 @@ Compile,
 	$ sudo make install
 	
 Create configuration file,
+
 	$ cat > openocd.cfg
 	source [find interface/buspirate.cfg]
 	buspirate_port /dev/ttyUSB0
