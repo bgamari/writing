@@ -1,0 +1,52 @@
+---
+title: Running mesa from git on Ubuntu
+tags: mesa, ubuntu
+date: 2012-08-30
+---
+# Running mesa from git on Ubuntu
+
+This was written against Ubuntu 12.04 although it's unlikely things will change appreciably.
+
+First we'll need some prerequisite packages,
+
+    $ sudo apt-get install libpciaccess-dev
+
+Let's setup a directory to work within,
+
+    $ MESA_ROOT=/opt/mesa
+    $ mkdir $MESA_ROOT
+    $ cd $MESA_ROOT
+    $ cat <<EOF > env.sh
+    export MESA_ROOT=$MESA_ROOT
+    export LD_LIBRARY_PATH=\$MESA_ROOT/prefix/lib:\$LD_LIBRARY_PATH
+    PATH=\$MESA_ROOT/prefix/bin:\$PATH
+    export PKG_CONFIG_PATH=\$MESA_ROOT/prefix/lib/pkgconfig:\$PKG_CONFIG_PATH
+    EOF
+    $ source env.sh
+    
+First we need to check out `libdrm`,
+
+    $ git clone git://anongit.freedesktop.org/mesa/drm
+    $ cd drm
+    $ ./autogen.sh --prefix=$MESA_ROOT/prefix
+    $ make
+    $ make install
+   
+Now for mesa. Since I'm working on Intel hardware, I'll exclude the
+nouveau and radeon drivers from the build,
+
+    $ cd $MESA_ROOT
+    $ git clone git://anongit.freedesktop.org/mesa/mesa
+    $ cd mesa
+    $ ./autogen.sh --prefix=$MESA_ROOT/prefix --with-dri-drivers=swrast,i915,i965
+    $ make
+    $ make install
+    
+Now we need to point the system towards our newly built drivers,
+
+    $ sudo sh -c "echo LD_LIBRARY_PATH=$MESA_ROOT/prefix/lib:\$LD_LIBRARY_PATH >> /etc/environment"
+    $ sudo sh -c "echo DRI_DRIVER_PATH=$MESA_ROOT/prefix/lib/dri >> /etc/environment"
+
+In principle restarting your X session should now give you a shiny new
+mesa.
+
