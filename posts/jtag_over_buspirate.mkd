@@ -103,7 +103,7 @@ Now let's reflash the old firmware,
 	target state: halted
 	target halted due to debug-request, current mode: Thread 
 	xPSR: 0xa1000000 pc: 0x1fff0ba2 msp: 0x10007fb8
-	> flash write_image blinky.bin 0x0 bin
+	> flash write_image erase blinky.bin 0x0 bin
 	flash write_image erase blinky.bin 0x0 bin
 	auto erase enabled
 	wrote 524288 bytes from file blinky.bin in 441.431091s (1.160 KiB/s)	
