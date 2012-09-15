@@ -102,21 +102,22 @@ is helpful, details on the hardware configuration are pretty sparse.
 <div style="float:right;">
     <table>
         <tr><th>Signal</th><th>Bus Pirate</th><th>mchck</th></tr>
-        <tr><td>TCK</td><td>CLK</td><td>P4-2</td></tr>
-        <tr><td>TMS</td><td>CS</td><td>P4-3</td></tr>
-        <tr><td>TDI</td><td>MOSI</td><td>P3-1</td></tr>
-        <tr><td>TDO</td><td>MISO</td><td>P4-2</td></tr>
-        <tr><td>GND</td><td>GND</td><td>P4-2</td></tr>
+        <tr><td>TCK</td>   <td>PA14</td>  <td>CLK</td>  <td>P4-4</td></tr>
+        <tr><td>TMS</td>   <td>PA13</td>  <td>CS</td>   <td>P4-3</td></tr>
+        <tr><td>TDI</td>   <td>PA15</td>  <td>MOSI</td> <td>P3-1</td></tr>
+        <tr><td>TDO</td>   <td>PB3</td>   <td>MISO</td> <td>P3-2</td></tr>
+        <tr><td>NJTRSR</td><td>PB4</td>   <td>MISO</td> <td>P3-3</td></tr>
+        <tr><td>GND</td>   <td></td>      <td>GND</td>  <td>P4-2</td></tr>
     </table>
     <b>JTAG interface pins</b>
 </div>
 
 <div style="float:right; background-color: grey50;">
     <table>
-      <tr><th>Signal</th><th>Bus Pirate</th><th>mchck</th></tr>
-      <tr><td>SWCLK</td><td>CLK</td><td>P4-4</td></tr>
-      <tr><td>SWDIO</td><td>MOSI</td><td>P4-3</td></tr>
-      <tr><td>GND</td><td>GND</td><td>P4-2</td></tr>
+      <tr><th>Signal</th><th>STM32 Pin</th><th>Bus Pirate</th><th>mchck</th></tr>
+      <tr><td>SWCLK</td> <td>PA14</td>  <td>CLK</td>  <td>P4-4</td></tr>
+      <tr><td>SWDIO</td> <td>PA13</td>  <td>MOSI</td> <td>P4-3</td></tr>
+      <tr><td>GND</td>   <td></td>      <td>GND</td>  <td>P4-2</td></tr>
     </table>
     <b>Serial Wire Debug interface pins</b>
 </div>
