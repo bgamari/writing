@@ -1,5 +1,9 @@
 # Publications
 
+  * Milas, *et al.* "Indocyanine dyes approach free rotation at 3'
+    terminus of A-RNA: A comparison with the 5' terminus and consequences
+    for FRET
+    (submitted to *Journal of Physical Chemistry B*)
   * Gamari, *et al.* "Inexpensive hardware and software for photon
     statistics and correlation spectroscopy"
     [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
