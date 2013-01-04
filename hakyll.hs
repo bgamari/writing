@@ -1,8 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Hakyll
+import Hakyll.Web.Feed
 import Control.Arrow ((>>>), (***), arr)
 import Data.Monoid (mempty, mconcat)
+
+feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
+                               , feedDescription = "Various ramblings, generally of a technical nature"
+                               , feedAuthorName = "Ben Gamari"
+                               , feedRoot = "http://bgamari.github.com/"
+                               , feedAuthorEmail = "bgamari@gmail.com"
+                               }
 
 main :: IO ()
 main = hakyll $ do
@@ -23,6 +31,10 @@ main = hakyll $ do
                 compile $ pageCompiler
                         >>> applyTemplateCompiler "templates/default.html"
                         >>> relativizeUrlsCompiler
+     
+        match "rss.xml" $ route idRoute
+        create "rss.xml" $
+                requireAll_ "posts/*.mkd" >>> renderRss feedConfig
      
         match "media/**" $ do
                 route   idRoute
