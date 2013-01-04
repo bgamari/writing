@@ -1,0 +1,77 @@
+---
+title: GHC on ARM update
+tags: GHC ARM
+date: 2013-01-04
+---
+# GHC on ARM update
+
+About a year ago, I started work on adding support for the ARM
+architecture to GHC's runtime linker. While ARM has been a half-supported
+architecture for quite some time with LLVM's code generator, the lack
+of a runtime linker meant that GHCi and, perhaps more importantly,
+Template Haskell were not available.
+
+After many hours of pouring over the ELF for ARM, ARM Architectural
+Reference Manual (ARM ARM), and ARM runtime ABI specifications, and
+countless more hours single-stepping through ARM assembler I had a
+patch which could get me through enough linking to arrive at the
+familiar GHCi prompt. The bulk of this work was implementing the
+various relocation types defined by the ELF for ARM
+specification. While the specification defines well over a hundred
+types of relocations, thankfully only a dozen or so of these seem to
+show up in object code in the wild.
+
+As with most low-level programming, the work of implementing these is
+extremely unforegiving: a subtle misinterpretation of the
+specification (which itself isn't always clear) is only apparent well
+after the linking has been done, manifested as a invalid instruction,
+segmentation fault, or some other processor exception. Debugging these
+crashes is painstaking at best: the stack of a GHC program is often
+quite unhelpful, if you are lucky the instruction pointed to by the
+link register (`$lr`) is the culpable relocation but this often isn't
+the case. Consequently, most of the refinement of the relocation
+implementation occurred by brute force staring.
+
+Nevertheless, by February I had finished enough of the relocations to
+propose the patch set for merge (although the number of failing
+testsuite cases make it clear that more work remained to be
+done). After some further testing (thanks to Karel Gardas), the set
+was merged for GHC 7.4.2.
+
+After the release, my time budget for GHC had been spent. This,
+combined with a hardware failure on my PandaBoard meant that the next
+nine months went by with little progress on the GHC ARM front. This
+break I started dusting off my ARM environment and found that several
+things had broken since my last attempts (documented
+[here](/posts/ghc-llvm-arm.html)).
+
+The first issue manifested itself at the end of the stage 2 compiler
+build. The linker seemed to complain of VFP calling convention
+mismatch between the objects produced by the C compiler and GHC,
+
+    "/usr/bin/ld" --hash-size=31     --reduce-memory-overheads -r -o libraries/ghc-prim/dist-install/build/HSghc-prim-0.2.0.0.o  libraries/ghc-prim/dist-install/build/GHC/Classes.o libraries/ghc-prim/dist-install/build/GHC/CString.o libraries/ghc-prim/dist-install/build/GHC/Debug.o libraries/ghc-prim/dist-install/build/GHC/Generics.o libraries/ghc-prim/dist-install/build/GHC/Magic.o libraries/ghc-prim/dist-install/build/GHC/PrimopWrappers.o libraries/ghc-prim/dist-install/build/GHC/IntWord64.o libraries/ghc-prim/dist-install/build/GHC/Tuple.o libraries/ghc-prim/dist-install/build/GHC/Types.o   libraries/ghc-prim/dist-install/build/cbits/debug.o libraries/ghc-prim/dist-install/build/cbits/longlong.o libraries/ghc-prim/dist-install/build/cbits/popcnt.o   
+    /usr/bin/ld: error: libraries/ghc-prim/dist-install/build/cbits/debug.o uses VFP register arguments, libraries/ghc-prim/dist-install/build/HSghc-prim-0.2.0.0.o does not
+    /usr/bin/ld: failed to merge target specific data of file libraries/ghc-prim/dist-install/build/cbits/debug.o
+    /usr/bin/ld: error: libraries/ghc-prim/dist-install/build/cbits/longlong.o uses VFP register arguments, libraries/ghc-prim/dist-install/build/HSghc-prim-0.2.0.0.o does not
+    /usr/bin/ld: failed to merge target specific data of file libraries/ghc-prim/dist-install/build/cbits/longlong.o
+    /usr/bin/ld: error: libraries/ghc-prim/dist-install/build/cbits/popcnt.o uses VFP register arguments, libraries/ghc-prim/dist-install/build/HSghc-prim-0.2.0.0.o does not
+    /usr/bin/ld: failed to merge target specific data of file libraries/ghc-prim/dist-install/build/cbits/popcnt.o
+
+Poking around a bit in the build process, it appeared that LLVM was
+defaulting to the soft-float ABI. Forcing LLVM to use hard-float in
+`build.mk` seemed to fix the issue,
+
+    SRC_HC_OPTS        = -H64m -Rghc-timing -optc-mfloat-abi=hard -optc-mcpu=cortex-a9 -optlc-mcpu=cortex-a9
+
+This allowed the build to proceed to completion, resulting in what
+appeared to be a reasonably functional compiler: `ghci` appeared to
+work and simple test programs could be built. Sadly, testsuite
+compliance looks even worse than I recalled was the case in 7.4.
+
+Attempting to compile `vector` results in a pretty nasty looking crash,
+
+
+Perhaps LLVM is to blame. Upgrading LLVM from 3.1 to HEAD (git mirror
+revision `ab7032090871abf6aeed86b2c4b836e97771d234`). LLVM testsuite
+passes with no failures.
+
