@@ -59,6 +59,10 @@ footer#footer {
     clear: both;
 }
 
+#posts ul {
+    list-style: none;
+}
+
 li.post {
     padding-bottom: 1em;
 }
