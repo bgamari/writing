@@ -1,9 +1,18 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, Arrows #-}
+
+import Prelude hiding (id)
+import Control.Category (id)
 
 import Hakyll
 import Hakyll.Web.Feed
-import Control.Arrow ((>>>), (***), arr)
-import Data.Monoid (mempty, mconcat)
+import Hakyll.Web.Tags
+import Control.Arrow
+import Data.Monoid (mempty, mconcat, (<>))
+
+import Text.Blaze.Html.Renderer.String (renderHtml)
+import Text.Blaze.Html ((!), toHtml, toValue)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 
 feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
                                , feedDescription = "Various ramblings, generally of a technical nature"
@@ -57,11 +66,31 @@ main = hakyll $ do
 
         match "templates/*" $ compile templateCompiler
 
-
 addPostList :: Compiler (Page String, [Page String]) (Page String)
 addPostList = setFieldA "posts" $
     arr (reverse . chronological)
-        >>> require "templates/postitem.html" (\p t -> map (applyTemplate t) p)
-        >>> arr mconcat
-        >>> arr pageBody
+    >>> requireA "templates/postitem.html" (arr (\(a,b)->(b,a)) ^>> mapCompiler' applyPostItem)
+    >>> arr mconcat
+    >>> arr pageBody
+  where
+    applyPostItem :: Compiler (Template, Page String) (Page String)
+    applyPostItem = 
+        second (renderTagList' "tagsf" (const $ Identifier Nothing "404"))
+        >>> arr (\(t,page)->applyTemplate t page)
+  
+mapCompiler' :: Compiler (a,b) c -> Compiler (a,[b]) [c]
+mapCompiler' ar = arr (\(a,bs)->zip (repeat a) bs) >>> mapCompiler ar
 
+-- | Render tags as HTML list with links
+--
+renderTagList' :: String
+               -- ^ Destination key
+               -> (String -> Identifier a)
+               -- ^ Produce a link for a tag
+               -> Compiler (Page a) (Page a)
+renderTagList' destination makeUrl =
+    id &&& arr getTags >>> setFieldA destination renderTags
+  where
+    renderTags :: Compiler [String] String
+    renderTags =     arr (map (H.li . toHtml))
+                 >>> arr (renderHtml . mconcat)

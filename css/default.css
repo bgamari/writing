@@ -66,4 +66,15 @@ footer#footer {
 li.post {
     padding-bottom: 1em;
 }
-    
+
+ul.tags {
+    list-style: none;
+    display: inline;
+    padding: 0;
+}
+
+ul.tags li {
+    display: inline;
+    padding: 0 0.3em;
+    color: #444;
+}
