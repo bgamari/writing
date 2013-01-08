@@ -1,0 +1,38 @@
+# Beginnings of the blot-bot
+
+Over the last several weeks, various graduate students and I have been
+reflecting on the role (or perhaps lack thereof) of open source
+hardware in the fields of physical science research.
+
+Among other things, this has lead to the UMass Open Science Hardware
+Workshop which took place last Saturday, which brought together folks
+from around UMass (as well as some coming from out of state; thanks
+for coming!) to discuss the capabilities, advantages, and challenges
+of using open source hardware and software in a research setting. While this was great, I'll leave this for another time.
+
+What I want to talk about today is a small project introduced to me by
+(Don Blair)[http://www.donblair.cc/] which I think represents an
+obvious entry point for open source hardware in the life
+sciences. Like many in biological physics, I try to avoid systems
+requiring tedious preparation. That being said, it's difficult to
+avoid chemistry altogether and I have spend a fair number of hours
+with Pipetman in hand. Consequently, I can appreciate the pain that
+biologists must endure to perform a (Western
+blot)[http://en.wikipedia.org/wiki/Western_blot]. This experiment is
+one of a class of techniques ubiquitous in the life sciences which
+require perfectly intelligent, able-minded graduate students to
+perform repetitive tasks only fit for a trained monkey.
+
+Don and I feel this class of experiment should no longer wreck havoc
+on the lives of unsuspecting students, lab technicians, and
+post-docs. As a result, we've been reflecting on ways to make these
+techniques just slightly less painful. In keeping with our shared
+belief in the strength of open ideas, we intend to continue this
+exploration in the open.
+
+The current focus of our efforts is a machine which we have termed the
+Blot Bot. Whether it will be useful for Western blots remains to be
+seen, but it is a solid step towards an open platform for automating
+multi-step chemical processes.
+
+
