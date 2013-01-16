@@ -6,7 +6,8 @@ import Control.Category (id)
 import Hakyll
 import Hakyll.Web.Feed
 import Hakyll.Web.Tags
-import Control.Arrow
+import Control.Monad
+import Control.Applicative ((<$>))       
 import Data.Monoid (mempty, mconcat, (<>))
 
 import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -27,70 +28,60 @@ main = hakyll $ do
                 route   idRoute
                 compile compressCssCompiler
 
-        match (list [ "publications.mkd", "research-agenda.mkd"
+        match (fromList [ "publications.mkd", "research-agenda.mkd"
                     , "past-research.mkd"
                     ]) $ do
                 route   $ setExtension "html"
-                compile $ pageCompiler
-                        >>> applyTemplateCompiler "templates/default.html"
-                        >>> relativizeUrlsCompiler
+                compile $ pandocCompiler
+                        >>= loadAndApplyTemplate "templates/default.html" mempty
+                        >>= relativizeUrls
 
         match "posts/*.mkd" $ do
                 route   $ setExtension "html"
-                compile $ pageCompiler
-                        >>> applyTemplateCompiler "templates/default.html"
-                        >>> relativizeUrlsCompiler
+                compile $ pandocCompiler
+                        >>= loadAndApplyTemplate "templates/default.html" mempty
+                        >>= relativizeUrls
      
-        match "rss.xml" $ route idRoute
-        create "rss.xml" $
-                requireAll_ "posts/*.mkd" >>> renderRss feedConfig
+        create ["rss.xml"] $ do
+                route idRoute
+                compile $ loadAll "posts/*.mkd" >>= renderRss feedConfig mempty
      
         match "media/**" $ do
                 route   idRoute
                 compile copyFileCompiler
 
-        match "index.html" $ route idRoute
-        create "index.html" $ constA mempty
-                >>> arr (setField "title" "Home")
-                >>> applyTemplateCompiler "templates/index.html"
-                >>> applyTemplateCompiler "templates/default.html"
-                >>> relativizeUrlsCompiler
+        create ["index.html"] $ do
+                route idRoute
+                compile $ (load "index.html" :: Compiler (Item String))
+                        >>= loadAndApplyTemplate "templates/default.html" (field "title" $ const $ return "Home")
+                        >>= relativizeUrls
 
-        match "posts.html" $ route idRoute
-        create "posts.html" $ constA mempty
-                >>> arr (setField "title" "Posts")
-                >>> requireAllA "posts/*.mkd" addPostList
-                >>> applyTemplateCompiler "templates/posts.html"
-                >>> applyTemplateCompiler "templates/default.html"
-                >>> relativizeUrlsCompiler
+        create ["posts.html"] $ do
+                route idRoute
+                compile $ loadAll "posts/*.mkd"
+                        >>= postList
+                        >>= loadAndApplyTemplate "templates/posts.html" mempty
+                        >>= loadAndApplyTemplate "templates/default.html" (field "title" $ const $ return "Posts")
+                        >>= relativizeUrls
 
         match "templates/*" $ compile templateCompiler
 
-addPostList :: Compiler (Page String, [Page String]) (Page String)
-addPostList = setFieldA "posts" $
-    arr (reverse . chronological)
-    >>> requireA "templates/postitem.html" (arr (\(a,b)->(b,a)) ^>> mapCompiler' applyPostItem)
-    >>> arr mconcat
-    >>> arr pageBody
+postList :: [Item String] -> Compiler (Item String)
+postList posts =
+    return (reverse $ chronological posts)
+    >>= mapM (loadAndApplyTemplate "templates/postitem.html" ctxt)
+    >>= makeItem . mconcat . map itemBody
   where
-    applyPostItem :: Compiler (Template, Page String) (Page String)
-    applyPostItem = 
-        second (renderTagList' "tagsf" (const $ Identifier Nothing "404"))
-        >>> arr (\(t,page)->applyTemplate t page)
+    ctxt = renderTagList' "tagsList" (const $ fromFilePath "error/404")
   
-mapCompiler' :: Compiler (a,b) c -> Compiler (a,[b]) [c]
-mapCompiler' ar = arr (\(a,bs)->zip (repeat a) bs) >>> mapCompiler ar
-
 -- | Render tags as HTML list with links
---
 renderTagList' :: String
                -- ^ Destination key
-               -> (String -> Identifier a)
+               -> (String -> Identifier)
                -- ^ Produce a link for a tag
-               -> Compiler (Page a) (Page a)
+               -> Context String
 renderTagList' destination makeUrl =
-    id &&& arr getTags >>> setFieldA destination renderTags
+    field destination $ \item->renderTags <$> getTags (itemIdentifier item)
   where
-    renderTags :: Compiler [String] String
-    renderTags =     arr (map (H.li . toHtml))
-                 >>> arr (renderHtml . mconcat)
+    renderTags :: [String] -> String
+    renderTags = renderHtml . mconcat . map (H.li . toHtml)
