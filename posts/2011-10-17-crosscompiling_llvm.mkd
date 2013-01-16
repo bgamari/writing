@@ -1,5 +1,6 @@
 ---
 title: Cross-compiling LLVM for ARM on Ubuntu
+description: A short guide on building the LLVM compiler framework to run on an ARM target
 date: 2011-10-17
 tags: llvm, arm, ubuntu
 ---

@@ -1,6 +1,7 @@
 ---
 title: GHC on ARM update
 tags: GHC ARM
+description: Status upon on my work in making the Glasgow Haskell Compiler run on the ARM architecture
 date: 2013-01-04
 ---
 # GHC on ARM update

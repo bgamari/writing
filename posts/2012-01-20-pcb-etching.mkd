@@ -1,6 +1,7 @@
 ---
 title: Toner transfer PCB etching in a (bio)physics laboratory
 tags: pcb, etch, toner transfer
+description: My methodology for PCB etching via toner transfer
 date: 2012-01-20
 ---
 

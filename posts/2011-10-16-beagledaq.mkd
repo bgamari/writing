@@ -1,5 +1,6 @@
 ---
 title: Building BeagleDAQ and Tracker environment
+description: Compiling the software environment for the BeagleDAQ and particle tracker
 tags: beagledaq, linaro
 date: 2011-10-16
 ---

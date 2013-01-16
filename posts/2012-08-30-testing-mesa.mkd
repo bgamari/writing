@@ -1,8 +1,10 @@
 ---
 title: Running mesa from git on Ubuntu
 tags: mesa, ubuntu
+description: Testing mesa from git on Ubuntu
 date: 2012-08-30
 ---
+
 # Running mesa from git on Ubuntu
 
 This was written against Ubuntu 12.04 although it's unlikely things
