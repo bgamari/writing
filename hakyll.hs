@@ -33,35 +33,35 @@ main = hakyll $ do
                     ]) $ do
                 route   $ setExtension "html"
                 compile $ pandocCompiler
-                        >>= loadAndApplyTemplate "templates/default.html" mempty
+                        >>= loadAndApplyTemplate "templates/default.html" defaultContext
                         >>= relativizeUrls
 
         match "posts/*.mkd" $ do
                 route   $ setExtension "html"
                 compile $ pandocCompiler
-                        >>= loadAndApplyTemplate "templates/default.html" mempty
+                        >>= loadAndApplyTemplate "templates/default.html" defaultContext
                         >>= relativizeUrls
      
         create ["rss.xml"] $ do
                 route idRoute
-                compile $ loadAll "posts/*.mkd" >>= renderRss feedConfig mempty
+                compile $ loadAll "posts/*.mkd" >>= renderRss feedConfig defaultContext
      
         match "media/**" $ do
                 route   idRoute
                 compile copyFileCompiler
 
-        create ["index.html"] $ do
+        match "index.html" $ do
                 route idRoute
-                compile $ (load "index.html" :: Compiler (Item String))
-                        >>= loadAndApplyTemplate "templates/default.html" (field "title" $ const $ return "Home")
+                compile $ getResourceBody
+                        >>= loadAndApplyTemplate "templates/default.html" (defaultContext <> field "title" (const $ return "Home"))
                         >>= relativizeUrls
 
         create ["posts.html"] $ do
                 route idRoute
                 compile $ loadAll "posts/*.mkd"
                         >>= postList
-                        >>= loadAndApplyTemplate "templates/posts.html" mempty
-                        >>= loadAndApplyTemplate "templates/default.html" (field "title" $ const $ return "Posts")
+                        >>= loadAndApplyTemplate "templates/posts.html" defaultContext
+                        >>= loadAndApplyTemplate "templates/default.html" (field "title" (const $ return "Posts") <> defaultContext)
                         >>= relativizeUrls
 
         match "templates/*" $ compile templateCompiler
@@ -69,7 +69,7 @@ main = hakyll $ do
 postList :: [Item String] -> Compiler (Item String)
 postList posts =
     return (reverse $ chronological posts)
-    >>= mapM (loadAndApplyTemplate "templates/postitem.html" ctxt)
+    >>= mapM (loadAndApplyTemplate "templates/postitem.html" (ctxt<>defaultContext))
     >>= makeItem . mconcat . map itemBody
   where
     ctxt = renderTagList' "tagsList" (const $ fromFilePath "error/404")
