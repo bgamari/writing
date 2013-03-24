@@ -1,0 +1,168 @@
+---
+title: A brief introduction to embedded development
+tags: arm, embedded, development
+description: Some notes on embedded development written up for a friend.
+date: 2013-03-23
+---
+
+# A brief introduction to embedded development
+
+## Prelude
+
+This was the product of an email conversation to a friend. Embedded
+development can be tough to sink one's teeth into; I wrote this an an
+attempt introduce him to the various considerations regarding
+tool-choice, design, and implementation on an embedded platform.
+
+Be aware that my experience is only as a hobbyist.
+
+## The text
+
+> Is this generally a good idea, or should I just use one of the
+> gcc-arm-linux-gnueabi binary packages?
+
+I generally use the [gcc-arm-embedded toolchain][gae] which I've been very
+pleased with. Before this was available I used [summon-arm-toolchain][sat],
+which is also quite easy to get running. That being said, it's a useful exercise
+to build your own toolchain at least once.
+
+> I don't yet have the Bus Blaster or an ARM board to work with.   Are there
+> any next step tutorials that you think might be helpful now?
+>
+Not that I know of. Thankfully (or not), embedded development is
+pretty much like any other low-level development (just less
+forgiving).
+
+At this point you need to make a few decisions. This includes what sort
+of library will you build upon. Having a good library is extremely
+helpful and will make development much less painful. There are several
+options here,
+
+ 1. [CMSIS][cmsis]. This is the ARM library which is provided with
+    your chip.  This will include headers with register definitions
+    for the ARM core, as well as your device's perhiperals. In my
+    opinion, working with the CMSIS directly is terrible. It's like
+    programming a computer with a dull magnetized needle and dirty
+    magnifying glass. Just don't do it.
+
+ 2. A low-level library such as [libopencm3][libopencm3] or
+    [laks][laks]. With this option you will have a slightly more sane
+    interface to the hardware than provided by CMSIS but will still be
+    on bare metal. I've most often found myself in this situation.
+
+ 3. A high-level library like [libmaple][maple], [mbed][mbed], or
+    [libmanyuc][libmanyuc].  These libraries provide some sort of
+    hardware abstraction layer to make it slightly easier to port
+    between devices. Whether this is desirable really depends upon
+    your situation.
+
+ 4. A full RTOS such as [ChiBIOS][chibios] or [FreeRTOS][freertos].
+    Here you'll have a small operating system at your disposal. This
+    will give you concurrency, synchronization primitives, and some a
+    basic IO system, among other things. This means, however, that you
+    will need to deal with a lot more complexity. Debugging low-level
+    issues can become painful. In my uninformed opinion, it's rarely
+    worth the effort of working in this region of the design space. If
+    there are really enough things to be done to warrant a full
+    operating system, you should be using a full operating system
+    (while off-loading only the real-time tasks to an MCU).
+
+I should stress that even with the support offered by any of the above,
+you will still need to be familiar with your hardware. Even if your
+library allows you to avoid poking at registers, you still need to know
+how to poke around when something goes wrong.
+
+Have a look at the technical reference manual for your device. Get to
+know it very well; you will be staring at it a lot. Begin by looking at
+basic details like the layout of the memory map, the basic interrupt
+assignments, and the structure of the clock tree. As the need arises,
+read the peripheral chapters carefully. Take note of details gotchas
+like what region of memory the device has access to (in the case of a
+DMA controller), what order functional blocks need to be initialized in,
+and how the peripheral behaves on an error. These may seem like details,
+but in my experience it is very easy to kill entire days looking for
+bugs arising from oversights of this type.
+
+I've often found that one of the hardest parts of bringing up a
+platform is bringing up a working build system. Things such as the
+[linker script][ld-script] can be a real pain to write. Thankfully,
+most libraries will come with a reasonably good starting point for
+your platform if you are on popular hardware. Even the process of
+uploading the firmware to your board can be tricky. Many MCUs have
+built-in bootloaders supporting SPI or UART interfaces. I generally
+find [JTAG][openocd-flash] to be easiest, however.
+
+Another consideration is what language to use. Barring the more exotic
+options (for instance [Scheme][scheme] or [Haskell][copilot]
+[libraries][atom], neither of which I'd recommend as a serious option at
+this point; alas, some day...), you pretty have much two options: C or
+C++. Which you use is largely a matter of taste. If you decide to use
+C, avail yourself of the features of [C99][c99]
+[^ Highlights include standard inline functions, intermindled variable declarations and code, and the restrict keyword]
+(or even [C11][c11]
+[^the most significant contribution of which is static assertions, I believe]). Recent
+work on the C standard introduces several features which make life
+easier.
+
+If you decide to use C++, you need to be aware of what features you can
+safely use. For reasons too technical to cover here, exceptions are
+generally out of the question. Templates are fine, but you want to be
+careful when using the STL as it's very easy to allocate memory
+unknowingly (more on this later). Like C, you should avail yourself of
+the extensions of the latest language version, [C++11][cpp11]. Lambda
+functions are much less verbose than functors and more type-safe than
+function points. Range-based for makes iterators much less verbose,
+making it less painful to abstract your data structures. std::tuple is
+quite nice when you need to return a one-off product type. constexprs
+make it possible to do some really [neat things][csum] at compile-time.
+
+In general, unnecessary dynamic memory allocations should
+be avoided on an embedded platform. The reasons are two-fold:
+
+  1) You don't have much memory and you need to be able to handle the
+     cases when you run out. Even if technically your memory demands sum to
+     less than the capacity of your device, heap fragmentation will
+     sometimes nevertheless lead to allocation failures. Frequently
+     allocating and freeing memory will only exacerbate this.
+
+  2) It's not always easy to ensure that functions which allocate aren't
+     called from an interrupt handler. Allocations done in an interrupt
+     context is a Very Bad Thing: the heap allocator maintains state;
+     manipulating that state in an interrupt context opens the door for
+     race conditions which will eventually lead to crashes at best and
+     silent corruption at worst.
+
+As always, use version control religiously. Make changes in as
+piece-wise a manner as possible. While you have a debugger, it won't
+always help you; having small, easily verified commits is extremely
+important. Once you have an appreciable amount of code it becomes
+extremely difficult to track down certain classes of bugs. On an
+embedded device you are running on bare metal; there are no guards, no
+memory protection, there is [action at a distance][dma] happening all
+the time. Every once in a while the only feasible debugging strategy
+is either staring down the bug or [bisecting][bisect].
+
+Anyways, that's all for now.
+
+
+[gae]: https://launchpad.net/gcc-arm-embedded
+[sat]: https://github.com/esden/summon-arm-toolchain
+[cmsis]: http://www.arm.com/products/processors/cortex-m/cortex-microcontroller-software-interface-standard.php
+[libopencm3]: http://www.libopencm3.org/wiki/Main_Page
+[laks]: https://github.com/zyp/laks
+[maple]: https://github.com/leaflabs/libmaple
+[mbed]: https://github.com/mbedmicro/mbed
+[libmanyuc]: https://code.google.com/p/libmanyuc/
+[chibios]: http://www.chibios.org/dokuwiki/doku.php
+[freertos]: http://www.freertos.org/
+[scheme]: http://armpit.sourceforge.net/
+[copilot]: http://hackage.haskell.org/package/copilot
+[atom]: http://hackage.haskell.org/package/atom
+[c99]: http://en.wikipedia.org/wiki/C99
+[c11]: http://en.wikipedia.org/wiki/C11_(C_standard_revision)
+[cpp11]: http://en.wikipedia.org/wiki/C++11
+[csum]: https://github.com/bgamari/Smoothie/blob/20c3039cd8408fdb96fb8ab5fbf65fc16b2ab2f2/src/libs/checksumm.h#L41
+[openocd-flash]: http://openocd.sourceforge.net/doc/html/Flash-Programming.html#Flash-Programming
+[ld-script]: http://sourceware.org/binutils/docs/ld/Scripts.html
+[bisect]: http://git-scm.com/book/en/Git-Tools-Debugging-with-Git
+[dma]: http://en.wikipedia.org/wiki/Direct_memory_access
