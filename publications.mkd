@@ -6,7 +6,7 @@
     (submitted to *Journal of Physical Chemistry B*)
   * Gamari, *et al.* "Inexpensive hardware and software for photon
     statistics and correlation spectroscopy"
-    [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (submitted to
+    [arXiv:1206.3332](http://arxiv.org/abs/1206.3332) (accepted by
     *American Journal of Physics*)
   * L. Dietz, *et al.*
     ["De-layering social networks by shared tastes of friendships"](http://people.cs.umass.edu/~dietz/delayer/dietz-cameraready.pdf)
@@ -24,5 +24,5 @@
     [arXiv:1201.4980](http://arxiv.org/abs/1201.4980) (published in
     *Applied Physics Letters*).
   * J. Hoffmann, *et al.* "Tip preparation for near-field ablation at
-    mid-infrared wavelengths" (to be published in *Reviews of
+    mid-infrared wavelengths" (published in *Reviews of
     Scientific Instruments*).
