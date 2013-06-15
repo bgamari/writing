@@ -68,7 +68,8 @@ main = hakyll $ do
 
 postList :: [Item String] -> Compiler (Item String)
 postList posts =
-    return (reverse $ chronological posts)
+    chronological posts
+    >>= return . reverse
     >>= mapM (loadAndApplyTemplate "templates/postitem.html" (ctxt<>defaultContext))
     >>= makeItem . mconcat . map itemBody
   where
