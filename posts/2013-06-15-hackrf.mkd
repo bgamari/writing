@@ -1,0 +1,114 @@
+---
+title: Getting started with HackRF Jawbreaker
+tags: hackrf, software-defined radio, gnuradio, ubuntu
+description: A tutorial for bringing up the HackRF Jawbreaker
+date: 2013-06-15
+---
+
+# Getting started with HackRF Jawbreaker
+
+This was done on Ubuntu 13.04. We'll assume that `$ROOT` is set to the
+directory within which you will be working. For this you'll need (at
+very least) the `build-essential` and `cmake` packages.
+
+## Compiling `libhackrf` and `hackrf-tools`
+
+    $ cd $ROOT
+    $ git clone git://github.com/mossmann/hackrf.git
+    $ cd hackrf/host
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    $ sudo make install
+
+By default `cmake` will install things in `/usr/local`. We'll need
+this in `PATH` and `LD_LIBRARY_PATH`,
+
+    $ PATH=$PATH:/usr/local/bin
+    $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
+## Compiling new firmware
+
+To compile the firmware we'll need mossmann's `libopencm3` branch as
+well as the `gcc-arm-embedded` toolchain available.
+
+We'll be compiling two separate firmware images. The image compiled by
+`Makefile` is compiled assuming the device will be booting the
+firmware directly from RAM while that built by `Makefile_rom_to_ram`
+will be built under the assumption that it was loaded from ROM.
+
+    $ cd $ROOT/hackrf
+    $ git clone git://github.com/mossmann/libopencm3.git
+    $ cd libopencm3
+    $ make
+    $ cd $ROOT/hackrf/firmware/hackrf_usb
+    $ make LIBOPENCM3=$ROOT/hackrf/libopencm3
+    $ make LIBOPENCM3=$ROOT/hackrf/libopencm3 -f Makefile_rom_to_ram
+    
+## Updating firmware
+
+    $ lsusb
+    Bus 002 Device 008: ID 1d50:604b OpenMoko, Inc. 
+    ...
+    $ sudo chmod ugo+rw /dev/bus/usb/002/008
+    $ hackrf-spiflash -w $ROOT/hackrf/firmware/hackrf-usb/hackrf_usb_rom_to_ram.bin
+
+## Fetching and installing gnuradio
+
+As it turns out, Python 3 tends to confuse gnuradio's `cmake`
+configuration. For this reason, we force `cmake` to build against
+Python 2.7,
+
+    $ cd $ROOT
+    $ git clone git://github.com/gnuradio/gnuradio.git
+    $ cd gnuradio
+    $ mkdir build
+    $ cd build
+    $ cmake -DPYTHON_EXECUTABLE=/usr/bin/python2.7 -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython2.7.so.1 ../ -DENABLE_GR_WAVELET=ON -DEANBLE_GR_
+
+You should check over the output of cmake at this point and find any
+missing dependencies (look for `gr-*` modules which are listed as
+`disabled`). I happened to lack the `cheetah`, `sdl`, and `fftw`
+packages,
+
+    $ sudo apt-get install python-cheetah libfftw3-dev libsdl1.2-dev
+
+After installing dependencies you should re-run `cmake`.
+
+The build itself will take awhile,
+
+    $ make
+    $ sudo make install
+    
+## Fetching and installing `gr-osmosdr`
+
+The `gr-osmosdr` block provides an interface between the Jawbreaker
+hardware and GnuRadio,
+
+    $ cd $ROOT
+    $ git clone git://git.osmocom.org/gr-osmosdr
+    $ cd gr-osmosdr
+    $ mkdir build
+    $ cmake -DPYTHON_EXECUTABLE=/usr/bin/python2.7 -DPYTHON_INCLUDE_DIR=/usr/include/python2.7 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython2.7.so.1 ../
+    $ make
+    $ sudo make install
+
+## Starting GnuRadio Companion
+
+After starting GnuRadio Companion,
+
+    $ export PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages
+    $ gnuradio-companion
+
+You should see an `osmocom` source and sink. This can be used to pull or
+push samples from the Jawbreaker.
+
+To test, connect an `osmocom` source (`Sources` group) to a `WX GUI
+FFT Sink` (`Instrumentation/WX` group), press the "Generate flow
+graph" button and then "Execute flow graph". You should see a window
+like,
+
+![Spectrum from HackRF](/media/hackrf-fft.png)
+
+Press your thumb against the antenna to confirm a change in the spectrum.
