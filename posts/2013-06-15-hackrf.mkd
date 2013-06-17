@@ -112,3 +112,8 @@ like,
 ![Spectrum from HackRF](/media/hackrf-fft.png)
 
 Press your thumb against the antenna to confirm a change in the spectrum.
+
+## Tuning to FM bands
+
+See [this graph](/media/fm-decoder.grc) for an example signal chain
+decoding a standard FM radio station (88.5 MHz, by default).
