@@ -34,7 +34,7 @@ source tree. For this reason, we build within a build directory,
 
         $ mkdir build
         $ cd build
-        $ ../configure --prefix=/mnt/data/ghc/usr --host=arm-linux-gnueabi
+        $ ../configure --prefix=/mnt/data/ghc/usr --host=arm-linux-gnueabi --target=arm-linux-gnueabi
 
 Building,
 
