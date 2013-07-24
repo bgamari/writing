@@ -1,0 +1,68 @@
+----
+title: Flashing the BusBlaster's CPLD buffer with OpenOCD
+----
+
+Recently an unfortunate incident involving 20V or so resulted in a
+small plume of smoke rising from my BusBlaster, followed by the smell
+of burned electronics. After examining the wreckage, it seemed likely
+that the CPLD took most, if not all, of the damage. Not wanting to
+wait another month for Seeed to send a new device, I ordered some
+XC2C32A CPLD's and replaced the burnt part.
+
+The BusBlaster's [documentation][bb-doc] provides instructions for
+reflashing the CPLD with `urjag`. Sadly, urJTAG refused to acknowledge
+the existence of the device, despite having gone through USB
+enumeration. Having recalled having similar problems while trying to
+use urJTAG in the past, I set out to use openocd instead. I was
+pleasantly surprised by how easy this was.
+
+First, we'll need to define an interface script to configure openocd's
+`ftdi` driver to use the second MPSSE channel, to which the CPLD is
+attached. For this I started with the
+`openocd/tcl/interface/ftdi/dp_busblaster.cfg` and added the
+appropriate `ftdi_channel` directive (I intend on proposing this for
+merge upstream),
+
+    interface ftdi
+    ftdi_device_desc "Dual RS232-HS"
+    ftdi_vid_pid 0x0403 0x6010
+    ftdi_channel 1
+    
+    ftdi_layout_init 0x0c08 0x0f1b
+    ftdi_layout_signal nTRST -data 0x0100 -noe 0x0400
+    ftdi_layout_signal nSRST -data 0x0200 -noe 0x0800
+
+    adapter_khz 1000
+
+Starting openocd things don't look too promising but we persevere
+nevertheless,
+
+    $ openocd -f bb-cpld.cfg
+    Open On-Chip Debugger 0.8.0-dev-00043-gf550277 (2013-06-26-19:43)
+    Licensed under GNU GPL v2
+    For bug reports, read
+    	http://openocd.sourceforge.net/doc/doxygen/bugs.html
+    Info : only one transport option; autoselect 'jtag'
+    adapter speed: 1000 kHz
+    Info : clock speed 1000 kHz
+    Warn : There are no enabled taps.  AUTO PROBING MIGHT NOT WORK!!
+    Warn : AUTO auto0.tap - use "jtag newtap auto0 tap -expected-id 0x06e1c093 ..."
+    Warn : AUTO auto0.tap - use "... -irlen 2"
+    Error: IR capture error at bit 2, saw 0x3FFFFFFFFFFFFF05 not 0x...3
+    Warn : Bypassing JTAG setup events due to errors
+    Warn : gdb services need one or more targets defined
+
+Connecting with `nc`, we attempt to run the SVF for the JTAGkey buffer,
+
+    $ nc localhost 4444
+    Open On-Chip Debugger
+    > svf BBv2-JTAGkey-v1.4-verilog.svf.txt
+    ...
+    Time used: 0m0s767ms 
+    svf file programmed successfully for 579 commands
+
+Well, that doesn't look so bad and indeed attempting to debug a target
+works as expected. Yay!
+
+
+[bb-doc]: http://dangerousprototypes.com/docs/Bus_Blaster_buffer_logic
