@@ -1,0 +1,46 @@
+---
+title: Notes concerning LPC43xx and OpenOCD
+date: 2013-06-27
+---
+
+# Notes concerning LPC43xx and OpenOCD
+
+The LPC43xx seems to be pretty finicky when it comes to its JTAG. interface.
+Here are a few things that I found helped in getting the LPC and
+OpenOCD to talk,
+
+ * I use a BusBlaster. The new `interfaces/ftdi/dp_busblaster.cfg`
+   configuration uses OpenOCD's new FTDI driver which seems to be much
+   more reliable than the old `interfaces/busblaster.cfg` configuration.
+
+ * The M0 target seems to [screw up halt][]. Workaround by disabling
+   in `target/lpc4350.cfg`. (TODO: check whether this is still
+   necessary)
+
+ * Even then, `reset halt` appears to be broken. This appears to be due too SRST being asserted twice. Work around by commenting out,
+
+```
+	foreach t $targets {
+		# C code needs to know if we expect to 'halt'
+		if {[jtag tapisenabled [$t cget -chain-position]]} {
+			$t arp_reset assert $halt
+		}
+	}
+```
+
+   and,
+
+```
+	foreach t $targets {
+		# Again, de-assert code needs to know if we 'halt'
+		if {[jtag tapisenabled [$t cget -chain-position]]} {
+			$t arp_reset deassert $halt
+		}
+	}
+```
+
+    in `target/startup.tcl`
+
+ * the first use of GDB's `load` command will jump into ROM 
+
+[screw up halt]: http://comments.gmane.org/gmane.comp.debugging.openocd.devel/22732

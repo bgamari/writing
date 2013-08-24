@@ -1,5 +1,6 @@
 ----
 title: Flashing the BusBlaster's CPLD buffer with OpenOCD
+date: 2013-07-24
 ----
 
 Recently an unfortunate incident involving 20V or so resulted in a
