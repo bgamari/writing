@@ -11,7 +11,7 @@ tags: mchck, arm
 
 This describes my work with an older revision (r2) of the MC HCK
 design. Many things have changed in the last year; the current
-revision (r3) is built upon a different MCU, the pinout has changed,
+revision (r5) is built upon a different MCU, the pinout has changed,
 and the software environment has greatly matured. I'll try to write
 about my experiences with this new revision soon. Until then, many of
 the ideas below still hold true.
