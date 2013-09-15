@@ -16,12 +16,13 @@ geometry for an ensemble, the inability to follow individual specimens
 precludes the study of dynamics of small numbers of molecules
 especially over long durations.
 
-Building off of a technique developed by Goldner at the
+Building on a technique developed by Goldner at
 [NIST](http://www.nist.gov/), we use colloidal droplets as a means of
 containing fluorescently labelled molecules. By way of a novel
 particle tracking system, we can observe single-molecules contained
-within a droplet for minutes at a time, greatly extending the timescales
-accessible to single-molecule FRET. <!-- Mention oligomeric studies? -->
+within a droplet for minutes at a time, greatly extending the
+timescales accessible to single-molecule FRET.
+<!-- Mention oligomeric studies? -->
 
 ### Probabilistic analysis for better inference
 By applying tools developed in the fields of statistics and machine
@@ -68,6 +69,9 @@ If you are interested in any of the projects you find, don't hesitate
 to send me an email.
 
 ## Relevant publications
+  * ["Indocyanine dyes approach free rotation at 3'
+    terminus of A-RNA: A comparison with the 5' terminus and consequences
+    for FRET"](http://pubs.acs.org/doi/abs/10.1021/jp311071y) (*Journal of Physical Chemistry B*)
   * ["MD Simulations and FRET Studies of Dye-Labeled RNA"](http://goldnerlab.physics.umass.edu/~peker/2011%20biophys%20Milas%20Poster.pdf)
     (poster at Biophysical Society meeting, 2011)
   * ["From force-fields to photons: MD simulations of dye-labaled nucleic acids and Monte Carlo modelling of FRET"](http://meetings.aps.org/Meeting/NEF11/Event/158326)
