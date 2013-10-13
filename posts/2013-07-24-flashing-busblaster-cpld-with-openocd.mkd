@@ -1,6 +1,7 @@
 ----
 title: Flashing the BusBlaster's CPLD buffer with OpenOCD
 date: 2013-07-24
+tags: openocd,busblaster,jtag
 description: Flashing the BusBlaster JTAG adapter's CPLD buffer with OpenOCD
 ----
 

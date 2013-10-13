@@ -1,6 +1,7 @@
 ---
 title: Notes concerning LPC43xx and OpenOCD
 date: 2013-06-27
+tag: lpc43xx,openocd,jtag
 description: Some of my notes taken while bringing up the LPC4330 with OpenOCD
 ---
 
