@@ -6,7 +6,7 @@ tags: haskell,stream fusion
 date: 2013-10-13
 ---
 
-Stream fusion frameworks such as those in [`vector`][] and [`text`][] allow one
+Stream fusion frameworks such as those in `[vector]` and `[text]` allow one
 to acheive impressive performance in Haskell code without compromising
 abstraction. That being said, debugging practices for working out when
 things are not fast aren't terribly well documented. Using the
@@ -46,13 +46,13 @@ experience, a few simple things should be checked,
           \ (@ s_i4rz)
             (sc1_syFR :: GHC.Prim.Int#)
             ...
-  
-## Resources
-
- * Phase controlled inlining: (http://stackoverflow.com/questions/14446368/how-to-use-phase-control-of-inlining-in-haskell), (http://neocontra.blogspot.com/2013/02/controlling-inlining-phases-in-ghc.html)
- * Edward Kmett's tutorial on writing stream fusion combinators: (https://www.fpcomplete.com/user/edwardk/revisiting-matrix-multiplication/part-3#custom-stream-fusion)
- * Some stream fusion combinators that I've written: (https://github.com/bgamari/hphoton/blob/master/hphoton-correlate/HPhoton/Corr/PackedVec.hs#L62)
 
 [vector]: http://hackage.haskell.org/package/vector
 [text]: http://hackage.haskell.org/package/text
 [specconstr-issue]: http://ghc.haskell.org/trac/ghc/ticket/2598
+  
+## Resources
+
+ * Phase controlled inlining: <http://stackoverflow.com/questions/14446368/how-to-use-phase-control-of-inlining-in-haskell>, <http://neocontra.blogspot.com/2013/02/controlling-inlining-phases-in-ghc.html>
+ * Edward Kmett's tutorial on writing stream fusion combinators: <https://www.fpcomplete.com/user/edwardk/revisiting-matrix-multiplication/part-3#custom-stream-fusion>
+ * Some stream fusion combinators that I've written: <https://github.com/bgamari/hphoton/blob/master/hphoton-correlate/HPhoton/Corr/PackedVec.hs#L62>
