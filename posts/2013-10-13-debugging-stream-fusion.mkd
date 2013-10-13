@@ -25,7 +25,7 @@ experience, a few simple things should be checked,
     used to coordinate the stream by generating specialized variants
     of the input code. This is an expensive optimization (and has
     historically even lead to effective
-    [non-termination](specconstr-issue) of the compiler) to perform
+    [non-termination][specconstr-issue] of the compiler) to perform
     and therefore is disabled by default, even in `-O1`. Modules
     defining stream combinators should either be explicitly compiled
     with `-O2` or `-fspec-constr`.
