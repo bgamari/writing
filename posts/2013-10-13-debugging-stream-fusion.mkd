@@ -6,14 +6,15 @@ tags: haskell,stream fusion
 date: 2013-10-13
 ---
 
-Stream fusion frameworks such as those in `[vector]` and `[text]` allow one
-to acheive impressive performance in Haskell code without compromising
-abstraction. That being said, debugging practices for working out when
-things are not fast aren't terribly well documented. Using the
-profiler in these cases is generally not an option as this will
-disable the very optimizations that allow stream fusion produce fast
-code. Instead, one must take a slightly more low-level approach. In my
-experience, a few simple things should be checked,
+Stream fusion frameworks such as those in [`vector`][vector] and
+[`text`][text] allow one to acheive impressive performance in Haskell
+code without compromising abstraction. That being said, debugging
+practices for working out when things are not fast aren't terribly
+well documented. Using the profiler in these cases is generally not an
+option as this will disable the very optimizations that allow stream
+fusion produce fast code. Instead, one must take a slightly more
+low-level approach. In my experience, a few simple things should be
+checked,
 
   * Can the compiler see all of the code? In order for the compiler to
     optimize the stream combinators into a single loop, it must be
