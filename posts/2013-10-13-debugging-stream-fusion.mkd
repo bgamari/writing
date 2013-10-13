@@ -1,7 +1,10 @@
 ---
 author: Ben Gamari
-title: Some tips for debugging stream fusion performance 
-----
+title: Debugging stream fusion performance 
+description: Some tips for debugging performance of Haskell programs using stream fusion 
+tags: haskell,stream fusion
+date: 2013-10-13
+---
 
 Stream fusion frameworks such as those in [`vector`][] and [`text`][] allow one
 to acheive impressive performance in Haskell code without compromising
