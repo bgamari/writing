@@ -1,0 +1,55 @@
+---
+author: Ben Gamari
+title: Some tips for debugging stream fusion performance 
+----
+
+Stream fusion frameworks such as those in [`vector`][] and [`text`][] allow one
+to acheive impressive performance in Haskell code without compromising
+abstraction. That being said, debugging practices for working out when
+things are not fast aren't terribly well documented. Using the
+profiler in these cases is generally not an option as this will
+disable the very optimizations that allow stream fusion produce fast
+code. Instead, one must take a slightly more low-level approach. In my
+experience, a few simple things should be checked,
+
+  * Can the compiler see all of the code? In order for the compiler to
+    optimize the stream combinators into a single loop, it must be
+    able to see all of the code. To ensure this, all global
+    bindings should be marked with an `INLINE` or `INLINEABLE` pragma.
+
+  * Is the compiler running the `SpecConstr` optimization pass? The
+    `SpecConstr` pass optimizes away the intermediate state tokens
+    used to coordinate the stream by generating specialized variants
+    of the input code. This is an expensive optimization (and has
+    historically even lead to effective
+    [non-termination](specconstr-issue) of the compiler) to perform
+    and therefore is disabled by default, even in `-O1`. Modules
+    defining stream combinators should either be explicitly compiled
+    with `-O2` or `-fspec-constr`.
+
+  * Use the Core. Using `ghc-core`, look through the resulting Core to
+    ensure that all combinators have been inlined away. Note that
+    `ghc-core` will output the Core for every module that gets
+    compiled; make sure you are looking at the code for the final
+    executable and not one of its dependencies (which is likely to be
+    unspecialized).
+
+    The Core should be free of stream fusion state tokens. Moreover,
+    free type parameters remaining in top-level definitions are a sure
+    sign that things are not being inlined far enough. This will take the
+    form of a parameter beginning with `@` such as,
+
+        Main.\$w\$sunsafeVecFromStamps =
+          \ (@ s_i4rz)
+            (sc1_syFR :: GHC.Prim.Int#)
+            ...
+  
+## Resources
+
+ * Phase controlled inlining: (http://stackoverflow.com/questions/14446368/how-to-use-phase-control-of-inlining-in-haskell), (http://neocontra.blogspot.com/2013/02/controlling-inlining-phases-in-ghc.html)
+ * Edward Kmett's tutorial on writing stream fusion combinators: (https://www.fpcomplete.com/user/edwardk/revisiting-matrix-multiplication/part-3#custom-stream-fusion)
+ * Some stream fusion combinators that I've written: (https://github.com/bgamari/hphoton/blob/master/hphoton-correlate/HPhoton/Corr/PackedVec.hs#L62)
+
+[vector]: http://hackage.haskell.org/package/vector
+[text]: http://hackage.haskell.org/package/text
+[specconstr-issue]: http://ghc.haskell.org/trac/ghc/ticket/2598
