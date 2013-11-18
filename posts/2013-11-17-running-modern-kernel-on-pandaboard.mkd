@@ -311,7 +311,8 @@ Hmm, but even stock kernel fails with the same image. Adding uboot header with,
 unfortunately allows uboot to boot again but kernel crashes at same
 point while unpacking initramfs.
 
-I give up, just going to run without initramfs.
+Ahh, looking at TRM it seems there is no usable memory below
+0x30000000. Using `initrd_high` of 90000000 allows system to boot.
 
 
 [PandaBoard]: http://pandaboard.org/

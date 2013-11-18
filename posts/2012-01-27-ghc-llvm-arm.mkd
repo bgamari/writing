@@ -56,6 +56,15 @@ patch will require a bit of minor forward porting,
         $ cd llvm
         $ patch -p1 < ../llvm-2011-07-12.patch
 
+Linking C++ with binutils' default linker, `ld`, is quite memory
+intensive (especially the `clang` executable, for some reason). The
+build process can be made substantially faster by instead using
+`gold`,
+
+        $ mkdir $GHCROOT/gold-bin
+        $ ln -s `which gold` $GHCROOT/gold-bin/ld
+        $ PATH=$GHCROOT/gold-bin:$PATH
+
 Building is straightforward,
 
         $ ./configure --prefix=$GHCROOT/usr
