@@ -1,0 +1,320 @@
+---
+title: Running modern kernel on the PandaBoard
+date: 2013-11-17
+---
+
+Several years ago TI began offering the [PandaBoard][], a dual-core
+ARM7 development board based around the OMAP 4430. The relatively fast
+OMAP made this board an excellent substrate for development (in my
+case, on [GHC][ghc]). Sadly, the group offering the board has since
+dissolved, leaving me with two PandaBoards with little software
+support. Moreover, older kernels [lack][frequency limit] support for
+much of what this hardware is capable of. This write-up will be my
+notes for trying to bring up a modern kernel (3.12) on the
+PandaBoard. I'll be building on a Debian Wheezy installation installed
+in the [usual way][netinstall].
+
+Increasingly, new kernels rely on DeviceTree for their
+configuration. 
+
+First, look up the load address of the existing kernel image,
+
+     ben@panda2:/boot/uboot$ mkimage -l uImage
+     Image Name:   3.7.10-x13
+     Created:      Mon Nov 11 11:24:01 2013
+     Image Type:   ARM Linux Kernel Image (uncompressed)
+     Data Size:    3413776 Bytes = 3333.77 kB = 3.26 MB
+     Load Address: 80008000
+     Entry Point:  80008000
+
+Now configure and compile the kernel,
+
+     $ scp panda2:/boot/config-3.7.10-x13 .config
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm menuconfig
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm LOADADDR=0x80008000 uImage modules
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm tarbz2-pkg
+     $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm dtbs
+
+Move the new kernel to the target,
+
+     $ scp linux-3.12.0-arm.tar.bz2 panda2:
+     $ scp arch/arm/boot/uImage panda2:
+     $ scp arch/arm/boot/zImage panda2:
+     $ scp arch/arm/boot/dts/omap4-panda-a4.dtb panda2:
+
+Now moving back to the target. Extract the kernel package,
+
+     $ sudo tar -C / -jxf linux-3.12.0-arm.tar.bz2
+     $ sudo cp zImage /boot/uboot/zImage-new
+     $ sudo cp omap4-panda-a4.dtb /boot/uboot/dtbs/
+     $ sudo update-initramfs -c -k 3.12.0
+     $ sudo cp /boot/initrd.img-3.12.0 /boot/uboot/initrd-new.img
+
+On Debian 7 the bootloader, `u-boot`,
+reads its configuration from `/boot/uboot/uEnv.txt`. We'll make our
+changes to a copy of this instead something goes terribly wrong, as it
+usually does,
+
+     $ sudo -i
+     $ cd /boot/uboot
+     $ cp uEnv.txt uEnv-new.txt
+     $ vim uEnv-new.txt
+
+Edit the following,
+
+   * set `kernel_file` to `zImage-new`
+   * set `initrd_file` to `zinitrd-new.img`
+   * ensure that the "New Device Tree Boot" command is used. This
+     looks something like,
+
+         uenvcmd=run boot_fdt; run device_args; bootz 0x80300000 0x81600000:${initrd_size} 0x815f0000
+
+
+Now the moment of truth,
+
+     $ sudo reboot
+
+Catch the bootloader on the serial console before it begins booting
+the old kernel.
+
+     Panda # setenv loadbootenv load mmc ${mmcdev}:${mmcpart} ${loadaddr} uEnv-new.txt
+     Panda # boot
+
+Of course, things don't boot,
+
+     Panda # setenv loadbootenv load mmc ${mmcdev}:${mmcpart} ${loadaddr} uEnv-new.txt
+     Panda # boot
+     mmc0 is current device
+     SD/MMC found on device 0
+     reading boot.scr
+     ** Unable to read file boot.scr **
+     reading uEnv-new.txt
+     1161 bytes read in 5 ms (226.6 KiB/s)
+     Importing environment from mmc (uEnv.txt)...
+     Checking if uenvcmd is set ...
+     Running uenvcmd ...
+     reading zImage-new
+     3663184 bytes read in 174 ms (20.1 MiB/s)
+     reading initrd-new.img
+     3245123 bytes read in 161 ms (19.2 MiB/s)
+     reading /dtbs/omap4-panda-a4.dtb
+     18920 bytes read in 9 ms (2 MiB/s)
+     Kernel image @ 0x80300000 [ 0x000000 - 0x37e550 ]
+     ## Flattened Device Tree blob at 815f0000
+        Booting using the fdt blob at 0x815f0000
+        Loading Ramdisk to bfbe4000, end bfefc443 ... OK
+        Using Device Tree in place at 815f0000, end 815f79e7
+     
+     Starting kernel ...
+
+And there it hangs. Strange that it doesn't output any useful
+error. Confirmed that `CONFIG_EARLY_PRINTK` is set. UART3 is selected
+as the low-level debugging output port. Let's ensure that early printk
+is really enabled. Add `earlyprintk` to `optargs` in `uEnv-new.txt` and reboot.
+
+At least we have something now,
+
+     Starting kernel ...
+
+     [    0.000000] Booting Linux on physical CPU 0x0
+     [    0.000000] Initializing cgroup subsys cpuset
+     [    0.000000] Initializing cgroup subsys cpu
+     [    0.000000] Initializing cgroup subsys cpuacct
+     [    0.000000] Linux version 3.12.0 (ben@ben-server) (gcc version 4.7.3 (Ubuntu/Linaro 4.7.3-1ubuntu1) ) #8 SMP Sun Nov 17 19:54:16 EST 2013
+     [    0.000000] CPU: ARMv7 Processor [411fc093] revision 3 (ARMv7), cr=10c5387d
+     [    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+     [    0.000000] Machine: Generic OMAP4 (Flattened Device Tree), model: TI OMAP4 PandaBoard
+     [    0.000000] bootconsole [earlycon0] enabled
+     [    0.000000] Memory policy: ECC disabled, Data cache writealloc
+     [    0.000000] OMAP4430 ES2.3
+     [    0.000000] PERCPU: Embedded 9 pages/cpu @c138a000 s13376 r8192 d15296 u36864
+     [    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 260368
+     [    0.000000] Kernel command line: console=ttyO2,115200n8 console=tty0 earlyprintk vram=16M omapfb.mode=dvi:1280x720MR-16@60 omapdss.def_disp=dvi root=/dev/mmcblk0p5 ro rootfstype=ext4 rootwait fixrtc
+     [    0.000000] PID hash table entries: 4096 (order: 2, 16384 bytes)
+     [    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+     [    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+     [    0.000000] allocated 2097152 bytes of page_cgroup
+     [    0.000000] please try 'cgroup_disable=memory' option if you don't want memory cgroups
+     [    0.000000] Memory: 1021024K/1047552K available (6967K kernel code, 608K rwdata, 2864K rodata, 441K init, 828K bss, 26528K reserved, 265732K highmem)
+     [    0.000000] Virtual kernel memory layout:
+     [    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+     [    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+     [    0.000000]     vmalloc : 0xf0000000 - 0xff000000   ( 240 MB)
+     [    0.000000]     lowmem  : 0xc0000000 - 0xef800000   ( 760 MB)
+     [    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+     [    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+     [    0.000000]       .text : 0xc0008000 - 0xc09a1f0c   (9832 kB)
+     [    0.000000]       .init : 0xc09a2000 - 0xc0a10440   ( 442 kB)
+     [    0.000000]       .data : 0xc0a12000 - 0xc0aaa0a0   ( 609 kB)
+     [    0.000000]        .bss : 0xc0aaa0a0 - 0xc0b791b8   ( 829 kB)
+     [    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+     [    0.000000] Hierarchical RCU implementation.
+     [    0.000000] NR_IRQS:16 nr_irqs:16 16
+     [    0.000000] OMAP clockevent source: timer1 at 32768 Hz
+     [    0.000000] sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps every 131071999ms
+     [    0.000000] OMAP clocksource: 32k_counter at 32768 Hz
+     [    0.000000] smp_twd: clock not found -2
+     [    0.000000] Console: colour dummy device 80x30
+     [    0.000000] console [tty0] enabled, bootconsole disabled
+
+Let's try removing `console=tty0` from `optargs`. Why was it there to begin with?
+
+Got much father now,
+
+     ...
+     [    1.734283] NET: Registered protocol family 2
+     [    1.739685] TCP established hash table entries: 8192 (order: 4, 65536 bytes)
+     [    1.747222] TCP bind hash table entries: 8192 (order: 4, 65536 bytes)
+     [    1.754150] TCP: Hash tables configured (established 8192 bind 8192)
+     [    1.760864] TCP: reno registered
+     [    1.764312] UDP hash table entries: 512 (order: 2, 16384 bytes)
+     [    1.770538] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes)
+     [    1.777648] NET: Registered protocol family 1
+     [    1.782623] RPC: Registered named UNIX socket transport module.
+     [    1.788848] RPC: Registered udp transport module.
+     [    1.822937] [ffbe4000] *pgd=00000000
+     [    1.826690] Internal error: Oops: 5 [#1] SMP ARM
+     [    1.831512] Modules linked in:
+     [    1.834747] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 3.12.0 #8
+     [    1.840911] task: ee86c000 ti: ee878000 task.ti: ee878000
+     [    1.846588] PC is at unpack_to_rootfs+0x9c/0x28c
+     [    1.851409] LR is at unpack_to_rootfs+0x50/0x28c
+     [    1.856262] pc : [<c09a43ac>]    lr : [<c09a4360>]    psr: 20000113
+     [    1.856262] sp : ee879e70  ip : a0000113  fp : 00000000
+     [    1.868225] r10: c09f8530  r9 : c09a2508  r8 : c09f8530
+     [    1.873687] r7 : ffbe4000  r6 : 00318443  r5 : 00000000  r4 : c0b526ac
+     [    1.880493] r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : eea4a000
+     [    1.887268] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+     [    1.894866] Control: 10c5387d  Table: 8000404a  DAC: 00000015
+     [    1.900878] Process swapper/0 (pid: 1, stack limit = 0xee878248)
+     [    1.907135] Stack: (0xee879e70 to 0xee87a000)
+     [    1.911682] 9e60:                                     c09a2508 00000000 00000000 c0685114
+     [    1.920196] 9e80: c08895b0 ee879e9c c0aaa14c 00000000 c0a0c3a0 c0aaa100 c09a4a4c c09a2508
+     [    1.928710] 9ea0: 00000000 c09a4a9c ee905000 c0915d97 c0a83684 c0a81de0 eea31300 00000000
+     [    1.937194] 9ec0: c09df3c0 c0a83684 00000000 c0a0c39c c0aaa100 c09df3c0 c09a2508 00000000
+     [    1.945709] 9ee0: 00000000 c03f5c88 00000005 c09f849c c0a0c3a0 c0aaa100 c09a4a4c c09a2508
+     [    1.954193] 9f00: 00000000 c0008908 ee8efe00 c069d1a0 c0ad081c c0aaa100 00000000 c0a62b44
+     [    1.962707] 9f20: 60000113 00000001 000000fe c13870d2 00000000 c00576b0 ee879f64 c096012c
+     [    1.971191] 9f40: c095f14c 000000fe 00000005 00000005 00000001 00000005 00000005 c09f849c
+     [    1.979675] 9f60: c0a0c3a0 c0aaa100 000000fe c09a2508 c09f84ac c09a2c34 00000005 00000005
+     [    1.988189] 9f80: c09a2508 00000000 00000000 c0683738 00000000 00000000 00000000 00000000
+     [    1.996673] 9fa0: 00000000 c0683740 00000000 c000ded8 00000000 00000000 00000000 00000000
+     [    2.005187] 9fc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+     [    2.013671] 9fe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
+     [    2.022186] [<c09a43ac>] (unpack_to_rootfs+0x9c/0x28c) from [<c09a4a9c>] (populate_rootfs+0x50/0x21c)
+     [    2.031768] [<c09a4a9c>] (populate_rootfs+0x50/0x21c) from [<c0008908>] (do_one_initcall+0x94/0x138)
+     [    2.041259] [<c0008908>] (do_one_initcall+0x94/0x138) from [<c09a2c34>] (kernel_init_freeable+0x160/0x230)
+     [    2.051300] [<c09a2c34>] (kernel_init_freeable+0x160/0x230) from [<c0683740>] (kernel_init+0x8/0xe4)
+     [    2.060791] [<c0683740>] (kernel_init+0x8/0xe4) from [<c000ded8>] (ret_from_fork+0x14/0x3c)
+     [    2.069458] Code: e1c821f0 e1a0a008 e5881000 ea00004a (e5d73000) 
+     [    2.075836] ---[ end trace 0935e139c88aa1b3 ]---
+     [    2.080780] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
+     [    2.080780] 
+     [    2.090362] CPU0: stopping
+     [    2.093231] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D      3.12.0 #8
+     [    2.100433] [<c0014660>] (unwind_backtrace+0x0/0xe0) from [<c0011478>] (show_stack+0x10/0x14)
+     [    2.109313] [<c0011478>] (show_stack+0x10/0x14) from [<c068a3e4>] (dump_stack+0x68/0x84)
+     [    2.117706] [<c068a3e4>] (dump_stack+0x68/0x84) from [<c0012db8>] (handle_IPI+0xc0/0x124)
+     [    2.126220] [<c0012db8>] (handle_IPI+0xc0/0x124) from [<c0008698>] (gic_handle_irq+0x58/0x60)
+     [    2.135070] [<c0008698>] (gic_handle_irq+0x58/0x60) from [<c068f400>] (__irq_svc+0x40/0x50)
+     [    2.143768] Exception stack(0xc0a13f70 to 0xc0a13fb8)
+     [    2.149047] 3f60:                                     ffffffed 00000000 0097d000 00000000
+     [    2.157531] 3f80: c0a12000 c0a12000 c0699364 c1387040 8000406a 411fc093 00000000 00000000
+     [    2.166046] 3fa0: 00000000 c0a13fb8 c000ea14 c000ea18 60000113 ffffffff
+     [    2.172943] [<c068f400>] (__irq_svc+0x40/0x50) from [<c000ea18>] (arch_cpu_idle+0x30/0x38)
+     [    2.181549] [<c000ea18>] (arch_cpu_idle+0x30/0x38) from [<c007c7a4>] (cpu_startup_entry+0x134/0x1cc)
+     [    2.191040] [<c007c7a4>] (cpu_startup_entry+0x134/0x1cc) from [<c09a2a78>] (start_kernel+0x2d8/0x334)
+     [    2.200592] [<c09a2a78>] (start_kernel+0x2d8/0x334) from [<80008074>] (0x80008074)
+
+There is
+[evidence](http://www.spinics.net/lists/linux-omap/msg95504.html) to
+suggest that this is due to someone trampling on the initramfs. Let's
+try without an initrd,
+
+    uenvcmd=run boot_fdt; run device_args; bootz 0x80300000 0x815f0000
+
+in `/boot/uboot/uEnv-new.txt`.
+
+Things boot fine. It seems likely that the devicetree is trampling on
+the initrd. Perhaps not, even pushing the initrd back to 0x82800000
+doesn't
+help. [This](http://www.denx.de/wiki/DULG/KernelCrashesWithRamdisk)
+appears to be a big hint. Interesting,
+
+    Panda # setenv loadbootenv load mmc ${mmcdev}:${mmcpart} ${loadaddr} uEnv-new.txt
+    Panda # setenv initrd_high 30000000
+    Panda # boot
+    mmc0 is current device
+    SD/MMC found on device 0
+    reading boot.scr
+    ** Unable to read file boot.scr **
+    reading uEnv-new.txt
+    1128 bytes read in 5 ms (219.7 KiB/s)
+    Importing environment from mmc (uEnv.txt)...
+    Checking if uenvcmd is set ...
+    Running uenvcmd ...
+    reading zImage-new
+    3663184 bytes read in 174 ms (20.1 MiB/s)
+    reading initrd.img
+    3182391 bytes read in 152 ms (20 MiB/s)
+    reading /dtbs/omap4-panda-a4.dtb
+    18920 bytes read in 9 ms (2 MiB/s)
+    Kernel image @ 0x80300000 [ 0x000000 - 0x37e550 ]
+    ## Flattened Device Tree blob at 815f0000
+       Booting using the fdt blob at 0x815f0000
+    ERROR: Failed to allocate 0x308f37 bytes below 0x30000000.
+    ramdisk - allocation error
+    FDT creation failed! hanging...### ERROR ### Please RESET the board ###
+
+Let's try updating u-boot,
+
+    $ git clone
+    $ make CROSS_COMPILE=arm-linux-gnueabi- omap4_panda_config
+    $ make CROSS_COMPILE=arm-linux-gnueabi-
+    $ scp u-boot.img panda2.local:
+
+Move it into place on target,
+
+    $ ssh panda2.local
+    $ cd /boot/uboot
+    $ cp u-boot.img u-boot.img.old
+    $ cp ~/u-boot.img u-boot.img
+    $ reboot
+
+Trying booting again,
+
+    U-Boot# setenv loadbootenv load mmc ${mmcdev}:${mmcpart} ${loadaddr} uEnv-new.txt
+    U-Boot# boot
+    mmc0 is current device
+    SD/MMC found on device 0
+    reading boot.scr
+    ** Unable to read file boot.scr **
+    reading uEnv-new.txt
+    1128 bytes read in 5 ms (219.7 KiB/s)
+    Importing environment from mmc0 ...
+    Running uenvcmd ...
+    reading zImage-new
+    3663184 bytes read in 173 ms (20.2 MiB/s)
+    reading initrd.img
+    3182391 bytes read in 151 ms (20.1 MiB/s)
+    reading /dtbs/omap4-panda-a4.dtb
+    18920 bytes read in 9 ms (2 MiB/s)
+    Kernel image @ 0x80300000 [ 0x000000 - 0x37e550 ]
+    Wrong Ramdisk Image Format
+    Ramdisk image is corrupt or invalid
+    ** Invalid partition 2 **
+
+Hmm, but even stock kernel fails with the same image. Adding uboot header with,
+
+    $ tools/mkimage -A arm -O linux -T ramdisk -a 0x81650000 -d /media/ben/BOOT/initrd-new.img /media/ben/BOOT/uinitrd-new.img
+
+unfortunately allows uboot to boot again but kernel crashes at same
+point while unpacking initramfs.
+
+I give up, just going to run without initramfs.
+
+
+[PandaBoard]: http://pandaboard.org/
+[netinstall]: http://elinux.org/BeagleBoardDebian#Debian_NetInstall
+[ghc]: /posts/2012-01-27-ghc-llvm-arm.html
+[frequency limit]: https://bugzilla.kernel.org/show_bug.cgi?id=58541
