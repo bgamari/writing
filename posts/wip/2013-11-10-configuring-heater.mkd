@@ -1,0 +1,36 @@
+---
+title: Building GHC on the BeagleBoard Black
+date: 2013-11-10
+tags: beagleboard black
+---
+
+## Basic configuration
+
+ 1. Flash Debian (Wheezy used here) as described
+    [here](http://elinux.org/BeagleBoardDebian) and boot
+ 2. SSH to 192.168.7.2 (user `debian`, password `temppwd`)
+ 3. Change default account password
+ 4. Configure `init` to start console on USB ACM device by adding the
+    following to `inittab`,
+        GS0:23:respawn:/sbin/getty -L ttyGS0 115200 vt102
+ 5. Configure network in `/etc/network/interfaces`
+ 6. Configure some swap space (*e.g.* on an SD card; note that this
+    will be pretty abusive to the card),
+        $ mkswap /dev/mmcblk1p3
+        $ swapon /dev/mmcblk1p3
+
+## Compile GHC
+ 1. Install some packages,
+        $ sudo apt-get install git less avahi-daemon vim tmux build-essential autoconf libtool libncurses5-dev llvm ghc cabal-install
+ 2. Checkout repository,
+        $ git clone git://github.com/ghc/ghc
+ 3. Install some Haskell packages,
+        $ cabal update
+        $ cabal install -f-templateHaskell QuickCheck
+        $ cabal install alex happy
+ 4. Build GHC,
+        $ PATH=$HOME/.cabal/bin:$PATH
+        $ make
+    There are a few source files (*e.g.* `DynFlags.hs`) which will put
+    the board under severe memory pressure. With a few hundred megabytes of
+    swap space and plenty of time the machine will eventually finish, however.
