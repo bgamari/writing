@@ -1,6 +1,7 @@
 ---
 title: Running modern kernel on the PandaBoard
 date: 2013-11-17
+description: Bringing up the v3.12 kernel on the PandaBoard
 ---
 
 Several years ago TI began offering the [PandaBoard][], a dual-core
