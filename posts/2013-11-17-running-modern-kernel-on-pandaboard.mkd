@@ -7,13 +7,13 @@ description: Bringing up the v3.12 kernel on the PandaBoard
 Several years ago TI began offering the [PandaBoard][], a dual-core
 ARM7 development board based around the OMAP 4430. The relatively fast
 OMAP made this board an excellent substrate for development (in my
-case, on [GHC][ghc]). Sadly, the group offering the board has since
-dissolved, leaving me with two PandaBoards with little software
-support. Moreover, older kernels [lack][frequency limit] support for
-much of what this hardware is capable of. This write-up will be my
-notes for trying to bring up a modern kernel (3.12) on the
-PandaBoard. I'll be building on a Debian Wheezy installation installed
-in the [usual way][netinstall].
+case, hacking on the [Glasgow Haskell Compiler][ghc]). Sadly, the
+group offering the board has since dissolved, leaving me with two
+PandaBoards with little software support. Moreover, older kernels
+[lack][frequency limit] support for much of what this hardware is
+capable of. This write-up will be my notes for trying to bring up a
+modern kernel (3.12) on the PandaBoard. I'll be building on a Debian
+Wheezy installation installed in the [usual way][netinstall].
 
 Increasingly, new kernels rely on DeviceTree for their
 configuration. 
