@@ -282,7 +282,7 @@ Move it into place on target,
     $ cp ~/u-boot.img u-boot.img
     $ reboot
 
-Trying booting again,
+Trying booting again (this time without setting `initrd_high`),
 
     U-Boot# setenv loadbootenv load mmc ${mmcdev}:${mmcpart} ${loadaddr} uEnv-new.txt
     U-Boot# boot
@@ -309,11 +309,15 @@ Hmm, but even stock kernel fails with the same image. Adding uboot header with,
 
     $ tools/mkimage -A arm -O linux -T ramdisk -a 0x81650000 -d /media/ben/BOOT/initrd-new.img /media/ben/BOOT/uinitrd-new.img
 
-unfortunately allows uboot to boot again but kernel crashes at same
-point while unpacking initramfs.
+Unfortunately this allows uboot to boot again but kernel crashes at
+the same point while unpacking initramfs. Perhaps `initrd_high` really
+does need to be overridden.
 
-Ahh, looking at TRM it seems there is no usable memory below
-0x30000000. Using `initrd_high` of 90000000 allows system to boot.
+Setting `initrd_high=30000000` brings me back to u-boot failing with
+an allocation failure. Looking at TRM it seems there is no usable
+memory below 0x30000000; I suspect the address given in the
+documentation is simply inapplicable here. Using
+`initrd_high=90000000` allows system to boot.
 
 Sadly, while my PandaBoard A4 works fine, the PandaBoard ES appears to
 hang shortly before starting `init`. Reported this to the
@@ -324,7 +328,7 @@ After this things seem quite useable, although there is the
 occassional warning of the form,
 
      gic_timer_retrigger: lost localtimer interrupt
-     
+
 As Tony Lindgren [points out][lindgren] there are a few things that
 are known to be broken at the moment,
 
