@@ -315,8 +315,33 @@ point while unpacking initramfs.
 Ahh, looking at TRM it seems there is no usable memory below
 0x30000000. Using `initrd_high` of 90000000 allows system to boot.
 
+Sadly, while my PandaBoard A4 works fine, the PandaBoard ES appears to
+hang shortly before starting `init`. Reported this to the
+[list][pandaboard es hang]. It seems that this is due to cpuidle; this
+[patch][cpuidle-patch] appears to fix the issue.
+
+After this things seem quite useable, although there is the
+occassional warning of the form,
+
+     gic_timer_retrigger: lost localtimer interrupt
+     
+As Tony Lindgren [points out][lindgren] there are a few things that
+are known to be broken at the moment,
+
+ 1. WLAN does not work after a soft reset or when brough down with
+    `ifconfig down`.
+ 2. Suspend and resume does not wake-up from serial console and spews
+    a bunch of warnings.
+ 3. cpufreq unfortunately won't be [supported][menon-gplus] for a
+    [while][cpufreq-status]
+
 
 [PandaBoard]: http://pandaboard.org/
 [netinstall]: http://elinux.org/BeagleBoardDebian#Debian_NetInstall
 [ghc]: /posts/2012-01-27-ghc-llvm-arm.html
 [frequency limit]: https://bugzilla.kernel.org/show_bug.cgi?id=58541
+[pandaboard es hang]: http://lists.infradead.org/pipermail/linux-arm-kernel/2013-November/212119.html
+[cpuidle-patch]: https://patchwork.kernel.org/patch/3084521/
+[lindgren]: http://marc.info/?l=linux-arm-kernel&m=138497259220285&w=2
+[menon-gplus]: https://plus.google.com/112464029509057661457/posts/gvyZQcNieoq
+[cpufreq-status]: http://marc.info/?l=linux-omap&m=138488225103388&w=2
