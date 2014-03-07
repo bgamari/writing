@@ -200,6 +200,6 @@ however, is in the testsuite results,
            0 unexpected passes
           16 unexpected failures
     
-That is right, you can count the testsuite failures on the your
-fingers and toes combined!
+That's right, you can count the testsuite failures on two hands and a
+foot!
 
