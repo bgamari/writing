@@ -1,0 +1,136 @@
+---
+title: Compiling GHC 7.8 on ARM
+description: A brief history of my efforts in bringing first-class ARM support to GHC
+tags: GHC,ARM,linking
+date: 2014-03-06
+---
+
+GHC on ARM has long been a second-class citizen. Since the arrival of
+the LLVM code generator, the primary sticking point is the lack of a
+runtime linker, which GHC relies on for evaluating Template Haskell
+splices and GHCi. Over the last few years, there have been an effort
+by me and others to try to resolve this.
+
+Much of the effort has centered around improving ARM support in GHC's
+own home-brew linker, neccessary as GHC until recently has linked static
+objects at runtime. Unfortunately, writing a fully compliant linker is
+no [small][patch] [task][segv], especially in the case of ARM where one must worry
+about no fewer than [two][thumb] [instruction][mkJumpToAddr] [sets][veneer]
+and a seemingly endless set of relocation types (the curious reader is
+invited to look over the ELF for ARM [specification][ELF ARM] which
+defines some of what the linker must do). Even after the code has seen
+numerous eyes over the years, GHC's runtime linker still suffers from
+some rather serious bugs.
+
+Thankfully, there is another path for ARM support in GHC. Recently,
+GHC has been gradually improving its support for dynamic linking. This
+carries with it the advantage that we can punt the details of section
+loading and relocation handling to the system's dynamic linker,
+opening up an easy migration path away from the maintenance burden of
+GHC's runtime linker.
+
+[thumb]: https://en.wikipedia.org/wiki/Arm_architecture#Thumb
+[veneer]: https://ghc.haskell.org/trac/ghc/ticket/7823
+[mkJumpToAddr]: https://ghc.haskell.org/trac/ghc/ticket/8380
+[ELF ARM]: http://infocenter.arm.com/help/topic/com.arm.doc.ihi0044e/IHI0044E_aaelf.pdf
+[segv]: https://ghc.haskell.org/trac/ghc/ticket/7316#comment:8
+[patch]: https://ghc.haskell.org/trac/ghc/ticket/5839
+
+## PLT handling
+
+Enabling dynamic linking with the LLVM backend, while easier than
+writing a linker from the ground up, is [complicated][llvm-dynamic] by a small detail
+of relocation handling. The relocation of code references is often
+handled through the [procedure linkage table][PLT] (PLT). This is a table
+of trampoline fragments that allows the runtime linker to intercept
+function calls. The PLT is often the first choice of the compile-time
+linker when emitting function references as it allows the runtime linker
+perform just-in-time relocation, reducing process start-up times by
+deferring relocation of rarely used code to the point when the code is
+needed.
+
+[llvm-dynamic]: https://ghc.haskell.org/trac/ghc/ticket/4210
+
+As it turns out, the PLT interacts very badly with GHC's runtime system (RTS),
+which requires that all Haskell objects (constructors or closures) are
+preceded by an info table, where RTS can track garbage
+collection and profiling information. If the PLT is used, pointers to
+what might otherwise refer to a closure (e.g. executable code) and its preceding
+info table instead point to a linker-generated trampoline. While
+things may appear to run fine at first, calamity ensues after the
+run-time system attempts its first garbage collection pass, usually
+ending in the untimely death of the process with an "Invalid closure
+type" error from the RTS.
+
+For this reason, GHC must ensure that no relocations in Haskell code
+go through the PLT.  In assembler, one typically indicates to the
+compile-time linker that a symbol is a code (which can go through the
+PLT) or data (which must be handled with any of a number of other
+relocation schemes) with a `.type` [directive][type]. Unfortunately,
+it seems that LLVM provides no analogous mechanism in its own
+intermediate language. Lacking this, we must settle for a
+workaround, [adding][solution] yet another hack to the LLVM code
+generator's assembler [mangler][] to add `.type @object` directives to
+every emitted symbol.
+
+[PLT]: http://www.iecc.com/linker/linker10.html
+[solution]: https://github.com/bgamari/ghc/commit/ed67d290e7389bd87a6feea269a0275e0f0f5e2f
+[type]: https://sourceware.org/binutils/docs/as/Type.html
+[mangler]: https://github.com/bgamari/ghc/blob/arm-ghci/compiler/llvmGen/LlvmMangler.hs
+
+## Installation
+
+With the release of GHC 7.8 imminent, I'm happy to say that ARM
+support is now finally looking sustainable. With the dynamic linking
+now viable, the surface area of the ARM-specific code in GHC has been
+greatly reduced, most of the nasty details now being handled by either
+LLVM or the system's dynamic linker.
+
+Unfortunately, there are still a few rough edges, mostly in the build
+process of GHC itself. This is largely due to a [bug][bfd bug] in BFD
+ld's relocation support on ARM, the default linker in most Linux
+distributions. Until this is fixed, the [gold][] linker will be the
+only supported linker with GHC on ARM. GHC now [checks][] that the
+linker being used isn't affected by the bug in question, so hopefully
+users won't be affected beyond needing to switch linkers.
+
+[checks]: https://github.com/bgamari/ghc/commit/53856a43d9d1a901f70d96d22a31c6ea56903e0e
+[bfd bug]: https://sourceware.org/bugzilla/show_bug.cgi?id=16177
+[gold]: https://en.wikipedia.org/wiki/Gold_%28linker%29
+
+Unfortunately, the gold linker doesn't support producing dynamic
+objects with certain relocation types that seem to appear in (at least
+Debian's) GHC 7.6 object code.
+
+This unfortunately means that users upgrading from GHC 7.6 to 7.8 may
+need to perform an awkward dance to ensure that the correct linker
+over the course of the build process. I've written a small [script][] to
+automate this process which works for me (tested on Debian Jessie on
+an Hardkernel Odroid XU).
+
+[script]: https://gist.github.com/bgamari/9399430
+
+
+## The proof is in the pudding
+
+However, after all of this GHC finally has robust support on ARM,
+
+    Unexpected results from:
+    TEST="T8557 T7386 print021 print020 print022 Flags02 T8766 ghci053 T703 linker_unload T7574 T7850 rangeTest ghcirun002 ghcirun001"
+    
+    OVERALL SUMMARY for test run started at Fri Mar  7 05:27:05 2014 CET
+     0:58:11 spent to go through
+        3895 total tests, which gave rise to
+       12782 test cases, of which
+        9299 were skipped
+    
+          28 had missing libraries
+        3368 expected passes
+          56 expected failures
+    
+          20 caused framework failures
+           0 unexpected passes
+          16 unexpected failures
+    
+That is right, you can count the testsuite failures on the your
+fingers and toes combined!
