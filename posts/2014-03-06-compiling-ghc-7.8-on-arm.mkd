@@ -1,28 +1,39 @@
 ---
-title: Compiling GHC 7.8 on ARM
+title: The state of GHC on ARM
 description: A brief history of my efforts in bringing first-class ARM support to GHC
 tags: GHC,ARM,linking
 date: 2014-03-06
 ---
+# The state of GHC on ARM
 
-GHC on ARM has long been a second-class citizen. Since the arrival of
-the LLVM code generator, the primary sticking point is the lack of a
-runtime linker, which GHC relies on for evaluating Template Haskell
-splices and GHCi. Over the last few years, there have been an effort
-by me and others to try to resolve this.
+tl;dr, GHC 7.8 should run well on ARM with the LLVM code generator and
+dynamic linking. The process of building GHC itself might be a bit
+hairy due to linker terribleness. After this, however, you'll have
+fully-featured GHC installation supporting all of the modern amenities
+including GHCi and Template Haskell.
 
-Much of the effort has centered around improving ARM support in GHC's
-own home-brew linker, neccessary as GHC until recently has linked static
-objects at runtime. Unfortunately, writing a fully compliant linker is
-no [small][patch] [task][segv], especially in the case of ARM where one must worry
-about no fewer than [two][thumb] [instruction][mkJumpToAddr] [sets][veneer]
-and a seemingly endless set of relocation types (the curious reader is
+ARM has long been a second-class citizen in the GHC world. At first,
+this was due to the lack of a native code generator. This however, was
+resolved with the arrival of the LLVM code generator. At this point
+the primary sticking point is the lack of a runtime linker, which GHC
+relies on for evaluating Template Haskell splices and GHCi. Over the
+last few years, there have been an effort by me and others to try to
+resolve this.
+
+Much of this effort has centered around improving ARM support in GHC's
+own home-brew linker, neccessary as GHC until recently has loaded
+modules by linking static objects at runtime. Unfortunately, writing a
+fully functional linker is no [small][patch] [task][segv], especially
+in the case of ARM where one must worry about no fewer than
+[two][thumb] [instruction][mkJumpToAddr] [sets][veneer] and a
+seemingly endless set of relocation types (the curious reader is
 invited to look over the ELF for ARM [specification][ELF ARM] which
-defines some of what the linker must do). Even after the code has seen
+defines some of what the linker must do; the rest is documented in the
+minds of various linker authors). Even while the code has seen
 numerous eyes over the years, GHC's runtime linker still suffers from
 some rather serious bugs.
 
-Thankfully, there is another path for ARM support in GHC. Recently,
+Thankfully, there is another path for ARM support: recently,
 GHC has been gradually improving its support for dynamic linking. This
 carries with it the advantage that we can punt the details of section
 loading and relocation handling to the system's dynamic linker,
@@ -37,6 +48,8 @@ GHC's runtime linker.
 [patch]: https://ghc.haskell.org/trac/ghc/ticket/5839
 
 ## PLT handling
+
+Note: This section will be a bit technical; feel free to skip it.
 
 Enabling dynamic linking with the LLVM backend, while easier than
 writing a linker from the ground up, is [complicated][llvm-dynamic] by a small detail
@@ -59,8 +72,10 @@ what might otherwise refer to a closure (e.g. executable code) and its preceding
 info table instead point to a linker-generated trampoline. While
 things may appear to run fine at first, calamity ensues after the
 run-time system attempts its first garbage collection pass, usually
-ending in the untimely death of the process with an "Invalid closure
-type" error from the RTS.
+ending in the untimely death of the process with an "evacuate(static):
+strange closure type" error from the RTS.
+
+dll-split: internal error: evacuate(static): strange closure type 0
 
 For this reason, GHC must ensure that no relocations in Haskell code
 go through the PLT.  In assembler, one typically indicates to the
@@ -89,16 +104,24 @@ LLVM or the system's dynamic linker.
 Unfortunately, there are still a few rough edges, mostly in the build
 process of GHC itself. This is largely due to a [bug][bfd bug] in BFD
 ld's relocation support on ARM, the default linker in most Linux
-distributions. Until this is fixed, the [gold][] linker will be the
-only supported linker with GHC on ARM. GHC now [checks][] that the
-linker being used isn't affected by the bug in question, so hopefully
-users won't be affected beyond needing to switch linkers.
+distributions. In short, `ld.bfd` needlessly produces `ARM_R_COPY`
+relocations for some Haskell objects. During dynamic linking, the
+linker copies the body of the function but not its info table. This
+will usually manifest itself as a failure of `dll-split` during the
+build process with `internal error: evacuate(static): strange closure
+type 0`.
+
+Until this is fixed, the [gold][] linker will be the
+only supported linker with GHC on ARM (at least when
+tables-next-to-code is enabled). GHC now [checks][] that the linker
+being used isn't affected by the bug in question, so hopefully users
+won't be affected beyond needing to switch linkers.
 
 [checks]: https://github.com/bgamari/ghc/commit/53856a43d9d1a901f70d96d22a31c6ea56903e0e
 [bfd bug]: https://sourceware.org/bugzilla/show_bug.cgi?id=16177
 [gold]: https://en.wikipedia.org/wiki/Gold_%28linker%29
 
-Unfortunately, the gold linker doesn't support producing dynamic
+Unfortunately, gold doesn't support producing dynamic
 objects with certain relocation types that seem to appear in (at least
 Debian's) GHC 7.6 object code.
 
@@ -106,14 +129,21 @@ This unfortunately means that users upgrading from GHC 7.6 to 7.8 may
 need to perform an awkward dance to ensure that the correct linker
 over the course of the build process. I've written a small [script][] to
 automate this process which works for me (tested on Debian Jessie on
-an Hardkernel Odroid XU).
+an Hardkernel Odroid XU). This ensures that `ld.bfd` is used while
+building with the phase 0 (GHC 7.6) compiler and `ld.gold` is used
+thereafter. After GHC has been built, `ld.gold` should be used.
 
 [script]: https://gist.github.com/bgamari/9399430
 
+There are still a few more [patches][] that should go in to GHC 7.8 before
+release to make building on ARM as painless as possible.
+
+[patches]: https://ghc.haskell.org/trac/ghc/ticket/8855
 
 ## The proof is in the pudding
 
-However, after all of this GHC finally has robust support on ARM,
+Of course, it is easy to *claim* that a compiler works. The proof,
+however, is in the testsuite results,
 
     Unexpected results from:
     TEST="T8557 T7386 print021 print020 print022 Flags02 T8766 ghci053 T703 linker_unload T7574 T7850 rangeTest ghcirun002 ghcirun001"
@@ -134,3 +164,4 @@ However, after all of this GHC finally has robust support on ARM,
     
 That is right, you can count the testsuite failures on the your
 fingers and toes combined!
+
