@@ -93,6 +93,26 @@ every emitted symbol.
 [type]: https://sourceware.org/binutils/docs/as/Type.html
 [mangler]: https://github.com/bgamari/ghc/blob/arm-ghci/compiler/llvmGen/LlvmMangler.hs
 
+## A note about performance (technical)
+
+In discussions on ghc-dev Simon Marlow expressed the very reasonable
+[concern][] that LLVM may not perform an important optimization used
+by the native code generator in dynamically linked code. Emitting
+position-independent code like is seen in a dynamic library requires a
+small amount of overhead due to relocations. However, this cost can be
+avoided for calls within an object as the relative offsets between
+symbols are known by the linker at compile-time. The native code
+generator goes to some [effort][PIC] to ensure that local references
+are used whenever possible. Thankfully, it [seems][evidence] that LLVM
+is smart enough to do the right thing with intra-object references by
+default. Unfortunately, it's not entirely [clear][] to me where LLVM
+pulls this trick from.
+
+[concern]: http://www.haskell.org/pipermail/ghc-devs/2013-December/003503.html
+[PIC]: https://github.com/ghc/ghc/blob/master/compiler/nativeGen/PIC.hs#L343
+[evidence]: http://www.haskell.org/pipermail/ghc-devs/2013-December/003531.html
+[clear]: http://www.haskell.org/pipermail/ghc-devs/2014-January/003724.html
+
 ## Installation
 
 With the release of GHC 7.8 imminent, I'm happy to say that ARM
