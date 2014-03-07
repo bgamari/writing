@@ -75,8 +75,6 @@ run-time system attempts its first garbage collection pass, usually
 ending in the untimely death of the process with an "evacuate(static):
 strange closure type" error from the RTS.
 
-dll-split: internal error: evacuate(static): strange closure type 0
-
 For this reason, GHC must ensure that no relocations in Haskell code
 go through the PLT.  In assembler, one typically indicates to the
 compile-time linker that a symbol is a code (which can go through the
