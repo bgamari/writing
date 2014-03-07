@@ -102,36 +102,39 @@ greatly reduced, most of the nasty details now being handled by either
 LLVM or the system's dynamic linker.
 
 Unfortunately, there are still a few rough edges, mostly in the build
-process of GHC itself. This is largely due to a [bug][bfd bug] in BFD
-ld's relocation support on ARM, the default linker in most Linux
-distributions. In short, `ld.bfd` needlessly produces `ARM_R_COPY`
-relocations for some Haskell objects. During dynamic linking, the
-linker copies the body of the function but not its info table. This
-will usually manifest itself as a failure of `dll-split` during the
-build process with `internal error: evacuate(static): strange closure
-type 0`.
+process of GHC itself. This is largely due to a [bug][bfd bug] in bfd
+ld's (the old ld implementation distributed with binutils) relocation
+support on ARM. Unfortunately, bfd ld is still the default linker in
+most Linux distributions. In short, `ld.bfd` needlessly produces
+`ARM_R_COPY` relocations for some Haskell objects. During dynamic
+linking, the linker copies the body of the function but not its info
+table. This will usually manifest itself as a failure of `dll-split`
+during the build process with `internal error: evacuate(static):
+strange closure type 0`.
 
-Until this is fixed, the [gold][] linker will be the
-only supported linker with GHC on ARM (at least when
-tables-next-to-code is enabled). GHC now [checks][] that the linker
-being used isn't affected by the bug in question, so hopefully users
-won't be affected beyond needing to switch linkers.
+Until this is fixed, the newer [gold][] linker will be the only
+supported linker with GHC on ARM (at least when tables-next-to-code is
+enabled). GHC now [checks][] that the linker being used isn't affected
+by the bug in question, so hopefully users won't be affected beyond
+needing to switch linkers.
 
 [checks]: https://github.com/bgamari/ghc/commit/53856a43d9d1a901f70d96d22a31c6ea56903e0e
 [bfd bug]: https://sourceware.org/bugzilla/show_bug.cgi?id=16177
 [gold]: https://en.wikipedia.org/wiki/Gold_%28linker%29
 
-Unfortunately, gold doesn't support producing dynamic
-objects with certain relocation types that seem to appear in (at least
-Debian's) GHC 7.6 object code.
+Unfortunately, gold doesn't support producing dynamic objects with
+certain relocation types that seem to appear in (at least Debian's)
+GHC 7.6 object code. For added fun, GHC 7.6 tries to blindly pass bfd
+ld-specific flags to the linker, causing gold to barf.
 
-This unfortunately means that users upgrading from GHC 7.6 to 7.8 may
-need to perform an awkward dance to ensure that the correct linker
-over the course of the build process. I've written a small [script][] to
-automate this process which works for me (tested on Debian Jessie on
-an Hardkernel Odroid XU). This ensures that `ld.bfd` is used while
-building with the phase 0 (GHC 7.6) compiler and `ld.gold` is used
-thereafter. After GHC has been built, `ld.gold` should be used.
+All of this unfortunately means that users upgrading from GHC 7.6 to
+7.8 may need to perform an awkward dance to ensure that the correct
+linker over the course of the build process. I've written a small
+[script][] to automate this process which works for me (tested on
+Debian Jessie on an Hardkernel Odroid XU). This ensures that `ld.bfd`
+is used while building with the phase 0 (GHC 7.6) compiler and
+`ld.gold` is used thereafter. After GHC has been built, `ld.gold`
+should be used.
 
 [script]: https://gist.github.com/bgamari/9399430
 
