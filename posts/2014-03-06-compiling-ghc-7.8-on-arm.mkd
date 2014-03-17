@@ -142,8 +142,12 @@ needing to switch linkers.
 
 Unfortunately, gold doesn't support producing dynamic objects with
 certain relocation types that seem to appear in (at least Debian's)
-GHC 7.6 object code. For added fun, GHC 7.6 tries to blindly pass bfd
+GHC 7.6 object code[^1]. For added fun, GHC 7.6 tries to blindly pass bfd
 ld-specific flags to the linker, causing gold to barf.
+
+[^1]: Namely `ld.gold` will produce errors of the form,
+
+        /usr/bin/ld.gold: error: /usr/lib/ghc/libHSrts.a(GetTime.o): requires unsupported dynamic reloc R_ARM_THM_MOVW_ABS_NC; recompile with -fPIC
 
 All of this unfortunately means that users upgrading from GHC 7.6 to
 7.8 may need to perform an awkward dance to ensure that the correct
