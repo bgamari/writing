@@ -176,7 +176,7 @@ different from what one would expect on any other machine,
     $ ./sync-all get
     $ ./boot
     $ ./configure --with-ghc=/usr/bin/ghc
-    $ wget https://gist.githubusercontent.com/bgamari/9399430/raw/3b14971956416ec0fece1c05ead35b90fe1a5165/build-ghc-arm.sh
+    $ wget https://gist.githubusercontent.com/bgamari/9399430/raw/build-ghc-arm.sh
     $ chmod ugo+rx build-ghc-arm.sh
     $ ./build-ghc-arm.sh -j4
     $ make test
