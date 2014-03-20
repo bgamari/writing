@@ -1,0 +1,165 @@
+---
+title: Help! An invalid closure
+tags: ghc, haskell
+date: 2014-03-20
+description: A walk-through of debugging GHC's runtime system
+---
+
+When debugging the GHC runtime system (RTS), one is often faced with
+errors of the form,
+
+    test: internal error: invalid closure, info=0x122a8
+    (GHC version 7.8.0.20140317 for arm_unknown_linux)
+    Please report this as a GHC bug:  http://www.haskell.org/ghc/reportabug
+
+This error is produced by GHC's garbage collector. In particular, the
+garbage collector is trying to tell you that the runtime system has
+encountered an unrecognized closure type while traversing the heap, a
+likely sign of corruption.
+
+The first thing I do when faced with such a crash is to recompile the
+code in question with GHC's `-debug` flag, linking against the debug
+build of the runtime system. After running the resulting executable in
+`gdb`, you'll likely find a backtrace containing frames similar to
+frames 0 through 11 of the following,
+
+    (gdb) bt
+    #0  __libc_do_syscall () at ../ports/sysdeps/unix/sysv/linux/arm/libc-do-syscall.S:44
+    #1  0xb64035fe in __GI_raise (sig=sig@entry=6) at ../nptl/sysdeps/unix/sysv/linux/raise.c:56
+    #2  0xb6405d9a in __GI_abort () at abort.c:90
+    #3  0xb65dce48 in rtsFatalInternalErrorFn (s=0xb6615b74 "invalid closure, info=%p", ap=...) at rts/RtsMessages.c:170
+    #4  0xb65dcc22 in barf (s=0xb6615b74 "invalid closure, info=%p") at rts/RtsMessages.c:42
+    #5  0xb65ec8ba in evacuate (p=0xb6fd6418 <SgDT_srt+88>) at rts/sm/Evac.c:384
+    #6  0xb65f2c1a in scavenge_srt (srt=0xb6fd63f4 <SgDT_srt+52>, srt_bitmap=1793) at rts/sm/Scav.c:332
+    #7  0xb65f2caa in scavenge_fun_srt (info=0xb6e8604c <base_SystemziPosixziInternals_fdFileSizze1_info_itable+8>) at rts/sm/Scav.c:360
+    #8  0xb65f458a in scavenge_static () at rts/sm/Scav.c:1572
+    #9  0xb65f4aae in scavenge_loop () at rts/sm/Scav.c:1919
+    #10 0xb65eea4a in scavenge_until_all_done () at rts/sm/GC.c:995
+    #11 0xb65edc5c in GarbageCollect (collect_gen=1, do_heap_census=rtsFalse, gc_type=0, cap=0xb661b540 <MainCapability>) at rts/sm/GC.c:393
+    #12 0xb65df046 in scheduleDoGC (pcap=0xbefff4e8, task=0x1c758, force_major=rtsTrue) at rts/Schedule.c:1652
+    #13 0xb65df8a0 in exitScheduler (wait_foreign=rtsFalse) at rts/Schedule.c:2466
+    #14 0xb65dd2f2 in hs_exit_ (wait_foreign=rtsFalse) at rts/RtsStartup.c:336
+    #15 0xb65dd42a in shutdownHaskellAndExit (n=0, fastExit=0) at rts/RtsStartup.c:466
+    #16 0xb65dcb9a in real_main () at rts/RtsMain.c:87
+    #17 0xb65dcbf2 in hs_main (argc=1, argv=0xbefff6e4, main_closure=0x12268 <ZCMain_main_closure>, rts_config=...) at rts/RtsMain.c:114
+    #18 0x00009e8e in main ()
+
+Looking in `rts/sm/Eval.c`, we find the assert in question,
+
+    ASSERTM(LOOKS_LIKE_CLOSURE_PTR(q), "invalid closure, info=%p", q->header.info);
+
+where we find the definition of `LOOKS_LIKE_CLOSURE_PTR` in
+`includes/rts/storage/ClosureMacros.h`,
+
+    static inline StgClosure *
+    UNTAG_CLOSURE(StgClosure * p)
+    {
+        return (StgClosure*)((StgWord)p & ~TAG_MASK);
+    }
+
+    ...
+ 
+    INLINE_HEADER rtsBool LOOKS_LIKE_CLOSURE_PTR (void *p)
+    {
+        return LOOKS_LIKE_INFO_PTR((StgWord)(UNTAG_CLOSURE((StgClosure *)(p)))->header.info);
+    }
+
+Some background may be in order here. Since accessing unaligned
+addresses is frowned upon in general, the RTS claims the bottom few
+bits (2 or 3 depending upon the architecture's word size) of pointers
+to encode a
+[tag](https://ghc.haskell.org/trac/ghc/wiki/Commentary/Rts/HaskellExecution/PointerTagging). In
+the case of function references the tag encodes the function's arity
+whereas in the case of data the tag contains the data
+constructor. Note that this is merely an optimization; in the event
+that the arity or constructor doesn't fit in the tag the compiler
+automatically falls back to storing this information in the object
+itself.
+
+So, `LOOKS_LIKE_CLOSURE_PTR` deferences the pointer (after removing
+the low-order tag bits), and performs a sanity check on its info table
+pointer. This sanity check is also defined in `ClosureMacros.h`,
+
+    #define IS_FORWARDING_PTR(p) ((((StgWord)p) & 1) != 0)
+
+    INLINE_HEADER rtsBool LOOKS_LIKE_INFO_PTR_NOT_NULL (StgWord p)
+    {
+        StgInfoTable *info = INFO_PTR_TO_STRUCT((StgInfoTable *)p);
+        return (info->type != INVALID_OBJECT && info->type < N_CLOSURE_TYPES) ? rtsTrue : rtsFalse;
+    }
+
+    INLINE_HEADER rtsBool LOOKS_LIKE_INFO_PTR (StgWord p)
+    {
+        return (p && (IS_FORWARDING_PTR(p) || LOOKS_LIKE_INFO_PTR_NOT_NULL(p))) ? rtsTrue : rtsFalse;
+    }
+
+This is, a valid info table pointer can't be `NULL` and must be
+either,
+
+  a. A forwarding pointer, having the low order bit set, or
+  b. A valid info table pointer, therefore
+    1. Is not of type `INVALID_OBJECT`, and
+    2. Has a type in the valid range of closure types (defined in
+       `includes/rts/storage/ClosureTypes.h`; in GHC 7.8
+       `N_CLOSURE_TYPES == 61`)
+
+In this example, the object in question is,
+
+    (gdb) print *q
+    $5 = {header = {info = 0x122a8 <integerzmgmp_GHCziIntegerziType_Szh_static_info>},
+          payload = 0xb6fb7ab4 <base_SystemziPosixziInternals_fdFileSizze2_closure+4>}
+
+`q->header.info` is not `NULL` so let's look at the info table itself,
+
+    (gdb) print q->header.info[0]
+    $6 = {layout = {payload = {ptrs = 12288, nptrs = 58773},
+                    bitmap = 3851759616,
+                    large_bitmap_offset = -443207680,
+                    selector_offset = 3851759616},
+          type = 28673,
+          srt_bitmap = 57991, 
+          code = 0x122b0 <integerzmgmp_GHCziIntegerziType_Szh_static_info+8> "3\377/\341\036\377", <incomplete sequence \341>}
+
+So clearly this info table is quite insane. Besides having an invalid
+`type`, its layout looks quite suspicious. First, let's see if it was trampled by
+something,
+
+    (gdb) print &q->header.info[0].type
+    $9 = (StgHalfWord *) 0x122ac <integerzmgmp_GHCziIntegerziType_Szh_static_info+4>
+    (gdb) watch *0x122ac
+    Watchpoint 2: * 0x122ac
+    (gdb) run
+
+Unfortunately hardware watchpoint support on my platform/board (ARM)
+isn't terribly great, so this didn't get anywhere.
+
+
+# Examining the core
+
+However, I did notice at the outset that the code in question works
+without `-O`,
+
+    $ inplace/bin/ghc-stage2 testsuite/tests/boxy/T2193.hs -o test -dynamic -fforce-recomp
+    [1 of 1] Compiling Main             ( testsuite/tests/boxy/T2193.hs, testsuite/tests/boxy/T2193.o )
+    Linking test ...
+    $ ./test
+    4
+    $ inplace/bin/ghc-stage2 testsuite/tests/boxy/T2193.hs -o test -dynamic -fforce-recomp -O
+    [1 of 1] Compiling Main             ( testsuite/tests/boxy/T2193.hs, testsuite/tests/boxy/T2193.o )
+    Linking test ...
+    $ ./test
+    4
+    test: internal error: evacuate(static): strange closure type 0
+        (GHC version 7.8.0.20140317 for arm_unknown_linux)
+        Please report this as a GHC bug:  http://www.haskell.org/ghc/reportabug
+    Aborted
+
+Let's have a look at the core,
+
+    $ inplace/bin/ghc-stage2 testsuite/tests/boxy/T2193.hs -o test -dynamic -O -fforce-recomp -ddump-simpl -dsuppress-idinfo -dsuppress-coercions -dsuppress-type-applications >test.o1.core
+    $ inplace/bin/ghc-stage2 testsuite/tests/boxy/T2193.hs -o test -dynamic -O0 -fforce-recomp -ddump-simpl -dsuppress-idinfo -dsuppress-coercions -dsuppress-type-applications >test.o0.core
+    
+
+# Work in progress
+
+This is about as far as I have made it so far.
