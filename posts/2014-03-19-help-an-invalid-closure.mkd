@@ -5,6 +5,14 @@ date: 2014-03-20
 description: A walk-through of debugging GHC's runtime system
 ---
 
+This is an attempt at documenting one of my sessions debugging [GHC's]
+runtime system. In particular, I'll try to write down some of the
+background I've accrued bringing up GHC on the ARM
+architecture. However, most of the below should be largely
+architecture agnostic.
+
+## The symptom
+
 When debugging the GHC runtime system (RTS), one is often faced with
 errors of the form,
 
@@ -16,6 +24,8 @@ This error is produced by GHC's garbage collector. In particular, the
 garbage collector is trying to tell you that the runtime system has
 encountered an unrecognized closure type while traversing the heap, a
 likely sign of corruption.
+
+## Finding closure(s)
 
 The first thing I do when faced with such a crash is to recompile the
 code in question with GHC's `-debug` flag, linking against the debug
@@ -44,11 +54,15 @@ frames 0 through 11 of the following,
     #17 0xb65dcbf2 in hs_main (argc=1, argv=0xbefff6e4, main_closure=0x12268 <ZCMain_main_closure>, rts_config=...) at rts/RtsMain.c:114
     #18 0x00009e8e in main ()
 
-Looking in `rts/sm/Eval.c`, we find the assert in question,
+Looking in `rts/sm/Eval.c`, we find the assertion in question,
 
     ASSERTM(LOOKS_LIKE_CLOSURE_PTR(q), "invalid closure, info=%p", q->header.info);
 
-where we find the definition of `LOOKS_LIKE_CLOSURE_PTR` in
+Here `q` is a pointer to an
+[`StgClosure`](https://github.com/ghc/ghc/blob/master/includes/rts/storage/Closures.h#L80),
+GHC's representation of an
+[STG](https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/GeneratedCode)
+closure. We find the definition of `LOOKS_LIKE_CLOSURE_PTR` in
 `includes/rts/storage/ClosureMacros.h`,
 
     static inline StgClosure *
@@ -98,10 +112,23 @@ either,
 
   a. A forwarding pointer, having the low order bit set, or
   b. A valid info table pointer, therefore
-    1. Is not of type `INVALID_OBJECT`, and
+    1. Is not of type `INVALID_OBJECT` (0), and
     2. Has a type in the valid range of closure types (defined in
        `includes/rts/storage/ClosureTypes.h`; in GHC 7.8
        `N_CLOSURE_TYPES == 61`)
+
+If we look at the definition of `INFO_PTR_TO_STRUCT` we will notice
+there is a slight subtly here, however,
+
+    #ifdef TABLES_NEXT_TO_CODE
+    EXTERN_INLINE StgInfoTable *INFO_PTR_TO_STRUCT(const StgInfoTable *info) {return (StgInfoTable *)info - 1;}
+    #else
+    EXTERN_INLINE StgInfoTable *INFO_PTR_TO_STRUCT(const StgInfoTable *info) {return (StgInfoTable *)info;}
+#endif
+
+This is where GHC handles *tables-next-to-code*, a memory-layout
+optimization GHC performs to keep info tables local to the objects
+they describe. We should keep this in mind as we traverse the heap.
 
 In this example, the object in question is,
 
@@ -109,29 +136,50 @@ In this example, the object in question is,
     $5 = {header = {info = 0x122a8 <integerzmgmp_GHCziIntegerziType_Szh_static_info>},
           payload = 0xb6fb7ab4 <base_SystemziPosixziInternals_fdFileSizze2_closure+4>}
 
-`q->header.info` is not `NULL` so let's look at the info table itself,
+We see here that the object in question is an `Integer`, namely the
+`S#`
+[constructor](https://github.com/ghc/packages-integer-gmp/blob/master/GHC/Integer/Type.lhs#L109)
+from `integer-gmp`,
 
-    (gdb) print q->header.info[0]
-    $6 = {layout = {payload = {ptrs = 12288, nptrs = 58773},
-                    bitmap = 3851759616,
-                    large_bitmap_offset = -443207680,
-                    selector_offset = 3851759616},
-          type = 28673,
-          srt_bitmap = 57991, 
-          code = 0x122b0 <integerzmgmp_GHCziIntegerziType_Szh_static_info+8> "3\377/\341\036\377", <incomplete sequence \341>}
+    data Integer
+       = S# Int# -- ^ \"small\" integers fitting into an 'Int#'
+       | J# Int# ByteArray# -- ^ \"big\" integers represented as GMP's @mpz_t@ structure.
 
-So clearly this info table is quite insane. Besides having an invalid
-`type`, its layout looks quite suspicious. First, let's see if it was trampled by
-something,
+The fact that the constructor's field is of type `Int#` tells us that the `payload` should be an integer,
 
-    (gdb) print &q->header.info[0].type
-    $9 = (StgHalfWord *) 0x122ac <integerzmgmp_GHCziIntegerziType_Szh_static_info+4>
-    (gdb) watch *0x122ac
-    Watchpoint 2: * 0x122ac
-    (gdb) run
+    (gdb) print *(int *) q->payload
+    $14 = -1
 
-Unfortunately hardware watchpoint support on my platform/board (ARM)
-isn't terribly great, so this didn't get anywhere.
+
+`q->header.info` is not `NULL` so let's look at the info table itself
+(keeping in mind tables-next-to-code),
+
+    (gdb) print q->header.info[-1]
+    $3 = {layout = {payload = {ptrs = 50404, nptrs = 46814},
+                    bitmap = 3068052708,
+                    large_bitmap_offset = -1226914588,
+                    selector_offset = 3068052708},
+          type = 0,
+          srt_bitmap = 0, 
+          code = 0x122a8 <integerzmgmp_GHCziIntegerziType_Szh_static_info> ""}
+ 
+While `type == INVALID_OBJECT` is clearly concerning, it is unclear
+whether the rest of this is reasonable. With a simple test program on
+my x86-64 box we find that a healthy-looking
+`integerzmgmp_GHCziIntegerziType_Szh_static_info` should look
+something like,
+
+    (gdb) print * ( (StgInfoTable *) integerzmgmp_GHCziIntegerziType_Szh_static_info - 1)
+    $3 = {layout = {payload = {ptrs = 0, nptrs = 1},
+                    bitmap = 4294967296,
+                    large_bitmap_offset = 0,
+                    __pad_large_bitmap_offset = 0,
+                    selector_offset = 4294967296},
+          type = 8,
+          srt_bitmap = 0, 
+          code = 0x455990 <integerzmgmp_GHCziIntegerziType_Szh_static_info> "H\377\303\377e"}
+
+For this reas
 
 
 # Examining the core
