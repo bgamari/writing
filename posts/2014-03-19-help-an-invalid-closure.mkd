@@ -124,7 +124,7 @@ there is a slight subtly here, however,
     EXTERN_INLINE StgInfoTable *INFO_PTR_TO_STRUCT(const StgInfoTable *info) {return (StgInfoTable *)info - 1;}
     #else
     EXTERN_INLINE StgInfoTable *INFO_PTR_TO_STRUCT(const StgInfoTable *info) {return (StgInfoTable *)info;}
-#endif
+    #endif
 
 This is where GHC handles *tables-next-to-code*, a memory-layout
 optimization GHC performs to keep info tables local to the objects
