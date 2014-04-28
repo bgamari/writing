@@ -1,4 +1,4 @@
-bg---
+---
 title: Upgrading BIOS on Dell Latitude E7440
 date: 2014-04-28
 description: Creating a FreeDOS environment for upgrading firmware with a large update image
