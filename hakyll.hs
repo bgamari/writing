@@ -16,7 +16,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
-                               , feedDescription = "Various ramblings, generally of a technical nature"
+                               , feedDescription = "Various ramblings, usually of a technical nature"
                                , feedAuthorName = "Ben Gamari"
                                , feedRoot = "http://bgamari.github.com/"
                                , feedAuthorEmail = "bgamari@gmail.com"
@@ -50,9 +50,9 @@ main = hakyll $ do
                 route   idRoute
                 compile copyFileCompiler
 
-        match "index.html" $ do
-                route idRoute
-                compile $ getResourceBody
+        match "index.mkd" $ do
+                route   $ setExtension "html"
+                compile $ pandocCompiler
                         >>= loadAndApplyTemplate "templates/default.html" (defaultContext <> field "title" (const $ return "Home"))
                         >>= relativizeUrls
 

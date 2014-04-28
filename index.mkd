@@ -1,0 +1,34 @@
+# About
+
+<div style="float: right; padding: 2em;">
+  <img src="/media/ben-in-berlin.jpeg" style="width: 200px;"/>
+</div>
+
+My name is Ben Gamari. I am a graduate student in the Physics
+Department at the University of Massachussetts Amherst where
+I am studying the properties of biopolymers through
+single-molecule spectroscopy in
+the [group](http://goldnerlab.physics.umass.edu/wiki/)
+of Professor Lori Goldner. In my [research](/research.html), I seek to further
+understanding of the conformational properties of biopolymers
+through fluorescence techniques along with advanced statistical
+analysis.
+    
+I am also an open-source advocate, programmer, and
+[turtle](/media/t-eating-bone.jpeg) owner. In my spare time I enjoy
+[building](http://www.publiclab.org/wiki/riffle)
+[things](http://www.reprap.org/),
+learning [programming](http://www.haskell.org/)
+[languages](http://www.rust-lang.org/), listening to
+[music](http://www.gatheringofthevibes.com/), and
+[being](http://en.wikipedia.org/wiki/Metacomet-Monadnock_Trail)
+[outdoors](http://en.wikipedia.org/wiki/Mount_Washington_\(New_Hampshire\)). I
+also participate in a [variety](http://www.github.com/bgamari) of open
+source projects.
+
+## Contact
+
+<ul>
+  <li style="list-style-type: none;"><b>Email</b>: <a href="mailto:bgamari@gmail.com">bgamari@gmail.com</a></li>
+</ul>
+
