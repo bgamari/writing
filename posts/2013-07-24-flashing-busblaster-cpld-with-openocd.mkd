@@ -1,12 +1,12 @@
 ----
-title: Flashing the BusBlaster's CPLD buffer with OpenOCD
+title: Flashing the Bus Blaster's CPLD buffer with OpenOCD
 date: 2013-07-24
 tags: openocd,busblaster,jtag,cpld
-description: Flashing the BusBlaster JTAG adapter's CPLD buffer with OpenOCD
+description: Flashing the Bus Blaster JTAG adapter's CPLD buffer with OpenOCD
 ----
 
 Recently an unfortunate incident involving 20V and a slipped probe
-resulted in a small plume of smoke rising from my BusBlaster, followed
+resulted in a small plume of smoke rising from my Bus Blaster, followed
 by the smell of burnt electronics. After examining the wreckage, it
 seemed likely that the CPLD took most, if not all, of the damage. Not
 wanting to wait another month for Seeed to send a whole new device, I
@@ -20,7 +20,7 @@ OpenOCD.
 With sufficiently recent OpenOCD releases (`ae806d8f4`, included in
 the 0.8.0 release), this process is much simpler than it used to
 be as the package now ships with a board file for the
-BusBlaster. Simply [download][] the desired SVF and run,
+Bus Blaster. Simply [download][] the desired SVF and run,
 
     \$ openocd -f board/dp_busblaster_v3.cfg -c "adapter_khz 1000; init; svf <path_to_svf>; shutdown"
 
@@ -31,7 +31,7 @@ lovely place to be if you have OpenOCD-related questions).
 
 ## Old OpenOCD
 
-The BusBlaster's [documentation][bb-doc] provides instructions for
+The Bus Blaster's [documentation][bb-doc] provides instructions for
 reflashing the CPLD with `urjag`. Sadly, urJTAG refused to acknowledge
 the existence of the device, despite having gone through USB
 enumeration. Having recalled having similar problems while trying to
