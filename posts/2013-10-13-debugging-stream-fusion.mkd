@@ -6,6 +6,8 @@ tags: haskell,stream fusion
 date: 2013-10-13
 ---
 
+# Debugging stream fusion performance 
+
 Stream fusion frameworks such as those in [`vector`][vector] and
 [`text`][text] allow one to acheive impressive performance in Haskell
 code without compromising abstraction. That being said, debugging

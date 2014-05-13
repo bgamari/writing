@@ -5,6 +5,8 @@ date: 2014-03-20
 description: A walk-through of debugging GHC's runtime system
 ---
 
+# A walk-through debugging session of GHC runtime system
+
 This is an attempt at documenting one of my sessions debugging [GHC's]
 runtime system. In particular, I'll try to write down some of the
 background I've accrued bringing up GHC on the ARM
