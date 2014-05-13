@@ -41,7 +41,7 @@ OpenOCD to talk,
 	}
 ```
 
-    in `target/startup.tcl`
+   in `target/startup.tcl`
 
  * the first use of GDB's `load` command will jump into ROM 
 
