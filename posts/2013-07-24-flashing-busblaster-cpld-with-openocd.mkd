@@ -4,6 +4,7 @@ date: 2013-07-24
 tags: openocd,busblaster,jtag,cpld
 description: Flashing the Bus Blaster JTAG adapter's CPLD buffer with OpenOCD
 ----
+# Flashing the Bus Blaster JTAG adapter's CPLD buffer with OpenOCD
 
 Recently an unfortunate incident involving 20V and a slipped probe
 resulted in a small plume of smoke rising from my Bus Blaster, followed
@@ -20,12 +21,26 @@ OpenOCD.
 With sufficiently recent OpenOCD releases (`ae806d8f4`, included in
 the 0.8.0 release), this process is much simpler than it used to
 be as the package now ships with a board file for the
-Bus Blaster. Simply [download][] the desired SVF and run,
+Bus Blaster[^filename]. Simply [download][] the desired SVF and run,
 
-    \$ openocd -f board/dp_busblaster_v3.cfg -c "adapter_khz 1000; init; svf <path_to_svf>; shutdown"
+    $ openocd -f board/dp_busblaster_v3.cfg -c "adapter_khz 1000; init; svf <path_to_svf>; shutdown"
 
 This one-liner is due to `PaulFertser` of `#openocd` on Freenode (a
-lovely place to be if you have OpenOCD-related questions).
+lovely place to be if you have OpenOCD-related questions). Below the
+old procedure is reproduced for those not fortunate enough to have a
+recent OpenOCD installation.
+
+[^filename]:
+    At first glance, the filename `board/dp_busblaster_v3.cfg` is a
+    bit confusing as there is nothing to directly suggest that this
+    will flash the buffer instead of the target device. However, if we
+    look more carefully we notice that this is a *board* file, not to
+    be confused with `interface/ftdi/dp_busblaster.cfg`, the interface
+    file describing the Bus Blaster.
+
+    In fact, if we examine the board file, we'll notice that it simply
+    `source`'s the interface file, sets the `ftdi_channel` and defines
+    the TAP parameters for the buffer CPLD.
 
 [download]: https://code.google.com/p/dangerous-prototypes-open-hardware/source/browse/trunk/Bus_Blaster/buffer_logic/
 
