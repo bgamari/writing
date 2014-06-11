@@ -172,6 +172,7 @@ different from what one would expect on any other machine,
     $ cabal update
     $ cabal install happy alex
     $ git clone git@github.com:ghc/ghc
+    $ cd ghc
     $ git checkout --track origin/ghc-7.8
     $ ./sync-all get
     $ ./boot
