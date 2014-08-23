@@ -82,6 +82,7 @@ And voila,
 [repository]: https://code.google.com/p/dangerous-prototypes-open-hardware/source/browse/#svn%2Ftrunk%2FBus_Blaster%2Fbuffer_logic
 [flashing cpld]: http://bgamari.github.io/posts/2013-07-24-flashing-busblaster-cpld-with-openocd.html
 [SWD resistor hack]: https://github.com/ntfreak/openocd/blob/master/tcl/interface/ftdi/swd-resistor-hack.cfg
+[ktlink]: https://github.com/bharrisau/busblaster
 [charger]: https://github.com/bgamari/solar-charger-v2
 
 ## Related resources
