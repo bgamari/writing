@@ -1,0 +1,93 @@
+---
+title: SWD with OpenOCD and a Bus Blaster
+date: 2014-08-23
+tags: swd, jtag, openocd, arm
+---
+
+# SWD with OpenOCD and a Bus Blaster
+
+For a while now OpenOCD has had some support for Serial Wire Debug (SWD).
+SWD is an alternative to the JTAG wire protocol and has the advantage
+of requiring only two IO pins (data and clock), power, and ground (as
+opposed two JTAG's four data pins, two resets, power, and ground).
+
+Unfortunately, the [documentation][] surrounding OpenOCD's SWD
+implementation is a bit sparse. This afternoon I finally grew
+frustrated with the mess of wires required by JTAG and forged ahead
+into OpenOCD's SWD support.
+
+The target in this case in my [solar battery charger][charger] which
+has an STM32L151 microcontroller. The adapter is a Bus Blaster v3.
+
+The first step was to flash the Bus Blaster's CPLD with a KT-link
+buffer. While Dangerous Prototypes's [repository][] only contains
+sources for Bus Blaster v2, Ben Harris has a
+[convenient implementation][ktlink] for the v3 hardware complete with
+SVF bitcode. Flashing the buffer is easily accomplished with OpenOCD,
+as [documented previously][flashing cpld],
+
+    $ git clone https://github.com/bharrisau/busblaster.git
+    $ cd busblaster/synthesis
+    $ openocd -f board/dp_busblaster_v3.cfg -c "adapter_khz 1000; init; svf system.svf; shutdown"
+
+At this point I consulted the [SWD resistor hack][] that the
+incredibly helpful `PaulFerster` once referred me to on
+`#openocd`. This describes the connections necessary for SWD with an
+FTDI-based adapter like the Bus Blaster,
+
+         adapter                      target
+
+         TCK ──────────────────────── SWDCK
+         
+         TDO ────────────────┬─────── SWDIO
+                             │
+         TDI ──────/\/\/\/───┘
+                   220 ohm
+
+Now it's simply a matter of a little configuration,
+
+    # BusBlaster with KT-link
+    # This is just interface/ftdi/busblaster.cfg
+    interface ftdi
+    ftdi_vid_pid 0x0403 0x6010
+    ftdi_layout_init 0x8c28 0xff3b
+    ftdi_layout_signal nTRST -data 0x0100 -noe 0x0400
+    ftdi_layout_signal nSRST -data 0x0200 -noe 0x0800
+
+    source [find interface/ftdi/swd-resistor-hack.cfg]
+    transport select swd
+    reset_config none
+    source [find target/stm32l.cfg]
+
+And voila,
+
+    $ openocd -f openocd-swd.cfg 
+    Open On-Chip Debugger 0.9.0-dev-00141-g11db2c2 (2014-08-23-14:32)
+    Licensed under GNU GPL v2
+    For bug reports, read
+    	http://openocd.sourceforge.net/doc/doxygen/bugs.html
+    Info : FTDI SWD mode enabled
+    none separate
+    adapter speed: 300 kHz
+    adapter_nsrst_delay: 100
+    cortex_m reset_config sysresetreq
+    Info : clock speed 300 kHz
+    Info : SWD IDCODE 0x2ba01477
+    Info : stm32l.cpu: hardware has 6 breakpoints, 4 watchpoints
+
+
+  
+[documentation]: http://openocd.sourceforge.net/doc/html/Debug-Adapter-Configuration.html#Debug-Adapter-Configuration
+[repository]: https://code.google.com/p/dangerous-prototypes-open-hardware/source/browse/#svn%2Ftrunk%2FBus_Blaster%2Fbuffer_logic
+[flashing cpld]: http://bgamari.github.io/posts/2013-07-24-flashing-busblaster-cpld-with-openocd.html
+[SWD resistor hack]: https://github.com/ntfreak/openocd/blob/master/tcl/interface/ftdi/swd-resistor-hack.cfg
+[charger]: https://github.com/bgamari/solar-charger-v2
+
+## Related resources
+
+ * the [MC HCK][] project's [programmer][] has a nice SWD implementation
+   written in Ruby which supports both the Bus Pirate and the Bus
+   Blaster
+
+[MC HCK]: http://www.mchck.org/
+[programmer]: https://github.com/mchck/programmer
