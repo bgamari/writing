@@ -9,7 +9,7 @@ tags: swd, jtag, openocd, arm
 
 For a while now OpenOCD has had some support for Serial Wire Debug (SWD).
 SWD is an alternative to the JTAG wire protocol and has the advantage
-of requiring only two IO pins (data and clock), power, and ground (as
+of requiring only two I/O pins (data and clock), power, and ground (as
 opposed two JTAG's four data pins, two resets, power, and ground).
 
 Unfortunately, the [documentation][] surrounding OpenOCD's SWD
@@ -25,7 +25,7 @@ buffer. While Dangerous Prototypes's [repository][] only contains
 sources for Bus Blaster v2, Ben Harris has a
 [convenient implementation][ktlink] for the v3 hardware complete with
 SVF bitcode. Flashing the buffer is easily accomplished with OpenOCD,
-as [documented previously][flashing cpld],
+as [previously documented][flashing cpld],
 
     $ git clone https://github.com/bharrisau/busblaster.git
     $ cd busblaster/synthesis
