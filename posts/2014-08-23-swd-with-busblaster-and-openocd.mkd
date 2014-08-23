@@ -47,6 +47,7 @@ FTDI-based adapter like the Bus Blaster,
 
 Now it's simply a matter of a little configuration,
 
+    $ cat >openocd-swd.cfg <<EOF
     # BusBlaster with KT-link
     # This is just interface/ftdi/busblaster.cfg
     interface ftdi
@@ -59,6 +60,7 @@ Now it's simply a matter of a little configuration,
     transport select swd
     reset_config none
     source [find target/stm32l.cfg]
+    EOF
 
 And voila,
 
