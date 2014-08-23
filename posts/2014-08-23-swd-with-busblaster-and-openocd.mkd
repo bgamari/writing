@@ -1,6 +1,7 @@
 ---
 title: SWD with OpenOCD and a Bus Blaster
 date: 2014-08-23
+description: A brief walk-through of bringing up an SWD interface with OpenOCD and a Bus Blaster JTAG adapter
 tags: swd, jtag, openocd, arm
 ---
 
