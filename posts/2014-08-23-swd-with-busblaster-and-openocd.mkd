@@ -32,7 +32,7 @@ as [documented previously][flashing cpld],
     $ openocd -f board/dp_busblaster_v3.cfg -c "adapter_khz 1000; init; svf system.svf; shutdown"
 
 At this point I consulted the [SWD resistor hack][] that the
-incredibly helpful `PaulFerster` once referred me to on
+incredibly helpful `PaulFertser` once referred me to on
 `#openocd`. This describes the connections necessary for SWD with an
 FTDI-based adapter like the Bus Blaster,
 
