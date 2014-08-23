@@ -49,12 +49,14 @@ Now it's simply a matter of a little configuration,
 
     $ cat >dp_busblaster_ktlink.cfg <<EOF
     # BusBlaster with KT-link buffer
-    # This is derived from interface/ftdi/dp_busblaster.cfg
+    # This is derived from interface/ftdi/kt-link.cfg and
+    # interface/ftdi/dp_busblaster.cfg
     interface ftdi
     ftdi_vid_pid 0x0403 0x6010
-    ftdi_layout_init 0x8c28 0xff3b  # this has changed
+    ftdi_layout_init 0x8c28 0xff3b
     ftdi_layout_signal nTRST -data 0x0100 -noe 0x0400
     ftdi_layout_signal nSRST -data 0x0200 -noe 0x0800
+    ftdi_layout_signal LED -data 0x8000
     EOF
     $ cat >openocd-swd.cfg <<EOF
     source dp_busblaster_ktlink.cfg
