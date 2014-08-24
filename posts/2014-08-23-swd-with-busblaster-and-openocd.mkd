@@ -91,12 +91,12 @@ And voila,
 
 ## Approach #2: Resistor hack
 
-If you for whatever reason do not want to reflash the
-Bus Blaster buffer it is also possible to emulate an SWD-capable
-buffer with a current limiting resistor and a bit of
-wire. [`swd-resistor-hack.cfg`] in the OpenOCD repository describes
-the connections necessary for SWD with an FTDI-based adapter like the
-Bus Blaster,
+If you have an FTDI-based adapter other than the Bus Blaster or would
+rather not reflash your Bus Blaster's buffer it is also possible to
+emulate an SWD-capable buffer with a current limiting resistor and a
+bit of wire. [`swd-resistor-hack.cfg`] in the OpenOCD repository
+describes the connections necessary for SWD with an FTDI-based adapter
+like the Bus Blaster,
 
          adapter                   ┊       target
                                    ┊
