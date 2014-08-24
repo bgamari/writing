@@ -60,7 +60,6 @@ OpenOCD-proper. With it, configuration is trivial,
     $ cat >openocd-swd.cfg <<EOF
     source dp_busblaster_kt-link.cfg
     transport select swd
-    reset_config none
     source [find target/stm32l.cfg]
     EOF
 
@@ -113,7 +112,6 @@ Now it's simply a matter of a little configuration,
     source dp_busblaster.cfg
     source [find interface/ftdi/swd-resistor-hack.cfg]
     transport select swd
-    reset_config none
     source [find target/stm32l.cfg]
     EOF
 
