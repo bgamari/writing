@@ -48,6 +48,7 @@ section#main {
 pre code {
     display: block;
     padding: 1em;
+    overflow-x: auto;
 }
 
 code {
