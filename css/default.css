@@ -41,7 +41,7 @@ a {
 
 section#main {
     float: left;
-    width: 600px;
+    max-width: 600px;
     padding-left: 60px;
 }
 
