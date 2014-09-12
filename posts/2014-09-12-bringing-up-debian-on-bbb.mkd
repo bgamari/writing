@@ -81,8 +81,8 @@ Robert Nelson's [`dtb-rebuilder`][] repository has sources for the upstream Devi
 
 Next, copy `am335x-boneblack-mycape.dtb` to `/boot/dtbs/$KERNEL_VERSION` on
 the device. Finally, you need to configure u-boot to use your new
-Devicetree: set `DTB` to, e.g., `am335x-boneblack-mycape.dtb` in
-`/boot/uEnv.txt`. Reboot and hopefully things work.
+Devicetree: in `/boot/uEnv.txt` set `dtb` to, e.g.,
+`am335x-boneblack-mycape.dtb`. Reboot and hopefully things work.
 
 [rebuilder]: https://github.com/RobertCNelson/dtb-rebuilder
 
@@ -94,7 +94,7 @@ The official BeagleBoard kernel tree is now hosted by the
     $ git clone git@github.com/beagleboard/linux
     $ git checkout 3.14.17-ti-r17
     $ make menuconfig ARCH=arm
-    $ KDEB_PKGVERSION=1wheezy KBUILD_DEBARCH=armhf make deb-pkg ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-
+    $ KDEB_PKGVERSION=1wheezy KBUILD_DEBARCH=armhf make deb-pkg ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- LOCALVERSION=-mycape
 
 Copy the resulting `.deb`s in the parent directory to the device and
 install with `dpkg -i`.
