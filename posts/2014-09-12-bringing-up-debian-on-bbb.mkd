@@ -39,9 +39,16 @@ adapter. To download these I used wired ethernet,
  1. Plug in Ethernet cable
  2. Apply power to BBB
  3. Monitor DHCP logs for BBB's request
- 4. SSH to BBB. Then,
+ 4. SSH to BBB (the default username is `debian`, password is
+    `temppwd`). Then,
 
-        $ sudo apt-get install wpasupplicant firmware-ralink vim iw tmux usb-tools
+        $ sudo adduser ben
+        $ sudo adduser ben adm
+        $ sudo adduser ben admin
+        $ sudo passwd -d debian
+        $ sudo apt-get update
+        $ sudo apt-get install wpasupplicant firmware-ralink vim iw usbutils lsb-release
+        $ sudo apt-get install tmux git bash-completion
 
  5. Unfortunately the `rt2800usb` drivers perform very poorly with
     power-saving enabled (the default). Thankfully Stack Overflow has
@@ -53,3 +60,41 @@ adapter. To download these I used wired ethernet,
  7. Reboot and ensure that `wlan0` comes up.
 
 [power save]: http://superuser.com/questions/629039/disabling-power-save-option-on-wifi-device
+
+## Upgrading the kernel
+
+The image I downloaded included a rather ancient 3.8 kernel. Let's try
+the 3.14 kernel currently under testing,
+
+    $ sudo apt-get install linux-image-3.14.17-ti-r19
+
+Things appear to still work after reboot.
+
+## Modifying the Devicetree
+
+Robert Nelson's [`dtb-rebuilder`][] repository has sources for the upstream Devicetrees,
+
+    $ git clone https://github.com/RobertCNelson/dtb-rebuilder
+    $ cd dtb-rebuilder/src/arm
+    $ cp am335x-boneblack-audio.dts am335x-boneblack-mycape.dts
+    $ make -C../..
+
+Next, copy `am335x-boneblack-mycape.dtb` to `/boot/dtbs/$KERNEL_VERSION` on
+the device. Finally, you need to configure u-boot to use your new
+Devicetree: set `DTB` to, e.g., `am335x-boneblack-mycape.dtb` in
+`/boot/uEnv.txt`. Reboot and hopefully things work.
+
+[rebuilder]: https://github.com/RobertCNelson/dtb-rebuilder
+
+## Building a new kernel
+
+The official BeagleBoard kernel tree is now hosted by the
+`beagleboard` organization on Github.
+
+    $ git clone git@github.com/beagleboard/linux
+    $ git checkout 3.14.17-ti-r17
+    $ make menuconfig ARCH=arm
+    $ KDEB_PKGVERSION=1wheezy KBUILD_DEBARCH=armhf make deb-pkg ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-
+
+Copy the resulting `.deb`s in the parent directory to the device and
+install with `dpkg -i`.
