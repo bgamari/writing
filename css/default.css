@@ -68,9 +68,15 @@ li.post {
     padding-bottom: 1em;
 }
 
+li.post a {
+    font-size: large;
+}
+
+li.post time.pubdate {}
+
 ul.tags {
     list-style: none;
-    display: inline;
+    display: none;
     padding: 0;
 }
 
