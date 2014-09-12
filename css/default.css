@@ -86,7 +86,7 @@ ul.tags {
 }
 
 ul.tags li {
-    display: inline;
+    display: none;
     padding: 0 0.3em;
     color: #444;
 }
