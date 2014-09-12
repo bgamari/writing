@@ -1,0 +1,55 @@
+---
+title: Bringing up Debian on BeagleBone Black
+description: Bringing up a BeagleBone Black with Debian
+date: 2014-09-12
+tags: bbb, debian
+---
+# Bringing up Debian on a BeagleBone Black
+
+BeagleBoard.org has recently been gradually playing with the idea of
+replacing the long-used [Angstrom][] distribution to
+[Debian][]. Thanks in large part to the incredibly productive
+[Robert C. Nelson][rcn] the transitions seem to be quite smooth. Below
+I document my attempt at bringing up a BeagleBone Black with one of
+Robert's Debian images.
+
+[Angstrom]: http://www.angstrom-distribution.org/
+[Debian]: http://www.debian.org/
+[rcn]: https://rcn-ee.net/
+
+
+## Initial setup
+
+ 1. Download image. I used a [testing image][] from the [elinux wiki][].
+ 2. Write to SD card,
+
+        $ dd if=BBB-eMMC-flasher-debian-7.6-console-armhf-2014-09-04-2gb.img.xz of=/dev/mmcblk0
+
+ 3. Boot BeagleBone from SD card; a great deal of flashing commences. When flashing stops unplug BBB, remove SD card.
+
+[testing image]: https://rcn-ee.net/deb/testing/2014-09-04/console/BBB-eMMC-flasher-debian-7.6-console-armhf-2014-09-04-2gb.img.xz
+[elinux wiki]: http://elinux.org/Beagleboard:BeagleBoneBlack_Debian
+
+## Making things hospitable
+
+The default Debian image is quite spartan. In fact, it doesn't even
+include `wpa_supplicant` or the firmware for my Ralink RT5370 wifi
+adapter. To download these I used wired ethernet,
+
+ 1. Plug in Ethernet cable
+ 2. Apply power to BBB
+ 3. Monitor DHCP logs for BBB's request
+ 4. SSH to BBB. Then,
+
+        $ sudo apt-get install wpasupplicant firmware-ralink vim iw tmux usb-tools
+
+ 5. Unfortunately the `rt2800usb` drivers perform very poorly with
+    power-saving enabled (the default). Thankfully Stack Overflow has
+    the [answer][power save] to this,
+
+        $ echo 'ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*" RUN+="/usr/bin/iw dev %k set power_save off"' | sudo tee /etc/udev/rules.d/70-wifi-disable-powersave.rules
+
+ 6. Configure `wlan0` in `/etc/network/interfaces`.
+ 7. Reboot and ensure that `wlan0` comes up.
+
+[power save]: http://superuser.com/questions/629039/disabling-power-save-option-on-wifi-device
