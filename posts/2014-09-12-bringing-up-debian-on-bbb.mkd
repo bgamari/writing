@@ -9,7 +9,7 @@ tags: bbb, debian
 BeagleBoard.org has recently been gradually playing with the idea of
 replacing the long-used [Angstrom][] distribution to
 [Debian][]. Thanks in large part to the incredibly productive
-[Robert C. Nelson][rcn] the transitions seem to be quite smooth. Below
+[Robert C. Nelson][rcn] the transition seems to be quite smooth. Below
 I document my attempt at bringing up a BeagleBone Black with one of
 Robert's Debian images.
 
