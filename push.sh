@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ./hakyll build
+
 cp -R _site/* github
 cd github
 git add .
