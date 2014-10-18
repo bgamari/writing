@@ -98,3 +98,7 @@ The official BeagleBoard kernel tree is now hosted by the
 
 Copy the resulting `.deb`s in the parent directory to the device and
 install with `dpkg -i`.
+
+## Further resources
+
+ * https://groups.google.com/d/topic/beagleboard/4eDQvQOkUkc/discussion
