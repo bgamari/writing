@@ -6,14 +6,14 @@
 
 My name is Ben Gamari. I am a graduate student in the Physics
 Department at the University of Massachussetts Amherst where
-I am studying the properties of biopolymers through
+I am studying the properties of biological polymers through
 single-molecule spectroscopy in
 the [group](http://goldnerlab.physics.umass.edu/wiki/)
-of Professor Lori Goldner. In my [research](/research.html), I seek to further
+of Professor Lori Goldner. In my [research](/research.html) I seek to further
 understanding of the conformational properties of biopolymers
-through fluorescence techniques along with advanced statistical
-analysis.
-    
+through fluorescence spectroscopy coupled with machine-learning-inspired
+analysis techniques.
+
 I am also an open-source advocate, programmer, and
 [turtle](/media/t-eating-bone.jpeg) owner. In my spare time I enjoy
 [building](http://www.publiclab.org/wiki/riffle)
