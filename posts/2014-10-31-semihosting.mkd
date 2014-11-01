@@ -1,0 +1,56 @@
+---
+title: Semihosting on ARM with GCC and OpenOCD
+date: 2014-10-31
+tags: openocd, gdb, gcc, arm
+description: A brief tutorial 
+---
+
+# Semihosting with ARM, GCC, and OpenOCD
+
+One of the many nice features of the ARM Cortex microcontrollers is
+the ability to use the JTAG debug interface as a sink for `printf`
+messages. This capability is known as *semihosting*. It's actually
+quite straightforward to configure with open source tooling (the
+[`newlib`][newlib] C standard library and [OpenOCD][] JTAG
+implementation).
+
+[newlib]: https://www.sourceware.org/newlib/
+[OpenOCD]: http://openocd.org/
+
+You'll need to add the following to `LDFLAGS`,
+
+    LDFLAGS += --specs=rdimon.specs -lc -lrdimon
+
+Note that `librdimon` takes the place of `libnosys`.
+
+Ensure that `initialise_monitor_handles()` is called in `main` before
+calling `printf`,
+
+    extern void  initialise_monitor_handles(void);
+
+	int main(void) {
+	    initialise_monitor_handles();
+
+	    printf("hello world!\n");
+		// do things
+	}
+
+If you are using the toolchain's `crt0` initialization function then
+`initialise_monitor_handles` has already been called for you.
+
+At runtime enable semihosting in OpenOCD with `arm semihosting enable`
+before `initialise_monitor_handles` is called. Failure to do this will
+result in a `HardFault` due to an unexpected debug event. Also be
+aware that semihosting is disabled on core reset. This effectively
+means that an image compiled with semihosting enabled will be unable
+to run in the absence of a debugger (unless you make the call to
+`initialise_monitor_handles` contingent on a runtime flag).
+
+You should now see your `printf` messages show up in the OpenOCD console. You can 
+
+## Resources
+
+ * Very helpful guide by Andrey Yurovsky: https://plus.google.com/+AndreyYurovsky/posts/5rupuziHKGC
+ * Original `openocd-devel` thread: http://thread.gmane.org/gmane.comp.debugging.openocd.devel/10941/focus=10958
+ * `libopencm3` example: https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/l1/stm32l-discovery/usart-semihosting
+ * OpenOCD manual section (search for "semihosting"): http://openocd.sourceforge.net/doc/html/Architecture-and-Core-Commands.html#Architecture-and-Core-Commands
