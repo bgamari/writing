@@ -2,6 +2,7 @@
 
 import Prelude hiding (id)
 import Control.Category (id)
+import qualified Data.Set as S
 
 import Hakyll
 import Hakyll.Web.Feed
@@ -10,6 +11,7 @@ import Control.Monad
 import Control.Applicative ((<$>))       
 import Data.Monoid (mempty, mconcat, (<>))
 
+import Text.Pandoc
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html ((!), toHtml, toValue)
 import qualified Text.Blaze.Html5 as H
@@ -21,6 +23,16 @@ feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
                                , feedRoot = "http://bgamari.github.com/"
                                , feedAuthorEmail = "bgamari@gmail.com"
                                }
+pandocMathCompiler =
+    let mathExtensions = [Ext_tex_math_dollars, Ext_tex_math_double_backslash,
+                          Ext_latex_macros]
+        defaultExtensions = writerExtensions defaultHakyllWriterOptions
+        newExtensions = foldr S.insert defaultExtensions mathExtensions
+        writerOptions = defaultHakyllWriterOptions {
+                          writerExtensions = newExtensions,
+                          writerHTMLMathMethod = MathJax ""
+                        }
+    in pandocCompilerWith defaultHakyllReaderOptions writerOptions
 
 main :: IO ()
 main = hakyll $ do
@@ -38,7 +50,7 @@ main = hakyll $ do
 
         match "posts/*.mkd" $ do
                 route   $ setExtension "html"
-                compile $ pandocCompiler
+                compile $ pandocMathCompiler
                         >>= loadAndApplyTemplate "templates/default.html" defaultContext
                         >>= relativizeUrls
      
