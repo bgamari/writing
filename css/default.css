@@ -90,3 +90,9 @@ ul.tags li {
     padding: 0 0.3em;
     color: #444;
 }
+
+div.figure {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
