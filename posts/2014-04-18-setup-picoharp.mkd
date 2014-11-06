@@ -1,0 +1,35 @@
+---
+title: Installing PicoHarp under modern Ubuntu with Wine
+date: 2014-04-18
+tags: PicoHarp,ubuntu,instrumentation
+---
+
+# Installing PicoHarp under modern Ubuntu with Wine
+
+Version used: PicoHarp 300 v2.3
+
+The udev rules that ship with the distribution were a bit out of date, so we
+use our own,
+
+    $ cat >99-picoquant.rules <<EOF
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="0e0d", ATTRS{idProduct}=="0003", MODE="0666"
+    EOF
+    $ sudo mv 99-picoquant.rules /etc/udev/rules.d/
+    $ sudo chmod 644 /etc/udev/rules.d/99-picoquant.rules
+    $ sudo cp $CDROM/Linux/pquwstub.dll.so /usr/lib/i386-linux-gnu/wine/pquwstub.dll.so
+    $ sudo chmod ugo+rx /usr/lib/i386-linux-gnu/wine/pquwstub.dll.so
+    $ wine $CDROM/setup.exe
+
+Finally, a script to easily start it,
+
+    $ cat >/usr/local/bin/picoharp <<EOF
+    #!/bin/bash
+    wine $HOME/.wine/drive_c/Program\ Files\ \(x86\)/PicoQuant/PicoHarp300v23/PicoHarp.exe
+    EOF
+    $ chmod ugo+rx /usr/local/bin/picoharp
+    
+To start,
+
+    $ picoharp
+
+
