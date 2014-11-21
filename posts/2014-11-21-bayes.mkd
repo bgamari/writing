@@ -259,3 +259,6 @@ learning is built on the Bayesian interpretation.
 [graphical models]: https://en.wikipedia.org/wiki/Graphical_model
 [variational inference]: https://en.wikipedia.org/wiki/Variational_Bayesian_methods
 [Markov Chain Monte Carlo]: https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo
+
+The Python sources to generate the figures in this post are available
+as an [IPython Notebook](/media/bayes/bayes.ipynb).
