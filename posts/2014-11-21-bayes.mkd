@@ -1,3 +1,10 @@
+---
+title: Bayes theorem, Bayesian probability, and inference
+date: 2014-11-21
+description: A brief introduction to Bayesian probability
+tags: bayes, probability, statistics
+---
+
 # Bayes theorem, Bayesian probability, and inference
 
 A colleague recently wrote asking the following,
@@ -199,7 +206,7 @@ Let's apply this to some real data. Say we flip our coin (with true
 $\alpha = 0.7$) one hundred times, giving rise to a sampling of flips shown
 in Figure 1.
 
-![A sampling of flips](flips.png)
+![A sampling of flips](/media/bayes/flips.svg)
 
 Here we start with zero flips at the origin. The first point is up,
 meaning we have flipped a heads. We then flip a few more heads,
@@ -208,7 +215,7 @@ inference to estimate $\alpha$ (as a frequentist might do), we find
 that the estimate remains quite far from the true value for the first
 several flips, eventually coming to rest near the true $\alpha = 0.7$ line.
 
-![The Agresti-Coull estimate of $\alpha$ from the observations shown in Figure 1. The error bars are given by the 5\% confidence interval.](ml-inference.png)
+![The Agresti-Coull estimate of $\alpha$ from the observations shown in Figure 1. The error bars are given by the 5\% confidence interval.](/media/bayes/ml-inference.svg)
 
 Now let's consider a Bayesian inference. Let's first start with a
 uniform prior: we disregard your friend's observations and assume no
@@ -217,13 +224,13 @@ nature of non-informativeness buried in this statement that we'll
 sweep under the rug; see [Zhu2004] for more on this).
 [Zhu2004]: http://www.amstat.org/publications/jse/v12n2/zhu.pdf
 
-![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](bayes.png)
+![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](/media/bayes/bayes.svg)
 
 We start with a prior informed by your friend's experience (encoded as
 a [Beta distribution][]) and update it after every flip.
 [Beta distribution]: https://en.wikipedia.org/wiki/Beta_distribution
 
-![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](bayes.png)
+![A Bayesian inference of $\alpha$ from the observations shown in Figure 1 including a prior.](/media/bayes/bayes-prior.svg)
 
 As you see, in the limit of large number of observations, the
 maximum likelihood inference, and the Bayesian inference, with and
