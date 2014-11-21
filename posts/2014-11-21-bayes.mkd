@@ -19,6 +19,8 @@ me: [Andrew Gelman][Gelman] has written a remarkable amount on various
 aspects of Bayesian statistics; a quick web search turns up dozens of
 other blogs and articles on the matter.
 
+[Gelman]: http://andrewgelman.com/
+
 That being said, I thought it might be a fun exercise to write down
 that which I know.  Here I hope to introduce these notions and shed a
 bit of light on the meaning of these interpretations, particularly
@@ -222,12 +224,14 @@ uniform prior: we disregard your friend's observations and assume no
 prior knowledge of $\alpha$ (there are a few details concerning the
 nature of non-informativeness buried in this statement that we'll
 sweep under the rug; see [Zhu2004] for more on this).
+
 [Zhu2004]: http://www.amstat.org/publications/jse/v12n2/zhu.pdf
 
 ![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](/media/bayes/bayes.svg)
 
 We start with a prior informed by your friend's experience (encoded as
 a [Beta distribution][]) and update it after every flip.
+
 [Beta distribution]: https://en.wikipedia.org/wiki/Beta_distribution
 
 ![A Bayesian inference of $\alpha$ from the observations shown in Figure 1 including a prior.](/media/bayes/bayes-prior.svg)
@@ -251,7 +255,6 @@ methods such as [variational inference][] and
 ability to construct rich models while retaining the ability to
 perform meaningful inference. For this reason, much of modern machine
 learning is built on the Bayesian interpretation.
-
 
 [graphical models]: https://en.wikipedia.org/wiki/Graphical_model
 [variational inference]: https://en.wikipedia.org/wiki/Variational_Bayesian_methods
