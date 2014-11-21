@@ -1,0 +1,251 @@
+# Bayes theorem, Bayesian probability, and inference
+
+A colleague recently wrote asking the following,
+
+> Most of the sources I have came across explain the use of Bayes' Theorem
+> and how it can be applied to real world situations, but nothing that can
+> contrast the two interpretations. Could you provide any insight into this?
+
+I am not a statistician nor have I played one of TV.  There are
+certainly many more qualified people to comment on this matter than
+me: [Andrew Gelman][Gelman] has written a remarkable amount on various
+aspects of Bayesian statistics; a quick web search turns up dozens of
+other blogs and articles on the matter.
+
+That being said, I thought it might be a fun exercise to write down
+that which I know.  Here I hope to introduce these notions and shed a
+bit of light on the meaning of these interpretations, particularly
+with an eye towards inference.
+
+Let's begin with the basics. Frequentist and Bayesian statistics
+differ in what types of information can be encoded as probabilities.
+The frequentist would claim that probabilities are to be strictly
+interpreted as fractions of event outcomes from some ensemble. This
+stands in contrast to the Bayesian, who would argue that we need not
+be so strict: in addition to representing outcome frequencies,
+probabilities may also serve to encode our belief about the
+likelihood of an event. Ultimately the difference comes down to
+whether you admit subjective "beliefs" into your probabilistic
+calculus.
+
+The relationship between Bayes' theorem and Bayesian statistics is
+often misunderstood, but serves as a very nice place to start
+discussion. Let's dive in.
+
+# Bayes theorem
+\newcommand{\cond}{\,\vert\,}
+
+Despite the name, the mathematical statement embodied in Bayes'
+theorem is valid under both interpretations. In fact, it is a
+consequence of the basic rules of conditional probabilities. The
+derivation is quite simple,
+
+Let's say we have two events, $A$ and $B$, and we know that $B$ has
+happened. We can notate the probability that A will happen given this
+knowledge as $P(A | B)$ (read as "the probability that $A$ happens given
+that $B$ has happened"). This is known as a conditional probability. We
+can turn this conditional probability into a joint probability, $P(A, B)$,
+the probability that both $A$ and $B$ occur.  We do this by first asking
+"what is the probability that $B$ will occur?" (this is of course
+$P(B)$) Then we ask "given that $B$ has occurred what is the probability
+that $A$ will occur?" (this is $P(A \cond B)$). Since we want $P(A, B)$
+we want the *joint* probability of these two events, which is simply
+their product,
+$$ P(A, B) = P(A \cond B) P(B) $$
+
+We can now express $P(A, B)$ in terms of both $P(A \cond B)$ and 
+$P(B \cond A)$,
+$$
+P(A, B) = P(A \cond B) P(B) = P(B \cond A) P(A)
+$$
+
+If we drop the LHS and divide by $P(B) P(A)$ we find Bayes' theorem,
+$$
+\frac{P(A \cond B) P(B)}{P(A)} = \frac{P(B \cond A) P(A)}{P(B)}
+$$
+or equivalently,
+$$
+P(A \cond B) = \frac{P(B \cond A) P(A)}{P(B)}
+$$
+
+Note that throughout this we made no assumptions on how we interpret
+these probabilities (beyond the product rule which holds in both
+interpretations). Mathematically this statement is true in any
+setting. Intuitively it gives us a tool for inverting conditionality.
+
+## A frequentist's use of Bayes' theorem
+
+While Bayes theorem holds in both Bayesian and frequentist settings, the
+two interpretations will diff in how they use the relationship. Let's
+look at an example (inspired by [Wikipedia][Beetles]). Say that
+we collect stamps, which we classify by their color (red or blue) and
+the texture (smooth or rough). When we count our stamps, we find that
+10\% of them are red, with the remaining 90\% being blue,
+\begin{align*}
+P(\mathrm{Color} = \mathrm{red}) &= 0.1 \\
+P(\mathrm{Color} = \mathrm{blue}) &= 0.9 \\
+\end{align*}
+
+[Beetles]: https://en.wikipedia.org/wiki/Bayes%27_theorem#Frequentist_example
+
+Moreover, we find that 70\% of our red stamps are smooth,
+\begin{align*}
+P(\mathrm{Texture} = \mathrm{smooth} \cond \mathrm{Color} = \mathrm{red}) &= 0.7 \\
+P(\mathrm{Texture} = \mathrm{rough} \cond \mathrm{Color} = \mathrm{red}) &= 0.3 \\
+\end{align*}
+
+We can now ask the inverse question "given that a stamp is smooth, what
+is the probability that it is red?" Here we are looking for
+$P(\mathrm{Color} = \mathrm{red} \cond \mathrm{Texture} =
+\mathrm{smooth})$. The frequentist has no problem invoking Bayes theorem
+here as all of the probabilities involve are strictly outcome fractions
+from some sample (our body of stamps),
+$$
+P(\mathrm{red} \cond \mathrm{smooth}) = 
+  \frac{P(\mathrm{smooth} \cond \mathrm{red})
+  P(\mathrm{red})}{P(\mathrm{smooth})}
+$$
+Note that I've dropped the random variables $\mathrm{Color}$ and
+$\mathrm{Texture}$ merely for conciseness. We can find
+$P(\mathrm{smooth})$ either by counting or by summing out the color
+random variable (a maneuver known as *marginalization*),
+$$
+P(\mathrm{smooth}) = \sum_{c \in \{\mathrm{red}, \mathrm{blue}\}} P(\mathrm{smooth} \cond c) P(c) 
+$$
+
+## The Bayesian's use of Bayes' theorem
+
+The Bayesian would happily agree with the above frequentist
+reasoning. In addition, their more accommodating interpretation of
+probability allows the Bayesian to invoke probabilistic arguments in
+contexts where the frequentist would claim they are not appropriate.
+
+Say you are given a coin by a friend who expresses fear that it may be
+weighted. "I flipped it one hundred times and I only saw twenty-two tails!
+How odd is that?" he exclaims as he hands you the coin. Being a good
+friend, you want to help alleviate (or confirm) your friend's concern
+and begin thinking about how you might test this hypothesis.
+
+You recall that the outcome of a coin flip is described by the
+Bernoulli distribution,
+\begin{align*}
+P(\mathrm{Heads}) & = \alpha \\
+P(\mathrm{Tails}) & = 1 - \alpha \\
+\end{align*}
+where the Bernoulli parameter $\alpha = 0.5$ is to be expected in the
+case of a fair specimen. To answer your friend's query you want to
+determine $\alpha$. This statistical task is known as *parameter estimation*.
+
+With this knowledge in mind you hatch a plan: you will flip the coin
+one hundred times and see what fraction of the flips turn up heads, for this
+will give you an estimate of the unknown $\alpha$. As you perform the
+first flip, you ponder your friend's words, watching the coin tumble to
+the floor. It lands showing tails. You flip again; another
+tails. "Interesting," you think, "must be a fluke," surely your friend
+knows how to properly flip a coin.
+
+At this point that you have revealed your inner Bayesian. You
+have used your friend's experience to form your own prior belief on
+the outcome of the flip and let this prior affect your interpretation
+of the data. The frequentist would claim that in doing so you have
+committed a probabilistic sin for probabilities are not beliefs, they
+are event counts. The Bayesian, on the other hand, would counter that
+this is a natural and quite useful extension of probability to cases
+where large quantities of observation aren't available.
+
+For instance, the Bayesian might point out that the frequentist inference,
+flipping the coin a number of times times and looking at the fraction of heads,
+suffers from the problem that you have no way to treat smaller sample
+sizes: Say that you lose the coin after the fifth of your intended
+one-hundred sample experiment. What can you say about $\alpha$ in
+light of this data?
+
+The frequentist would claim that you are within your rights to look at
+the statistics of this sample, although the significance of your
+inference will be hampered by the large error bars (or, more
+specifically, confidence intervals) that come with its small size.
+
+The Bayesian, on the other hand, will reply that you already have a
+fairly strong prior belief about the outcome of the experiment; why
+should this not be factored into the inference? The Bayesian would go
+on to say that in light of your prior, even one coin flip is enough to
+learn *something*. It's simply a matter of using Bayes' theorem to
+update your prior on $\alpha$ to reflect your observation. Say you
+flip a tails; the updated distribution over $\alpha$ induced by this
+observation would be given by,
+$$
+P(\alpha \cond \mathrm{tails}) = \frac{P(\mathrm{tails} \cond \alpha) P(\alpha)}{P(\mathrm{tails})}
+$$
+Here $P(\alpha)$ is the *a priori* probability of $\alpha$ (your
+initial belief), $P(\mathrm{tails} \cond \alpha)$ (known as the
+*likelihood*) is the Bernoulli model described above, and
+$P(\mathrm{tails})$ is a normalizing factor easily computed by
+marginalization of the likelihood. The probability $P(\alpha \cond
+\mathrm{tails})$ is known as a *a posteriori* probability as it
+includes knowledge of your prior beliefs, as well as the observations.
+
+The thing to note here is that in the Bayesian setting we aren't just
+getting a confidence interval, we are getting a full distribution over
+our parameter. In the frequentist setting this would be forbidden as
+our parameter is not a random variable; we can not sample $\alpha$
+values from some underlying distribution and look at frequencies;
+instead we must treat it as an unknown parameter to be estimated. In
+Bayesian thinking we instead model our unknowns as random variables
+and encode our beliefs as probabilities.
+
+# An example
+
+Let's apply this to some real data. Say we flip our coin (with true
+$\alpha = 0.7$) one hundred times, giving rise to a sampling of flips shown
+in Figure 1.
+
+![A sampling of flips](flips.png)
+
+Here we start with zero flips at the origin. The first point is up,
+meaning we have flipped a heads. We then flip a few more heads,
+followed by several tails, *et cetera*. If we use a maximum likelihood
+inference to estimate $\alpha$ (as a frequentist might do), we find
+that the estimate remains quite far from the true value for the first
+several flips, eventually coming to rest near the true $\alpha = 0.7$ line.
+
+![The Agresti-Coull estimate of $\alpha$ from the observations shown in Figure 1. The error bars are given by the 5\% confidence interval.](ml-inference.png)
+
+Now let's consider a Bayesian inference. Let's first start with a
+uniform prior: we disregard your friend's observations and assume no
+prior knowledge of $\alpha$ (there are a few details concerning the
+nature of non-informativeness buried in this statement that we'll
+sweep under the rug; see [Zhu2004] for more on this).
+[Zhu2004]: http://www.amstat.org/publications/jse/v12n2/zhu.pdf
+
+![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](bayes.png)
+
+We start with a prior informed by your friend's experience (encoded as
+a [Beta distribution][]) and update it after every flip.
+[Beta distribution]: https://en.wikipedia.org/wiki/Beta_distribution
+
+![A Bayesian inference of $\alpha$ from the observations shown in Figure 1.](bayes.png)
+
+As you see, in the limit of large number of observations, the
+maximum likelihood inference, and the Bayesian inference, with and
+without informative prior, come to the same answer. The difference
+matters most in the face of small quantities of data as whatever prior
+you give the Bayesian inference will contribute strongly to the
+posterior. As you accumulate more observations the role of the prior
+diminishes and the Bayesian inference converges to the ML inference.
+
+Which method you choose depends largely upon your needs.  That being
+said, the flexibility and consistency enabled by the Bayesian approach
+makes many problems much easier to reason about. Being able to speak
+about all of the variables in your problem, both known and latent, in
+the same language is incredibly powerful. Especially coupled with
+formalisms such as [graphical models][] and generalized inference
+methods such as [variational inference][] and
+[Markov Chain Monte Carlo][], the Bayesian framework offers the
+ability to construct rich models while retaining the ability to
+perform meaningful inference. For this reason, much of modern machine
+learning is built on the Bayesian interpretation.
+
+
+[graphical models]: https://en.wikipedia.org/wiki/Graphical_model
+[variational inference]: https://en.wikipedia.org/wiki/Variational_Bayesian_methods
+[Markov Chain Monte Carlo]: https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo
