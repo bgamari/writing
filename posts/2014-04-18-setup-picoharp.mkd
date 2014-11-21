@@ -1,6 +1,7 @@
 ---
 title: Installing PicoHarp under modern Ubuntu with Wine
 date: 2014-04-18
+description: Notes on configuring the Picoquant PicoHarp TCSPC instrument on Ubuntu
 tags: PicoHarp,ubuntu,instrumentation
 ---
 
