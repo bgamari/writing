@@ -68,9 +68,10 @@ $$
 P(A, B) = P(A \cond B) P(B) = P(B \cond A) P(A)
 $$
 
-If we drop the LHS and divide by $P(B) P(A)$ we find Bayes' theorem,
+If we drop the left-hand side and divide by $P(B) P(A)$ we find Bayes'
+theorem,
 $$
-\frac{P(A \cond B) P(B)}{P(A)} = \frac{P(B \cond A) P(A)}{P(B)}
+\frac{P(A \cond B)}{P(A)} = \frac{P(B \cond A)}{P(B)}
 $$
 or equivalently,
 $$
