@@ -97,7 +97,7 @@ external" denotes the same with these symbols marked as externally
 visible.
 
 GHC release                       LLVM 3.2        LLVM 3.3       LLVM 3.4        LLVM 3.5       LLVM 3.6
-===================               ============    ============   ==============  =============  =========
+--------------------------------  ------------    -------------  --------------  -------------  -------------
 pre-GHC 7.8                       ok?             ok?            ok?             bad, aliases   bad, syntax
 GHC 7.8                           ok              ok             ok              bad, aliases   bad, syntax
 GHC 7.8, alias rework, internal   ok, ARM bad?    ok, ARM bad?   bad, sections   ok, ARM bad    bad, syntax
@@ -111,7 +111,7 @@ GHC 7.10                          bad, syntax     bad, syntax    bad, syntax    
  * ok, ARM bad: Works on x86_64, fails on ARM due to [GHC calling convention bug][cc-bug]
  * bad, aliases: LLVM 3.5 rejects aliases to symbols defined outside of the current compilation unit
  * bad, sections: LLVM 3.4 appears to forget which section `internal` symbols should be defined
- * bad, syntax: LLVM 3.6 changed the 
+ * bad, syntax: LLVM 3.6 changed the syntax of `alias` definitions to be consistent with other definition types
 
 ## The plan for GHC 7.10
 
@@ -129,11 +129,11 @@ closely and looming on the horizon. It's not clear whether LLVM 3.6
 will be released before or after GHC 7.10, much less whether the
 prefix data patch will be merged in time. 
 
- A. Release with only the alias rework: This will enable us to run
+ a. Release with only the alias rework: This will enable us to run
     against LLVM 3.2, 3.3, 3.4, and 3.5 on the x86-64. ARM support will
     suffer until the next LLVM 3.5 bugfix is released.
 
- B. Release with the llvm-3.6 rework: This would only enable us to run
+ b. Release with the llvm-3.6 rework: This would only enable us to run
     against 3.6 on both ARM and x86-64. There might be a gap between
     the time when the GHC 7.10 release is cut and when LLVM 3.6 is
     released.
