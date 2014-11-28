@@ -10,22 +10,22 @@ description: A status update on GHC's LLVM code generation backend.
 GHC and LLVM have had a long and somewhat tumultuous relationship. At
 this point David Terei's lovely LLVM code generation backend has been
 with us now for almost five years and nine LLVM releases. GHC has
-benefitted significantly from its use of LLVM; LLVM has enabled us to
+benefited significantly from its use of LLVM; LLVM has enabled us to
 support new platforms, given us access to a state-of-the-art low-level
 optimizer, and enabled support for SIMD instructions all with very
 little man-power.
 
 ## But it's not all rosy...
 
-As always, however, there are also challenges; LLVM is a rather tricky
+As always there are also challenges; LLVM is a rather tricky
 project to target, offering very little in the way of compatibility
-guarrantees between versions. While this allows the project to adapt
+guarantees between versions. While this allows the project to adapt
 quickly, it does mean that simultaneously supporting more than a
 couple of versions quickly becomes painful.
 
 There is also a bit of an impedance mismatch between GHC and LLVM's
 intermediate language: while GHC's C-- representation is largely
-untyped, LLVM requires types on nearly everything... to the point of
+un-typed, LLVM requires types on nearly everything... to the point of
 blatant redundancy. While this makes LLVM's parser straightforward, it
 does mean the GHC LLVM backend must engage in some rather involved
 gymnastics to ensure that the code it produces passes LLVM's type
@@ -49,7 +49,7 @@ already passes LLVM fairly well-optimized code, making many of these
 optimizations redundant. While LLVM provides plenty of tools to allow
 the user to specify which optimization passes should be run, GHC
 doesn't currently take advantage of these. The reasons for this are
-partially the increase in maintanance load that this would bring
+partially the increase in maintenance load that this would bring
 (especially since the optimizer passes change over LLVM releases) and
 partially due to the fact that no one has tried mapping out what
 passes are actually useful for our code.
@@ -94,7 +94,7 @@ x86-64. "GHC 7.8" denotes the current state of the 7.8 branch (7.8.3
 tested). "alias rework, internal" denotes the 7.8 branch with D155
 applied and `$def` symbols marked as internal. "alias rework,
 external" denotes the same with these symbols marked as externally
-visible. See the [test results] article for the raw testsuite results.
+visible. See the [test results] article for the raw test-suite results.
 
 GHC release                       LLVM 3.2        LLVM 3.3       LLVM 3.4        LLVM 3.5       LLVM 3.6
 --------------------------------  ------------    -------------  --------------  -------------  -------------
@@ -117,7 +117,7 @@ GHC 7.10                          bad, syntax     bad, syntax    bad, syntax    
 
 The above is clearly a bit of a mess. Moreover, this is only
 x86_64. It would be nice to say that by the time of the 7.10 release
-we have a nice clear path foward. LLVM 3.6 could almost be this
+we have a nice clear path forward. LLVM 3.6 could almost be this
 path: it has no critical bugs on either ARM or x86-64. Moreover, I
 have a [patch][prologue] adding a prefix data facility to the LLVM intermediate
 language which GHC could use to cleanly implement
