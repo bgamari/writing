@@ -155,14 +155,15 @@ for download alongside GHC binaries. We will work with distributions
 currently offering GHC packages to ensure that they can offer an
 officially supported LLVM.
 
-Not only will this step reduce the support surface and hopefully
-improve the reliability of the LLVM backend, but it also enables GHC
+Not only will this step reduce our support surface and hopefully
+improve the reliability of the LLVM backend, it also enables GHC
 to make better use of the services that LLVM provides. If we can focus
 on a single release, it will be possible for us to request only those
 optimization passes that GHC will actually benefit from. Moreover, we
 can introduce optimization passes to address the areas where GHC's
-code has traditionally been weak (e.g. Max Bolingbroke's
-[work][ghc-aa] on alias analysis).
+code has traditionally been weak. I've started a
+[repository][ghc-llvm-analyses] to collect LLVM analyses for GHC,
+starting with Max Bolingbroke's [work][ghc-aa] on alias analysis.
 
 If you feel like this is an effort that you would like to contribute
 to, drop by `#ghc` on Freenode or `ghc-devs`. We need all of the help
@@ -177,3 +178,4 @@ we can get.
 [ghc-aa]: http://blog.omega-prime.co.uk/?p=135
 [test results]: /posts/2014-11-28-llvm-test-results.html
 [tctc]: https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/GeneratedCode
+[ghc-llvm-analyses]: https://github.com/bgamari/ghc-llvm-analyses
