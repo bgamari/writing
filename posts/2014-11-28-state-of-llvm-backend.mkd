@@ -176,3 +176,4 @@ we can get.
 [llvm-3.6]: https://phabricator.haskell.org/D530
 [ghc-aa]: http://blog.omega-prime.co.uk/?p=135
 [test results]: /posts/2014-11-28-llvm-test-results.html
+[tctc]: https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/GeneratedCode
