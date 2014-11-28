@@ -94,7 +94,7 @@ x86-64. "GHC 7.8" denotes the current state of the 7.8 branch (7.8.3
 tested). "alias rework, internal" denotes the 7.8 branch with D155
 applied and `$def` symbols marked as internal. "alias rework,
 external" denotes the same with these symbols marked as externally
-visible.
+visible. See the [test results] article for the raw testsuite results.
 
 GHC release                       LLVM 3.2        LLVM 3.3       LLVM 3.4        LLVM 3.5       LLVM 3.6
 --------------------------------  ------------    -------------  --------------  -------------  -------------
@@ -169,10 +169,10 @@ to, drop by `#ghc` on Freenode or `ghc-devs`. We need all of the help
 we can get.
 
 
-
 [proposal]: https://ghc.haskell.org/trac/ghc/wiki/ImprovedLLVMBackend
 [alias-rework]: https://phabricator.haskell.org/D155
 [cc-bug]: http://reviews.llvm.org/D6445
 [prologue]: http://reviews.llvm.org/D6454
 [llvm-3.6]: https://phabricator.haskell.org/D530
 [ghc-aa]: http://blog.omega-prime.co.uk/?p=135
+[test results]: /posts/2014-11-28-llvm-test-results.html
