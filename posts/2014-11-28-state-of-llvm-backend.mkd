@@ -1,0 +1,178 @@
+---
+title: GHC and LLVM: A status update
+date: 2014-11-28
+tags: ghc, llvm, arm
+description: A status update on GHC's LLVM code generation backend.
+---
+
+# GHC and LLVM: A status update
+
+GHC and LLVM have had a long and somewhat tumultuous relationship. At
+this point David Terei's lovely LLVM code generation backend has been
+with us now for almost five years and nine LLVM releases. GHC has
+benefitted significantly from its use of LLVM; LLVM has enabled us to
+support new platforms, given us access to a state-of-the-art low-level
+optimizer, and enabled support for SIMD instructions all with very
+little man-power.
+
+## But it's not all rosy...
+
+As always, however, there are also challenges; LLVM is a rather tricky
+project to target, offering very little in the way of compatibility
+guarrantees between versions. While this allows the project to adapt
+quickly, it does mean that simultaneously supporting more than a
+couple of versions quickly becomes painful.
+
+There is also a bit of an impedance mismatch between GHC and LLVM's
+intermediate language: while GHC's C-- representation is largely
+untyped, LLVM requires types on nearly everything... to the point of
+blatant redundancy. While this makes LLVM's parser straightforward, it
+does mean the GHC LLVM backend must engage in some rather involved
+gymnastics to ensure that the code it produces passes LLVM's type
+checker.
+
+LLVM also lacks the expressiveness to allow GHC to control the code layout
+with the granularity necessary to implement
+[tables-next-to-code][tntc], one of GHC's more significant
+optimizations. For this reason, GHC currently calls LLVM with code
+explicitly placing each symbol in its own section of the object
+file. LLVM takes this code, applies its magic and returns
+well-optimized pile of assembler. GHC then sends this assembler
+through a mangler, which picks apart the symbol sections and reorders
+them, placing each info table before its associated symbol. While this
+all works fairly well, it should be possible to achieve this through
+less heavy-handed means.
+
+Finally, while LLVM has an incredibly sophisticated optimizer, all of
+that analysis comes at the expense of compile time. Moreover, GHC
+already passes LLVM fairly well-optimized code, making many of these
+optimizations redundant. While LLVM provides plenty of tools to allow
+the user to specify which optimization passes should be run, GHC
+doesn't currently take advantage of these. The reasons for this are
+partially the increase in maintanance load that this would bring
+(especially since the optimizer passes change over LLVM releases) and
+partially due to the fact that no one has tried mapping out what
+passes are actually useful for our code.
+
+## Where do we stand today?
+
+As of GHC 7.8, we have fair support for LLVM 3.2 through 3.4 on most
+architectures, supporting tables-next-to-code and dynamic linking on
+x86_64 and ARM (and possibly others). For the reasons stated above,
+this is actually quite an achievement.
+
+The astute reader will notice that the latest release, 3.5, is notably
+missing from this list. As of 3.5 the LLVM team 
+decided that the aliases that we used to fool LLVM into thinking our
+code is well-typed (even when the C-- doesn't tell us a type) were no
+longer acceptable. One can't really fault them for this change as our
+usage essentially relied on the optimizer to resolve aliases to proper
+symbol references in order to produce valid object code.
+
+GHC Differential [D155][alias-rework] reworks our use of aliases reflect the newly
+enforced rules concerning their usage.  In principle this patch should
+allow us to produce code that will compile with LLVM 3.2 through 3.5
+at the expense of producing a few extra symbols. In practice these
+symbols should pose no trouble whatsoever as we can simply mark them
+as having `internal` linkage. Unfortunately, LLVM 3.4 appear to forget
+which section internal symbols belong to causing massive breakage. If
+this weren't the second-to-newest release I would say we should ignore
+this; unfortunately it's very likely that 3.4 will be the most
+commonly encountered release in the wild for some time to come. For
+this reason, we will most likely be forced to mark these symbols as
+external in GHC 7.10. If you see object files filled with symbols
+ending in `$def` in GHC 7.8.4, this is the reason.
+
+Moreover, the LLVM 3.5 rework appears to uncover new optimization
+opportunities for LLVM on ARM. Usually I would be elated to report
+this but sadly said opportunities uncover a [bug][cc-bug] in LLVM's
+implementation GHC calling convention. This will hopefully be fixed in
+an LLVM bugfix release.
+
+Below is a table describing the current support matrix on ARM and
+x86-64. "GHC 7.8" denotes the current state of the 7.8 branch (7.8.3
+tested). "alias rework, internal" denotes the 7.8 branch with D155
+applied and `$def` symbols marked as internal. "alias rework,
+external" denotes the same with these symbols marked as externally
+visible.
+
+GHC release                       LLVM 3.2        LLVM 3.3       LLVM 3.4        LLVM 3.5       LLVM 3.6
+===================               ============    ============   ==============  =============  =========
+pre-GHC 7.8                       ok?             ok?            ok?             bad, aliases   bad, syntax
+GHC 7.8                           ok              ok             ok              bad, aliases   bad, syntax
+GHC 7.8, alias rework, internal   ok, ARM bad?    ok, ARM bad?   bad, sections   ok, ARM bad    bad, syntax
+GHC 7.8, alias rework, external   ok, ARM bad     ok, ARM bad    ok, ARM bad     ok, ARM bad    bad, syntax
+GHC 7.10                          bad, syntax     bad, syntax    bad, syntax     bad, syntax    ok!
+
+### Outcome legend
+
+ * ok: Tested to work
+ * ok?: Assumed to work, not tested
+ * ok, ARM bad: Works on x86_64, fails on ARM due to [GHC calling convention bug][cc-bug]
+ * bad, aliases: LLVM 3.5 rejects aliases to symbols defined outside of the current compilation unit
+ * bad, sections: LLVM 3.4 appears to forget which section `internal` symbols should be defined
+ * bad, syntax: LLVM 3.6 changed the 
+
+## The plan for GHC 7.10
+
+The above is clearly a bit of a mess. Moreover, this is only
+x86_64. It would be nice to say that by the time of the 7.10 release
+we have a nice clear path foward. LLVM 3.6 could almost be this
+path: it has no critical bugs on either ARM or x86-64. Moreover, I
+have a [patch][prologue] adding a prefix data facility to the LLVM intermediate
+language which GHC could use to cleanly implement
+tables-next-to-code. In fact, a [first cut][llvm-3.6] of this rework
+has already been completed.
+
+Unfortunately, the release schedules of GHC and LLVM unfortunately align quite
+closely and looming on the horizon. It's not clear whether LLVM 3.6
+will be released before or after GHC 7.10, much less whether the
+prefix data patch will be merged in time. 
+
+ A. Release with only the alias rework: This will enable us to run
+    against LLVM 3.2, 3.3, 3.4, and 3.5 on the x86-64. ARM support will
+    suffer until the next LLVM 3.5 bugfix is released.
+
+ B. Release with the llvm-3.6 rework: This would only enable us to run
+    against 3.6 on both ARM and x86-64. There might be a gap between
+    the time when the GHC 7.10 release is cut and when LLVM 3.6 is
+    released.
+
+Requiring users to run a brand-new (or, worse, unreleased) compiler
+isn't terribly responsible. For this reason, 7.10 will likely ship
+with option A. It's not great, but things could be worse.
+
+## Future directions
+
+This above mess is largely due to the fact that we try to make use of
+whatever LLVM release the user can give us. Given the lack of
+backwards-compatibility offered by LLVM and the lack of GHC
+developer-hours, this isn't terribly sustainable. Austin Seipp
+recently introduced a [proposal] to address this. Probably starting
+with GHC 7.12, GHC will have an officially sanctioned LLVM
+release. Moreover, LLVM builds for common platforms will be offered
+for download alongside GHC binaries. We will work with distributions
+currently offering GHC packages to ensure that they can offer an
+officially supported LLVM.
+
+Not only will this step reduce the support surface and hopefully
+improve the reliability of the LLVM backend, but it also enables GHC
+to make better use of the services that LLVM provides. If we can focus
+on a single release, it will be possible for us to request only those
+optimization passes that GHC will actually benefit from. Moreover, we
+can introduce optimization passes to address the areas where GHC's
+code has traditionally been weak (e.g. Max Bolingbroke's
+[work][ghc-aa] on alias analysis).
+
+If you feel like this is an effort that you would like to contribute
+to, drop by `#ghc` on Freenode or `ghc-devs`. We need all of the help
+we can get.
+
+
+
+[proposal]: https://ghc.haskell.org/trac/ghc/wiki/ImprovedLLVMBackend
+[alias-rework]: https://phabricator.haskell.org/D155
+[cc-bug]: http://reviews.llvm.org/D6445
+[prologue]: http://reviews.llvm.org/D6454
+[llvm-3.6]: https://phabricator.haskell.org/D530
+[ghc-aa]: http://blog.omega-prime.co.uk/?p=135
