@@ -219,3 +219,73 @@ Unexpected failures:
    ghc-api/dynCompileExpr  dynCompileExpr [exit code non-0] (llvm)
    llvm/should_compile     T7571 [stderr mismatch] (llvm)
 ```
+
+## GHC 7.9, llvm-3.6 branch, LLVM 3.6 on ARM
+
+GHC commit `a7c29721535d636fb16ab756b3f44224e04a5113` with my
+`llvm-3.6` branch. Running against llvm `r222923` with my `prefix` and
+`ghc-tcreturn` branches.
+
+```
+Unexpected results from:
+TEST="Flags02 literals prof-doc-fib recomp009 linker_unload dynHelloWorld T703 T7574 ghci053 T4491 print025 print021 print020 print022 T8557 T7386 print018 T7064 plugins05 T7918 ghcirun002 ghcirun001 ghcirun004 Conversions T9203 T5549 T5321FD T5030 T4801 T5631 T5837 T5642 T3064 T1969 T5321Fun T783 haddock.Cabal haddock.compiler haddock.base space_leak_001"
+
+OVERALL SUMMARY for test run started at Sat Nov 29 07:31:20 2014 CET
+ 0:33:38 spent to go through
+    4229 total tests, which gave rise to
+   17514 test cases, of which
+   13713 were skipped
+
+      56 had missing libraries
+    3666 expected passes
+      39 expected failures
+
+       3 caused framework failures
+       0 unexpected passes
+      23 unexpected failures
+      17 unexpected stat failures
+
+Unexpected failures:
+   codeGen/should_compile        T7574 [stderr mismatch] (normal)
+   driver                        T703 [bad exit code] (normal)
+   driver                        dynHelloWorld [bad stdout] (dyn)
+   driver/recomp009              recomp009 [bad exit code] (normal)
+   ghc-api/annotations-literals  literals [bad exit code] (normal)
+   ghci.debugger/scripts         T7386 [bad exit code] (ghci)
+   ghci.debugger/scripts         T8557 [bad exit code] (ghci)
+   ghci.debugger/scripts         print018 [bad exit code] (ghci)
+   ghci.debugger/scripts         print020 [bad exit code] (ghci)
+   ghci.debugger/scripts         print021 [bad exit code] (ghci)
+   ghci.debugger/scripts         print022 [bad exit code] (ghci)
+   ghci.debugger/scripts         print025 [bad exit code] (ghci)
+   ghci/scripts                  ghci053 [bad exit code] (ghci)
+   ghci/should_run               ghcirun001 [bad exit code] (ghci)
+   ghci/should_run               ghcirun002 [bad exit code] (ghci)
+   ghci/should_run               ghcirun004 [bad stdout or stderr] (ghci)
+   plugins                       plugins05 [bad stdout] (dyn)
+   profiling/should_run          prof-doc-fib [bad profile] (profasm)
+   quasiquotation                T7918 [bad exit code] (dyn)
+   quasiquotation/T4491          T4491 [bad exit code] (dyn)
+   rts                           linker_unload [bad exit code] (normal)
+   safeHaskell/flags             Flags02 [exit code non-0] (normal)
+   th                            T7064 [bad exit code] (normal)
+
+Unexpected stat failures:
+   perf/compiler     T1969 [stat not good enough] (normal)
+   perf/compiler     T3064 [stat not good enough] (normal)
+   perf/compiler     T4801 [stat not good enough] (normal)
+   perf/compiler     T5030 [stat not good enough] (normal)
+   perf/compiler     T5321FD [stat not good enough] (normal)
+   perf/compiler     T5321Fun [stat not good enough] (normal)
+   perf/compiler     T5631 [stat not good enough] (normal)
+   perf/compiler     T5642 [stat not good enough] (normal)
+   perf/compiler     T5837 [stat not good enough] (normal)
+   perf/compiler     T783 [stat not good enough] (normal)
+   perf/haddock      haddock.Cabal [stat not good enough] (normal)
+   perf/haddock      haddock.base [stat not good enough] (normal)
+   perf/haddock      haddock.compiler [stat not good enough] (normal)
+   perf/should_run   Conversions [stat not good enough] (normal)
+   perf/should_run   T5549 [stat not good enough] (normal)
+   perf/should_run   T9203 [stat not good enough] (normal)
+   perf/space_leaks  space_leak_001 [stat not good enough] (normal)
+```
