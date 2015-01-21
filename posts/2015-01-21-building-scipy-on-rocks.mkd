@@ -1,0 +1,48 @@
+---
+title: Building Scipy on the ROCKS
+date: 2015-01-21
+description: Installing Scipy on brain-dead distributions.
+tags: scipy,redhat,rocks,atlas,lapack
+---
+
+ROCKS is one of many Redhat-based distributions often found on
+large-ish compute clusters. Unfortunately, ROCKS and its breatheren
+all share a distinctive flavor of brokenness and apparent contempt of
+the user that is truly remarkable, even among operating systems. This
+is most often encountered on the evening of a large deadline. In this
+scenario, you copy your compute task to the cluster, eager to see the
+machine churn away at your handiwork. Your enthusiasm is quickly
+quenched, however, when you realize that `scipy` is not available (or
+more likely, from a package build at some point during middle of the
+Carter administration). 
+
+In this case, it's typically easiest to just build your own environment.
+When it comes to Python applications, it's best to do this within
+`virtualenv`,
+
+    $ curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-X.X.tar.gz
+    $ tar -xfz virtualenv-X.X.tar.gz
+    $ cd virtualenv-X.X
+    $ python virtualenv.py pyenv
+	$ source pyenv/bin/activate
+
+Now we need to resolve the impedance mismatch between Atlas's library
+paths and what scipy expects,
+
+    $ mkdir atlas-lib
+    $ for f in libatlas libcblas libclapack libf77blas liblapack libptcblas libptf77blas; do
+        ln -s /usr/lib64/atlas/$f.so atlas-lib/$f.so
+      done
+
+Now we can install numpy and scipy as usual, taking care to tell
+`numpy` and `scipy` about our Atlas libraries,
+
+    $ ATLAS=atlas-lib pip install numpy
+	$ git clone git://github.com/scipy/scipy
+	$ cd scipy
+	$ ATLAS=atlas-lib ./setup.py install
+
+That's all!
+
+Now for some sleep.
+	
