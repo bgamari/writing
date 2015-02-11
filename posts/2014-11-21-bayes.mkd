@@ -34,7 +34,7 @@ stands in contrast to the Bayesian, who would argue that we need not
 be so strict: in addition to representing outcome frequencies,
 probabilities may also serve to encode our belief about the
 likelihood of an event. Ultimately the difference comes down to
-whether you admit subjective "beliefs" into your probabilistic
+whether you admit "beliefs" into your probabilistic
 calculus.
 
 The relationship between Bayes' theorem and Bayesian statistics is
@@ -50,17 +50,20 @@ consequence of the basic rules of conditional probabilities. The
 derivation is quite simple,
 
 Let's say we have two events, $A$ and $B$, and we know that $B$ has
-happened. We can notate the probability that A will happen given this
+occurred. We can notate the probability that $A$ will happen given this
 knowledge as $P(A | B)$ (read as "the probability that $A$ happens given
-that $B$ has happened"). This is known as a conditional probability. We
-can turn this conditional probability into a joint probability, $P(A, B)$,
-the probability that both $A$ and $B$ occur.  We do this by first asking
-"what is the probability that $B$ will occur?" (this is of course
-$P(B)$) Then we ask "given that $B$ has occurred what is the probability
-that $A$ will occur?" (this is $P(A \cond B)$). Since we want $P(A, B)$
-we want the *joint* probability of these two events, which is simply
-their product,
-$$ P(A, B) = P(A \cond B) P(B) $$
+that $B$ has happened"). This is known as a conditional probability.
+
+We can turn this conditional probability into a joint probability,
+$P(A, B)$, the probability that both $A$ and $B$ occur.  We accomplish
+this by first asking "what is the probability that $B$ will occur?"
+(this is of course $P(B)$). We can then ask "given that $B$ has
+occurred what is the probability that $A$ will occur?" (this is $P(A
+\cond B)$). Since we want $P(A, B)$ we want the probability that both of these events have occurred, 
+which by the [chain rule of probability][chain rule] is simply the product,
+$$ P(A, B) = P(A \cond B)~ P(B) $$
+
+[chain rule]: https://en.wikipedia.org/wiki/Chain_rule_%28probability%29
 
 We can now express $P(A, B)$ in terms of both $P(A \cond B)$ and 
 $P(B \cond A)$,
@@ -79,15 +82,15 @@ P(A \cond B) = \frac{P(B \cond A) P(A)}{P(B)}
 $$
 
 Note that throughout this we made no assumptions on how we interpret
-these probabilities (beyond the product rule which holds in both
+these probabilities (beyond the chain rule which holds in both
 interpretations). Mathematically this statement is true in any
 setting. Intuitively it gives us a tool for inverting conditionality.
 
 ## A frequentist's use of Bayes' theorem
 
-While Bayes theorem holds in both Bayesian and frequentist settings, the
-two interpretations will diff in how they use the relationship. Let's
-look at an example (inspired by [Wikipedia][Beetles]). Say that
+While Bayes' theorem holds in both Bayesian and frequentist settings, the
+two interpretations will differ in how they use this relationship. Let's
+look at an example (inspired by [Wikipedia][Beetles]): Say that
 we collect stamps, which we classify by their color (red or blue) and
 the texture (smooth or rough). When we count our stamps, we find that
 10\% of them are red, with the remaining 90\% being blue,
@@ -132,9 +135,10 @@ contexts where the frequentist would claim they are not appropriate.
 
 Say you are given a coin by a friend who expresses fear that it may be
 weighted. "I flipped it one hundred times and I only saw twenty-two tails!
-How odd is that?" he exclaims as he hands you the coin. Being a good
-friend, you want to help alleviate (or confirm) your friend's concern
-and begin thinking about how you might test this hypothesis.
+I think it's rigged!" he exclaims as he hands you the coin. Being an
+inquisitive person and good friend, you feel your should help
+alleviate (or confirm) your friend's concern and begin thinking about
+how you might test his hypothesis.
 
 You recall that the outcome of a coin flip is described by the
 Bernoulli distribution,
