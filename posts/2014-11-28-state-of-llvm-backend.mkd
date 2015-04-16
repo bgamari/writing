@@ -87,7 +87,7 @@ Moreover, the LLVM 3.5 rework appears to uncover new optimization
 opportunities for LLVM on ARM. Usually I would be elated to report
 this but sadly said opportunities uncover a [bug][cc-bug] in LLVM's
 implementation GHC calling convention. This will hopefully be fixed in
-an LLVM bugfix release.
+an LLVM bugfix release (*update* this fix is present in LLVM 3.5.1 and later).
 
 Below is a table describing the current support matrix on ARM and
 x86-64. "GHC 7.8" denotes the current state of the 7.8 branch (7.8.3
