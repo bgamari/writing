@@ -61,7 +61,7 @@ xor: automatically using best checksumming function:
    avx       : 22611.000 MB/sec
 ```
 
-Taken alone these are indeed a impressive figures. Of course this isn't
+Taken alone these numbers are pretty impressive. Of course this isn't
 surprising; a lot of people have put a great deal of [effort][] into making
 these routines extremely efficient. For comparison, at this throughput it would
 require somewhere around 2% of a single core's cycles to rebuild an eight-drive
