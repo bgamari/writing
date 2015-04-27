@@ -1,0 +1,191 @@
+---
+title: Performance implications of software RAID
+date: 2015-04-27
+description: How many CPU cycles does software RAID actually require?
+tags: raid, md
+---
+
+# Performance implications of software RAID
+
+The choice between hardware assisted and software RAID seems to draw strong
+opinions on all sides. I've recently been specifying a moderately-sized storage
+system for a research setting. In this application, I/O throughput is nice to
+have but most users will be CPU bound; space requirements are in the dozens of
+terabytes, with the potential to scale up to 100 TB or so.
+
+While there are many things that can be said about the durability offered by a
+hardware RAID controller with battery-backed writeback buffer, I've always been
+a bit skeptical of black-boxes. In the best case they are merely a nuisance to
+manage, in the worst case they are a binary-blob-laden nightmare. Further, the
+boards are fairly expensive, there is [evidence][] to suggest that they often
+don't offer the performance that one might expect, and they represent a
+single-point of failure where recovery requires finding hardware identical to
+the original controller.
+
+So, while the durability of hardware RAID may be necessary for banking, it doesn't
+seem necessary for the current application, where we will already have
+redundant, independent power supplies and the data is largely static. With this
+in mind, it seems that the decision largely comes down to performance. When
+reading about RAID solutions it doesn't take long to encounter some argument
+around the CPU time required to compute RAID parity. Given the quite [weak][]
+driving most commercial RAID solutions are compared to the typical multi-GHz
+Haswell with >256 bit SIMD paths, this argument seems a tad empty. After all,
+RAID 5 is essentially block-wise XORs (RAID 6 is a bit trickier); how bad could
+it possibly be?
+
+Take, for instance, my laptop. It features a Core i5 4300U running at 1.9GHz; a
+pretty quick machine but certainly nothing special. Every time I boot the kernel
+informs me of these useful numbers while initializing the `md` RAID subsystem,
+
+```
+raid6: sse2x1    9154 MB/s
+raid6: sse2x2   11477 MB/s
+raid6: sse2x4   13291 MB/s
+raid6: avx2x1   17673 MB/s
+raid6: avx2x2   20432 MB/s
+raid6: avx2x4   23755 MB/s
+raid6: using algorithm avx2x4 (23755 MB/s)
+raid6: using avx2x2 recovery algorithm
+xor: automatically using best checksumming function:
+    avx       : 28480.000 MB/sec
+
+```
+
+Or on a slightly older Ivy Bridge machine (which lacks AVX support),
+
+```
+raid6: sse2x4   12044 MB/s
+raid6: using algorithm sse2x4 (12044 MB/s)
+raid6: using ssse3x2 recovery algorithm
+xor: automatically using best checksumming function:
+   avx       : 22611.000 MB/sec
+```
+
+Taken alone these are indeed a impressive figures. Of course this isn't
+surprising; a lot of people have put a great deal of [effort][] into making
+these routines extremely efficient. For comparison, at this throughput it would
+require somewhere around 2% of a single core's cycles to rebuild an eight-drive
+array (assuming each drive pushes somewhere around 60MByte/s, which itself it a
+rather generous number).
+
+Looking at the [code][] responsible for these messages, these figures arise from
+timing a simple loop to generate syndromes from a dummy buffer. As this buffer
+fits in cache these performance numbers clearly aren't what we will see under
+actual workloads.
+
+[effort]: http://kernel.org/pub/linux/kernel/people/hpa/raid6.pdf
+[code]: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/lib/raid6/algos.c?id=v4.0#n149
+
+
+Thankfully, it is fairly straightforward (see below) to construct a
+(very rough) approximation of an actual workload. Here we build a md level-6
+volume on an SSD. Using `fio` to produce I/O, we can measure the transfer rate
+sustained by the volume along with the number of cycles consumed by md's kernel
+threads.
+
+On my Haswell machine I find that `md` can push roughly 400MByte/s of writes
+with `md`'s kernel worker eating just shy of 10% of a core. As expected, reads
+from the non-degraded volume see essentially no CPU time used by `md`. On an Ivy
+Bridge machine (lacking AVX instructions; also tested against a different SSD),
+on the other hand I find that I can push roughly 250 MByte/s with closer to 20%
+CPU time eaten by md. Clearly AVX pulls its weight very nicely here.
+
+Given that the workload in question are largely read-oriented, it seems like
+this is a perfectly reasonable price to pay, assuming AVX is available.
+
+## Benchmark
+Here is the benchmark, to be sourced and invoked with `run_all`.
+As usual, this is provided as-is; assume it will kill your cat and burn your
+house down.
+
+``` bash
+#!/bin/bash -e
+
+# Where to put the images
+root="/tmp"
+processes="md md127_raid6"
+
+# damn you bash
+time="/usr/bin/time"
+
+# Setup RAID "devices"
+function setup() {
+    loopbacks=
+    for i in 1 2 3 4; do
+        touch $root/test$i
+        fallocate -l $(echo 8*1024*1024*1024 | bc) -z $root/test$i
+        loopbacks="$loopbacks $(sudo losetup --find --show $root/test$i)"
+    done
+    sudo mdadm --create --level=6 --raid-devices=4 /dev/md/bench $loopbacks
+    sudo mkfs.ext4 /dev/md/bench
+    sudo mkdir /mnt/bench
+    sudo mount /dev/md/bench /mnt/bench
+}
+
+# Measure it!
+tick="$(getconf CLK_TCK)"
+function show_processes() {
+    for p in $@; do
+        pid="$(pidof $p)"
+        # pid, comm, user, system
+        cat /proc/$pid/stat | awk "{print \$1,\$2,\$14 / $tick,\$15 / $tick}"
+    done
+}
+
+function write_test() {
+    echo -e "\\n================================" >> times.log
+    echo -e "Write test" >> times.log
+    (echo "Before"; show_processes $processes) >> times.log
+    $time -a -o times.log sudo fio --bs=64k --ioengine=libaio \
+        --iodepth=4 --size=7g --direct=1 --runtime=60 \
+        --directory=/mnt/bench --filename=test --name=seq-write \
+        --rw=write
+    (echo -e "\\nAfter"; show_processes $processes) >> times.log
+}
+
+function read_test() {
+    echo -e "\\n================================" >> times.log
+    echo -e "Read test" >> times.log
+    (echo "Before"; show_processes $processes) >> times.log
+    $time -a -o times.log sudo fio --bs=64k --ioengine=libaio \
+        --iodepth=4 --size=7g --direct=1 --runtime=60 \
+        --directory=/mnt/bench --filename=test --name=seq-read \
+        --rw=read
+    (echo -e "\\nAfter"; show_processes $processes) >> times.log
+}
+
+function rebuild_test() {
+    echo -e "\\n================================" >> times.log
+    echo "Rebuild test" >> times.log
+    (echo "Before"; show_processes $processes) >> times.log
+    echo check | sudo tee /sys/block/md127/md/sync_action
+    sudo mdadm --monitor | grep RebuildFinished | head -n1
+    (echo -e "\\nAfter"; show_processes $processes) >> times.log
+}
+
+# Clean up
+function cleanup() {
+    sudo umount /mnt/bench
+    sudo mdadm -S /dev/md/bench
+    echo $loopbacks | sudo xargs -n1 -- losetup --detach
+    sudo rm -R /mnt/bench
+    rm $root/test[1234]
+}
+
+function run_all() {
+    echo > times.log
+    setup
+    write_test
+    read_test
+    umount /mnt/bench
+    rebuild_test
+    cleanup
+    cat times.log
+}
+```
+
+
+
+[evidence]: https://blog.cloudflare.com/a-tour-inside-cloudflares-latest-generation-servers/
+[weak]: https://www.lsi.com/products/io-controllers/pages/lsi-sas-2008.aspx
+[typical]: http://accessories.euro.dell.com/sna/productdetail.aspx?c=uk&l=en&s=bsd&cs=ukbsdt1&sku=405-11337&pmha=6
