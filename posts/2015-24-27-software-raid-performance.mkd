@@ -27,7 +27,7 @@ seem necessary for the current application, where we will already have
 redundant, independent power supplies and the data is largely static. With this
 in mind, it seems that the decision largely comes down to performance. When
 reading about RAID solutions it doesn't take long to encounter some argument
-around the CPU time required to compute RAID parity. Given the quite [weak][]
+around the CPU time required to compute RAID parity. Given the quite [weak hardware][]
 driving most commercial RAID solutions are compared to the typical multi-GHz
 Haswell with >256 bit SIMD paths, this argument seems a tad empty. After all,
 RAID 5 is essentially block-wise XORs (RAID 6 is a bit trickier); how bad could
