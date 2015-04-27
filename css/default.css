@@ -55,7 +55,6 @@ pre code {
     padding: 1em;
     overflow-x: auto;
 }
-
 code {
     background-color: #fafafa;
     border: 1px solid #c8c8c8;
@@ -65,24 +64,23 @@ footer#footer {
     clear: both;
 }
 
-#posts ul {
-    list-style: none;
+article {
+    padding: 1em 0;
 }
 
-li.post {
-    padding-bottom: 1em;
+article a.title {
+    font-size: x-large;
 }
 
-li.post a {
-    font-size: large;
+article header {
+    color: #999;
+    font-size: small
 }
-
-li.post time.pubdate {}
 
 ul.tags {
     list-style: none;
-    display: block;
-    padding: 0 2em;
+    display: inline;
+    padding: 0;
 }
 
 ul.tags li {
