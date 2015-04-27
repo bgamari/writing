@@ -1,6 +1,6 @@
 # About
 
-<div style="float: right; padding: 2em;">
+<div alt="A picture of Ben" style="float: right; padding: 2em;">
   <img src="/media/ben-in-berlin.jpeg" style="width: 200px;"/>
 </div>
 
