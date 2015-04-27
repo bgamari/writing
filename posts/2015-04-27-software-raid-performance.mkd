@@ -187,5 +187,5 @@ function run_all() {
 
 
 [evidence]: https://blog.cloudflare.com/a-tour-inside-cloudflares-latest-generation-servers/
-[weak]: https://www.lsi.com/products/io-controllers/pages/lsi-sas-2008.aspx
+[weak hardware]: https://www.lsi.com/products/io-controllers/pages/lsi-sas-2008.aspx
 [typical]: http://accessories.euro.dell.com/sna/productdetail.aspx?c=uk&l=en&s=bsd&cs=ukbsdt1&sku=405-11337&pmha=6
