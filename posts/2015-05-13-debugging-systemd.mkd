@@ -1,0 +1,130 @@
+---
+title: First experiences debugging systemd
+date: 2015-04-12
+description: a
+---
+
+# First experiences debugging systemd
+
+I use an [Odroid XU]() running Debian Jessie as an ARM target for
+[GHC]() and a variety of other projects. Recently Debian switched over
+to the infamous [systemd]() init system. Up to this point I've had
+relatively little exposure to systemd, save the usual Internet
+fanaticism that inexplicably surrounds most projects associated with
+Lennart. The below documents my first experiences trying to
+troubleshoot a non-booting systemd installation.
+
+Anyways, switching init systems on a small embedded board like the
+Odroid will inevitably come with a few sticking points. This was no
+exception. Indeed the machine came up with no network connection,
+although appeared to be responsive to keyboard input. Moreover, the
+board didn't light up an external HDMI monitor.
+
+A few solder joints later I had a serial terminal up and found that
+the machine was dumping me in the recovery console after a few minutes
+of waiting. Poking around for a few minutes with `systemctl` seemed to
+suggest that systemd was getting stuck bringing up a few mount units
+and some devices. One of the mount units was an NFS mount. `ifconfig`
+confirmed that `eth0` was indeed still down and checking
+`/etc/network/interfaces` confirmed that the upgrade must have blown
+away the adapter configuration. A few lines in vim and a reboot later
+and the NFS mount was up.
+
+Now remains the tricky ones: according to `journalctl` the
+`dev-mmcblk0p1.device` and `dev-ttySAC2.device` units apparently both
+time out,
+```
+Mar 14 18:02:02 odroid-jessie systemd[1]: Job dev-mmcblk0p1.device/start timed out.
+Mar 14 18:02:02 odroid-jessie systemd[1]: Timed out waiting for device dev-mmcblk0p1.device.
+Mar 14 18:02:02 odroid-jessie systemd[1]: Dependency failed for File System Check on /dev/mmcblk0p1.
+Mar 14 18:02:02 odroid-jessie systemd[1]: Job dev-ttySAC2.device/start timed out.
+Mar 14 18:02:02 odroid-jessie systemd[1]: Timed out waiting for device dev-ttySAC2.device.
+Mar 14 18:02:02 odroid-jessie systemd[1]: Dependency failed for Serial Getty on ttySAC2.
+```
+
+Let's start by looking at `ttySAC2`. Attempting to explicitly start
+the unit with `systemctl start dev-ttySAC2.device` just
+hangs. `systemctl show dev-ttySAC2.device` shows a bunch of details,
+
+```
+Id=dev-ttySAC2.device
+Names=dev-ttySAC2.device
+BoundBy=serial-getty@ttySAC2.service
+Before=serial-getty@ttySAC2.service
+Description=dev-ttySAC2.device
+LoadState=loaded
+ActiveState=inactive
+SubState=dead
+InactiveExitTimestampMonotonic=0
+ActiveEnterTimestampMonotonic=0
+ActiveExitTimestampMonotonic=0
+InactiveEnterTimestampMonotonic=0
+CanStart=no
+CanStop=no
+CanReload=no
+CanIsolate=no
+StopWhenUnneeded=no
+RefuseManualStart=no
+RefuseManualStop=no
+AllowIsolate=no
+DefaultDependencies=yes
+OnFailureJobMode=replace
+IgnoreOnIsolate=yes
+IgnoreOnSnapshot=yes
+NeedDaemonReload=no
+JobTimeoutUSec=1min 30s
+ConditionResult=yes
+ConditionTimestamp=Sat 2015-03-14 18:04:54 CET
+ConditionTimestampMonotonic=514986487
+Transient=no
+```
+
+Unfortunately these details show no indication of why the unit can't be
+started.
+
+`systemctl cat dev-mmcblk0p1.device` suggests that these `.device`
+units are no ordinary units. This is apparently now the time to brush
+up on the intricacies of systemd units so I run off to the
+[`systemd.unit`][systemd.unit] manpage which within a few paragraphs
+sends me to the [`systemd.device`][systemd.device] manpage. While
+short, the document seems quite effective in suggesting the next
+obvious step,
+
+> systemd will dynamically create device units for all kernel devices
+> that are marked with the "systemd" udev tag (by default all block
+> and network devices, and a few others). This may be used to define
+> dependencies between devices and other units. To tag a udev device,
+> use "TAG+="systemd"" in the udev rules file, see udev(7) for
+> details.
+
+Perhaps the `ttySAC2` device isn't getting the proper udev tag. Sadly, udev disagrees,
+
+```
+$ udevadm info /dev/ttySAC2
+P: /devices/platform/exynos4210-uart.2/tty/ttySAC2
+N: ttySAC2
+E: DEVNAME=/dev/ttySAC2
+E: DEVPATH=/devices/platform/exynos4210-uart.2/tty/ttySAC2
+E: ID_MM_CANDIDATE=1
+E: MAJOR=204
+E: MINOR=66
+E: SUBSYSTEM=tty
+E: TAGS=:systemd:
+E: USEC_INITIALIZED=472111
+```
+
+and indeed `/lib/udev/rules.d/99-systemd.rules` includes the appropriate rule,
+
+```
+SUBSYSTEM=="tty", KERNEL=="tty[a-zA-Z]*|hvc*|xvc*|hvsi*|ttysclp*|sclp_line*|3270/tty[0-9]*", TAG+="systemd"
+```
+
+Well, there goes that hypothesis.
+
+After some amount of Googling I find a StackExchange [answer][] which
+seems to fit the bill, suggesting that my kernel is too old (3.4, it
+is quite old). Compiling a new kernel indeed allows the machine to boot. Yay!
+
+[answer]: https://unix.stackexchange.com/questions/169935/no-login-prompt-on-serial-console
+[systemd.unit]: http://www.freedesktop.org/software/systemd/man/systemd.unit.html
+[systemd.device]: http://www.freedesktop.org/software/systemd/man/systemd.device.html
