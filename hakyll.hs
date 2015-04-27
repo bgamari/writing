@@ -1,14 +1,11 @@
-{-# LANGUAGE OverloadedStrings, Arrows #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import Prelude hiding (id)
-import Control.Category (id)
 import qualified Data.Set as S
 
 import Hakyll
 import Hakyll.Web.Feed
 import Hakyll.Web.Tags
-import Control.Monad
-import Control.Applicative ((<$>))       
 import Data.Monoid (mempty, mconcat, (<>))
 
 import Text.Pandoc
@@ -17,12 +14,15 @@ import Text.Blaze.Html ((!), toHtml, toValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
+feedConfig :: FeedConfiguration
 feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
                                , feedDescription = "Various ramblings, usually of a technical nature"
                                , feedAuthorName = "Ben Gamari"
                                , feedRoot = "http://bgamari.github.com/"
                                , feedAuthorEmail = "bgamari@gmail.com"
                                }
+
+pandocMathCompiler :: Compiler (Item String)
 pandocMathCompiler =
     let mathExtensions = [Ext_tex_math_dollars, Ext_tex_math_double_backslash,
                           Ext_latex_macros]
@@ -53,11 +53,11 @@ main = hakyll $ do
                 compile $ pandocMathCompiler
                         >>= loadAndApplyTemplate "templates/default.html" defaultContext
                         >>= relativizeUrls
-     
+
         create ["rss.xml"] $ do
                 route idRoute
                 compile $ loadAll "posts/*.mkd" >>= renderRss feedConfig defaultContext
-     
+
         match "media/**" $ do
                 route   idRoute
                 compile copyFileCompiler
@@ -86,7 +86,7 @@ postList posts =
     >>= makeItem . mconcat . map itemBody
   where
     ctxt = renderTagList' "tagsList" (const $ fromFilePath "error/404")
-  
+
 -- | Render tags as HTML list with links
 renderTagList' :: String
                -- ^ Destination key
