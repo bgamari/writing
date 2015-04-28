@@ -10,14 +10,13 @@ date: 2012-03-28
 This was done on an LPCXpresso LPC1769 board.
 The debug harness was wired as follows,
 
-<table>
-	<tr><th>LPCXpresso</th> <th>Signal</th> <th>Bus Pirate</th></tr>
-	<tr><td>2</td>  <td>TMS</td>  <td>CS</td></tr>
-	<tr><td>3</td>  <td>TCLK</td> <td>CLK</td></tr>
-	<tr><td>4</td>  <td>TDO</td>  <td>MISO</td></tr>
-	<tr><td>5</td>  <td>TDI</td>  <td>MOSI</td></tr>
-	<tr><td>8</td>  <td>GND</td>  <td>GND</td></tr>
-<table>
+LPCXpresso     Signal     Bus Pirate
+------------   --------   ------------
+2              TMS        CS
+3              TCLK       CLK
+4              TDO        MISO
+5              TDI        MOSI
+8              GND        GND
 
 # Preliminaries
 Get OpenOCD from git,
@@ -122,34 +121,36 @@ checksum is of the first eight interrupt vectors and is stored in
 vector 7 (0x0000001c). The easiest way to ensure this is set correctly
 is to run the binary image through the following C,
 
-	#include <stdio.h>
-    #include <unistd.h>
-    #include <sys/types.h>
-    #include <sys/stat.h>
-    #include <fcntl.h>
-	
-	int main(int argc, char **argv) {
-            int fw, count, crc;
-            char buf[28];
-    
-            fw = open(argv[1], O_RDWR);
-            // read fist 28 bytes
-            read(fw, &buf, 28);
-    
-            // find 2's complement of entries 0 to 6
-            for (count=0, crc=0; count < 7; count++) {
-                    crc += *((int*)(buf+count*4));
-            }
-            crc = (~crc) + 1;
-    
-            // write it at offset 0x0000001C 
-            lseek(fw, 0x0000001C, SEEK_SET);
-            write(fw, &crc, 4);
-            close(fw);
-    
-            return 0;
-    }
+```C
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+int main(int argc, char **argv) {
+    int fw, count, crc;
+    char buf[28];
+
+    fw = open(argv[1], O_RDWR);
+    // read fist 28 bytes
+    read(fw, &buf, 28);
+
+    // find 2's complement of entries 0 to 6
+    for (count=0, crc=0; count < 7; count++) {
+            crc += *((int*)(buf+count*4));
+    }
+    crc = (~crc) + 1;
+
+    // write it at offset 0x0000001C 
+    lseek(fw, 0x0000001C, SEEK_SET);
+    write(fw, &crc, 4);
+    close(fw);
+
+    return 0;
+}
+```
+    
 ## Debugging on ARM
 
 While sometimes my system's native gdb will somehow understand the ARM
