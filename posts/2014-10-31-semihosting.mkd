@@ -26,14 +26,16 @@ Note that `librdimon` takes the place of `libnosys`.
 Ensure that `initialise_monitor_handles()` is called in `main` before
 calling `printf`,
 
-    extern void  initialise_monitor_handles(void);
+```C
+extern void initialise_monitor_handles(void);
 
-	int main(void) {
-	    initialise_monitor_handles();
+int main(void) {
+    initialise_monitor_handles();
 
-	    printf("hello world!\n");
-		// do things
-	}
+    printf("hello world!\n");
+    // do things
+}
+```
 
 If you are using the toolchain's `crt0` initialization function then
 `initialise_monitor_handles` has already been called for you.
