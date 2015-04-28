@@ -97,3 +97,7 @@ div.figure {
     margin-right: auto;
     text-align: center;
 }
+
+td {
+    padding: 0 1em;
+}
