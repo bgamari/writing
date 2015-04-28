@@ -23,19 +23,19 @@ prepared to wait the better part of a day as the build proceeds.
 
 We'll first need a few packages,
 
-        $ sudo apt-get install build-essential groff happy alex
+    $ sudo apt-get install build-essential groff happy alex
 
 Since LLVM and GHC builds can be quite large, I'm going to be doing everything in `/mnt/data/ghc`,
         
-        $ GHCROOT=/mnt/data/ghc
+    $ GHCROOT=/mnt/data/ghc
 
 ## LLVM
 
 First fetching LLVM,
 
-        $ cd $GHCROOT
-        $ git clone http://llvm.org/git/llvm.git
-        $ cd llvm
+    $ cd $GHCROOT
+    $ git clone http://llvm.org/git/llvm.git
+    $ cd llvm
 
 If you want a C/C++ compiler out of the deal as well, you can clone `clang`
 into `tools/`. Note that `clang` seems to be even worse than LLVM itself in
@@ -45,57 +45,57 @@ through most of the build, it ultimately ran out of memory while linking the
 LLVM cross-compiling instructions also posted here unless you have a large
 amount of memory and lots of time.
 
-        $ cd tools
-        $ git clone http://llvm.org/git/clang.git
-        $ cd ..
+    $ cd tools
+    $ git clone http://llvm.org/git/clang.git
+    $ cd ..
 
 Additionally, GHC requires a patch adding its calling convention to LLVM. The
 patch will require a bit of minor forward porting,
 
-        $ wget http://www.gardas.roznovan.cz/llvm/llvm-2011-07-12.patch
-        $ cd llvm
-        $ patch -p1 < ../llvm-2011-07-12.patch
+    $ wget http://www.gardas.roznovan.cz/llvm/llvm-2011-07-12.patch
+    $ cd llvm
+    $ patch -p1 < ../llvm-2011-07-12.patch
 
 Linking C++ with binutils' default linker, `ld`, is quite memory
 intensive (especially the `clang` executable, for some reason). The
 build process can be made substantially faster by instead using
 `gold`,
 
-        $ mkdir $GHCROOT/gold-bin
-        $ ln -s `which gold` $GHCROOT/gold-bin/ld
-        $ PATH=$GHCROOT/gold-bin:$PATH
+    $ mkdir $GHCROOT/gold-bin
+    $ ln -s `which gold` $GHCROOT/gold-bin/ld
+    $ PATH=$GHCROOT/gold-bin:$PATH
 
 Building is straightforward,
 
-        $ ./configure --prefix=$GHCROOT/usr
-        $ make
-        $ sudo make install
+    $ ./configure --prefix=$GHCROOT/usr
+    $ make
+    $ sudo make install
 
 It's never a bad idea to run `make check` as well. In my case (commit
 `1c36ba50ac7fa2c3e531b3f48407fb2eee93e5ed`), this resulted in 12 unexpected
 errors,
 
-        ********************
-        Testing Time: 2886.24s
-        ********************
-        Failing Tests (12):
-            LLVM :: CodeGen/X86/2009-06-05-VariableIndexInsert.ll
-            LLVM :: CodeGen/X86/tail-call-got.ll
-            LLVM :: ExecutionEngine/2002-12-16-ArgTest.ll
-            LLVM :: ExecutionEngine/test-fp.ll
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JIT.GlobalInFunction
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.AvailableExternallyGlobalIsntEmitted
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.EscapedLazyStubStillCallable
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.FunctionPointersOutliveTheirCreator
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/LazyLoadedJITTest.MaterializableAvailableExternallyFunctionIsntCompiled
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.EagerMode
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.JitPool
-            LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.LazyMode
-        
-          Expected Passes    : 5508
-          Expected Failures  : 70
-          Unsupported Tests  : 28
-          Unexpected Failures: 12
+    ********************
+    Testing Time: 2886.24s
+    ********************
+    Failing Tests (12):
+        LLVM :: CodeGen/X86/2009-06-05-VariableIndexInsert.ll
+        LLVM :: CodeGen/X86/tail-call-got.ll
+        LLVM :: ExecutionEngine/2002-12-16-ArgTest.ll
+        LLVM :: ExecutionEngine/test-fp.ll
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JIT.GlobalInFunction
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.AvailableExternallyGlobalIsntEmitted
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.EscapedLazyStubStillCallable
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/JITTest.FunctionPointersOutliveTheirCreator
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/LazyLoadedJITTest.MaterializableAvailableExternallyFunctionIsntCompiled
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.EagerMode
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.JitPool
+        LLVM-Unit :: ExecutionEngine/JIT/Debug+Asserts/JITTests/MultiJitTest.LazyMode
+    
+      Expected Passes    : 5508
+      Expected Failures  : 70
+      Unsupported Tests  : 28
+      Unexpected Failures: 12
 
 ### An aside: libc++
 
@@ -104,28 +104,28 @@ speed and very modest memory requirements while compiling highly templated C++.
 Unfortunately, it doesn't seem particularly happy using GCC's libstdc++.
 Thankfully, the LLVM project has also produced its own new C++ standard library
 implementation, [`libc++`](http://libcxx.llvm.org/). Building the library is
-quite trivial,
+quite straightforward,
 
-        $ cd $GHCROOT
-        $ git clone http://llvm.org/git/libcxx.git
-        $ cd libcxx/lib
-        $ ./buildit
+    $ cd $GHCROOT
+    $ git clone http://llvm.org/git/libcxx.git
+    $ cd libcxx/lib
+    $ ./buildit
 
 Installation is quite straightforward,
 
-        $ sudo ln -sf $GHCROOT/libcxx/lib/libc++.so.1.0 /usr/lib/libc++.so.1.0
-        $ sudo ln -sf libc++.so.1.0 /usr/lib/libc++.so.1
-        $ sudo ln -sf libc++.so.1 /usr/lib/libc++.so
-        $ sudo ln -sf $GHCROOT/libcxx/include /usr/include/c++/v1
+    $ sudo ln -sf $GHCROOT/libcxx/lib/libc++.so.1.0 /usr/lib/libc++.so.1.0
+    $ sudo ln -sf libc++.so.1.0 /usr/lib/libc++.so.1
+    $ sudo ln -sf libc++.so.1 /usr/lib/libc++.so
+    $ sudo ln -sf $GHCROOT/libcxx/include /usr/include/c++/v1
 
 Of course, we need to test it before use,
 
-        $ cd ../test
-        $ ./testit
+    $ cd ../test
+    $ ./testit
 
 To use `libc++` with `clang`, simply say the magic word,
 
-        $ clang++ -stdlib=libc++ test.cpp
+    $ clang++ -stdlib=libc++ test.cpp
 
 
 ## GHC
@@ -134,19 +134,19 @@ First we'll fetch a few of the
 [prerequisites](http://hackage.haskell.org/trac/ghc/wiki/Building/Preparation/Linux)
 for building GHC,
 
-        $ sudo apt-get install happy alex
+    $ sudo apt-get install happy alex
 
 Of course, we'll also need our new LLVM build in `PATH`,
 
-        $ PATH=$GHCROOT/root/bin:$PATH
+    $ PATH=$GHCROOT/root/bin:$PATH
 
 Fetching GHC and beginning the bootstrap process,
 
-        $ cd $GHCROOT
-        $ git clone http://darcs.haskell.org/ghc.git
-        $ cd ghc
-        $ ./sync-all --no-dph get
-        $ ./boot
+    $ cd $GHCROOT
+    $ git clone http://darcs.haskell.org/ghc.git
+    $ cd ghc
+    $ ./sync-all --no-dph get
+    $ ./boot
 
 It is important to note that by default this will build the
 `master` branch. This is where the bleeding edge of GHC's development
@@ -171,8 +171,8 @@ the build.
 
 The build requires a small bit of configuration,
 
-        $ cp mk/build.mk.sample mk/build.mk
-        $ edit mk/build.mk
+    $ cp mk/build.mk.sample mk/build.mk
+    $ edit mk/build.mk
 
 Now edit `mk/config.mk`, I chose the `quick` build flavor. We need to adjust
 the build method to account for the fact that the stage 0 compiler we will be
@@ -190,45 +190,45 @@ follow some of the recommendations at
 <http://hackage.haskell.org/trac/ghc/wiki/Building/Using> to speed up the build
 process. The build then proceeds as usual,
 
-        $ ./configure --prefix=$GHCROOT/usr
-        $ make
-        $ sudo make install
+    $ ./configure --prefix=$GHCROOT/usr
+    $ make
+    $ sudo make install
 
 ## Test
 
 As with any piece of software under development, it is always a good idea to test,
 
-        $ ./sync-all --testsuite get
-        $ make test
+    $ ./sync-all --testsuite get
+    $ make test
 
 ## Enjoy
 
 Enjoy your shiny new compiler,
 
-        $ PATH=$GHCROOT/bin:$PATH
-        $ LD_LIBRARY_PATH=$GHCROOT/lib:$LD_LIBRARY_PATH
-        $ ghc --info
+    $ PATH=$GHCROOT/bin:$PATH
+    $ LD_LIBRARY_PATH=$GHCROOT/lib:$LD_LIBRARY_PATH
+    $ ghc --info
 
 ## Updating
 
 To update,
 
-        $ cd $GHCROOT/ghc
-        $ ./sync-all --no-dph pull
+    $ cd $GHCROOT/ghc
+    $ ./sync-all --no-dph pull
 
 Make sure your previously built compiler is not in `$PATH` or else `configure`
 will complain. You'll still want to make sure that LLVM is in `$PATH` however.
 We'll just add the build directory to accomplish this,
 
-        $ PATH=$GHCROOT/llvm/Debug+Asserts/bin:$PATH
-        $ make
+    $ PATH=$GHCROOT/llvm/Debug+Asserts/bin:$PATH
+    $ make
 
 ## Cleaning
 
 In the unfortunate event that your build tree is somehow put into a funky
 state, you'll need to clean it,
 
-        $ make clean
+    $ make clean
 
 However, if one of the phases hasn't been completed the build system will try
 to finish building it before cleaning. I have yet to figure out how to work

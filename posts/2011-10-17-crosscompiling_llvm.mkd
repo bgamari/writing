@@ -14,31 +14,31 @@ tried cross-compiling LLVM for my ARM target on my `x86_64` laptop.
 Since we are cross-compiling, we will obviously need a cross-compiler on the
 build machine (assuming Ubuntu),
 
-        $ sudo apt-get install gcc-arm-linux-gnueabi
+    $ sudo apt-get install gcc-arm-linux-gnueabi
 
 Grab an LLVM tree,
 
-        $ git clone http://llvm.org/git/llvm.git
-        $ cd llvm
+    $ git clone http://llvm.org/git/llvm.git
+    $ cd llvm
 
 If you want clang, clone it in `tools/`,
         
-        $ cd tools
-        $ git clone http://llvm.org/git/clang.git
-        $ cd ..
+    $ cd tools
+    $ git clone http://llvm.org/git/clang.git
+    $ cd ..
 
 At the time of writing, there was an
 [issue](http://comments.gmane.org/gmane.comp.compilers.clang.devel/11458) with
 the LLVM build system which precludes running `configure` from the root of the
 source tree. For this reason, we build within a build directory,
 
-        $ mkdir build
-        $ cd build
-        $ ../configure --prefix=/mnt/data/ghc/usr --host=arm-linux-gnueabi --target=arm-linux-gnueabi
+    $ mkdir build
+    $ cd build
+    $ ../configure --prefix=/mnt/data/ghc/usr --host=arm-linux-gnueabi --target=arm-linux-gnueabi
 
 Building,
 
-        $ make
+    $ make
 
 And now we wait; go for a walk, water your cat, do some laundry, get several
 cups of coffee; whatever it is you'd spend an afternoon doing. Sadly even on a
