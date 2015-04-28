@@ -110,27 +110,18 @@ Will's
 is helpful, details on the hardware configuration are pretty sparse.
 
 <div style="float:right;">
-    <table>
-        <tr><th>Signal</th><th>Bus Pirate</th><th>mchck</th></tr>
-        <tr><td>TCK</td>   <td>PA14</td>  <td>CLK</td>  <td>P4-4</td></tr>
-        <tr><td>TMS</td>   <td>PA13</td>  <td>CS</td>   <td>P4-3</td></tr>
-        <tr><td>TDI</td>   <td>PA15</td>  <td>MOSI</td> <td>P3-1</td></tr>
-        <tr><td>TDO</td>   <td>PB3</td>   <td>MISO</td> <td>P3-2</td></tr>
-        <tr><td>NJTRSR</td><td>PB4</td>   <td>MISO</td> <td>P3-3</td></tr>
-        <tr><td>GND</td>   <td></td>      <td>GND</td>  <td>P4-2</td></tr>
-    </table>
-    <b>JTAG interface pins</b>
+Signal    Bus Pirate      mchck    
+-------   ------------    ------   -------
+TCK       PA14            CLK      P4-4
+TMS       PA13            CS       P4-3
+TDI       PA15            MOSI     P3-1
+TDO       PB3             MISO     P3-2
+NJTRSR    PB4             MISO     P3-3
+GND                       GND      P4-2
+
+<b>JTAG interface pins</b>
 </div>
 
-<div style="float:right; background-color: grey50;">
-    <table>
-      <tr><th>Signal</th><th>STM32 Pin</th><th>Bus Pirate</th><th>mchck</th></tr>
-      <tr><td>SWCLK</td> <td>PA14</td>  <td>CLK</td>  <td>P4-4</td></tr>
-      <tr><td>SWDIO</td> <td>PA13</td>  <td>MOSI</td> <td>P4-3</td></tr>
-      <tr><td>GND</td>   <td></td>      <td>GND</td>  <td>P4-2</td></tr>
-    </table>
-    <b>Serial Wire Debug interface pins</b>
-</div>
 
 Since I use SWD (due to its lower pin count) I will detail my
 experiences with this below.
@@ -145,6 +136,16 @@ image,
 If all goes well, you should see a variety of status messages,
 followed by a message informing you that the script has reset the
 device. Hopefully now you will see the LED on the device blinking.
+
+<div style="float:right; background-color: grey50;">
+Signal     STM32 Pin    Bus Pirate    mchck
+--------   -----------  -----------   ------
+SWCLK      PA14         CLK           P4-4
+SWDIO      PA13         MOSI          P4-3
+GND                     GND           P4-2
+
+<b>SWD Debug interface pins</b>
+</div>
 
 If the script dies of a protocol error, don't worry, there are many
 possible issues, few of which are serious. First double-check the
