@@ -11,7 +11,7 @@ For a discussion of my current research efforts, see
 
 With [Dr. Laura Dietz](http://people.cs.umass.edu/~dietz/), I
 developed a scalable Gibbs sampling framework and implemented and
-compared several topic models. Furthermore, we demostrated a
+compared several topic models. Furthermore, we demonstrated a
 substantial improvement in model performance by incorporating
 friendship network structure.
 
