@@ -1,7 +1,8 @@
 ---
 title: First experiences debugging systemd
 date: 2015-04-12
-description: a
+tags: systemd, debugging
+description: First impressions on debugging the systemd boot process
 ---
 
 # First experiences debugging systemd
