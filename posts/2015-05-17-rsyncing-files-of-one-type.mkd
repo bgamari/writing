@@ -1,0 +1,14 @@
+---
+title: rsyncing files with a given extension
+date: 2015-06-17
+tags: rsync notes
+---
+# rsyncing files with a given extension
+
+I've forgotten this enough times that I'm finally going to write it down. Say
+you want to copy files with extension `.ext` in `./dir` to `host`. `rsync` can
+do this with,
+
+```bash
+rsync -vza --include='*.xcorr-0-1' --include='*/' --exclude='*' dir host:dir
+```
