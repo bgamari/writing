@@ -1,0 +1,72 @@
+---
+title: A simple nftables firewall
+date: 2015-07-09
+tags: firewall, linux
+---
+
+# A simple nftables firewall with NAT
+
+`nftables` is the successor to `iptables` as the Linux firewall. It carries with
+it a number of advantages, not the least of which being a very nice syntax which
+essentially eliminates the need for code generation (in contrast to iptables,
+where code generation was generally quite necessary).
+
+Unfortunately, nftables is still quite new and as such documentation is a bit
+lacking. A few weeks ago I spent a couple of hours porting my simple iptables
+chains to nftables. Here is the result,
+
+```
+#!/usr/bin/local/nft -f 
+
+flush ruleset
+
+define ext_if = eth1
+define lan_if = eth0
+define wlan_if = wlan0
+define int_ifs = { $lan_if, $wlan_if }
+define services = { http, 3000, 8080, 9001, 6881-6899, 22, 6697 }
+
+table ip filter {
+  chain input {
+    type filter hook input priority 0
+    meta iif lo accept
+    ct state invalid log prefix "[BLOCK] invalid packet: " drop
+    tcp dport $services accept
+    udp dport $services accept
+    ip daddr 224.0.0.251 udp dport mdns accept
+    meta iif $int_ifs accept
+    ip protocol icmp accept
+    ct state related,established accept
+    log prefix "[BLOCK] denied packet: " drop
+  }
+
+  chain output {
+    type filter hook output priority 0;
+    ct state related, established accept;
+    accept;
+  }
+
+  chain forward {
+    type filter hook forward priority 0;
+    accept;
+  }
+}
+
+# The first packet in each flow will hit this table; none others will
+table ip nat {
+  chain postrouting {
+    type nat hook postrouting priority 0;
+    ip saddr 192.168.0.0/16 oif $ext_if masquerade
+  }
+
+  chain prerouting {
+    type nat hook prerouting priority 0;
+    iif $ext_if tcp dport 808 dnat 192.168.2.130:8080
+    iif $ext_if tcp dport 5001 dnat 192.168.2.130:5000
+  }
+}
+```
+
+Note that this requires a recent kernel and userspace tools. If things don't
+work right off the bat, make sure you double-check your kernel configuration. I
+spent a great deal of time chasing down vague errors due to missing modules.
