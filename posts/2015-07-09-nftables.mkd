@@ -68,5 +68,5 @@ table ip nat {
 ```
 
 Note that this requires a recent kernel and userspace tools. If things don't
-work right off the bat, make sure you double-check your kernel configuration. I
+work right off the bat, be sure to double-check your kernel configuration. I
 spent a great deal of time chasing down vague errors due to missing modules.
