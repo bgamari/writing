@@ -1,0 +1,18 @@
+---
+title: Installing ZenBurn
+date: 2015-08-10
+tags: konsole
+---
+
+Recently I got stuck for quite a while trying to use the Zenburn colorscheme in
+`konsole`. While there are a [number][zenburn1] of [sources][zenburn2] for
+konsole `.colorscheme` files for [Zenburn][] and [other][] themes, it isn't
+entirely clear where these files belong. Some sources claim
+`~/.kde/share/apps/konsole`, others claim `~/.kde4/share/apps/konsole`. Naturally
+neither of these options worked for me on Debian `testing`.
+
+It seems that Konsole now looks in `~/.local/share/konsole` for its themes.
+
+[zenburn1]: https://github.com/brson/zenburn-konsole
+[zenburn2]: http://usrlocalbin.blogspot.de/2008/04/zenburn-for-konsole-redux.html
+[other]: https://github.com/hayalci/kde-colors-solarized
