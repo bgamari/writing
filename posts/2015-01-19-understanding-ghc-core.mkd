@@ -1,7 +1,8 @@
 ---
 title: Understanding GHC Core
-date:
-tags:
+date: 2015-11-29
+tags: ghc,core
+description: Everything you really need to know to understand GHC's Core
 ---
 
 While there have been a variety of writings about GHC's Core representation, the

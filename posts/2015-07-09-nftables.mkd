@@ -2,6 +2,7 @@
 title: A simple nftables firewall
 date: 2015-07-09
 tags: firewall, linux
+description: Configuring a simple firewall with nftables
 ---
 
 # A simple nftables firewall with NAT

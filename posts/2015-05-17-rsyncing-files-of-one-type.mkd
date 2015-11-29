@@ -2,8 +2,8 @@
 title: rsyncing files with a given extension
 date: 2015-06-17
 tags: rsync notes
+description: rsyncing files with a given extension
 ---
-# rsyncing files with a given extension
 
 I've forgotten this enough times that I'm finally going to write it down. Say
 you want to copy files with extension `.ext` in `./dir` to `host`. `rsync` can
