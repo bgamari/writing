@@ -1,0 +1,180 @@
+---
+title: Understanding GHC Core
+date:
+tags:
+---
+
+While there have been a variety of writings about GHC's Core representation, the
+language is a living entity which changes quickly in ways that aren't always
+documented in
+
+## What is Core?
+
+GHC Core is a relative of the System FC and is the first of a series of
+intermediate representations used by GHC to turn Haskell into machine code (the
+others being STG and C--).
+
+The resemblence between Core and Haskell is quite obvious,
+
+```haskell
+
+```
+
+Like Haskell, Core
+
+Type application
+
+## Coercions
+
+Core preserves `newtypes` as types unique from their representation. The operation of wrapping or unwrapping a newtype value is
+`~R#`
+
+TODO: What is `@~`?
+
+`cast`
+
+`Sym`
+
+`Sub`
+
+`<ty>_R` is a type parameter with representational role. Roughly speaking this means that given a type constructor `T` and types `A` and `B`, `T <A>_R` and `T <B>_R` are representationally distinct.
+`@~`
+
+
+## IdInfo
+
+Attached to identifiers GHC will often keep metadata known as [`IdInfo`][IdInfo] to
+inform various optimization passes. This information can be found within
+brackets in Core's textual representation. In the event that you just want to
+merely see the "shape" of a program `IdInfo` annotations are often noise that
+can be safely suppressed with `-dsuppress-idinfo`.
+
+IdInfo can be useful when examining the optimization with respect to specific
+passes. In this case it can be useful hto have a rough understanding of what
+these annotations mean. A brief summary of the IdInfo annotations used by GHC
+7.10 is included below although these will likely change with future compiler
+versions.
+
+annotation          example                 definition                         meaning
+------------        ------------------      --------------------------------   --------------------
+`Caf`               `Caf=NoCafRefs`         `basicTypes/IdInfo.hs(CafInfo)`    The value is a a function or static constructor that refers to no CAFs
+`Arity`             `Arity=1`               `basicTypes/IdInfo.hs(ArityInfo)`  An `ArityInfo` of $n$ tells us that partial application of the value to up to $n-1$ value arguments does essentially no work.
+`GlbId`             `GblId[[RecSel]]`       TODO                               TODO
+`Unf`               `Unf=Unf{...}`                                             The value has an associated unfolding template.
+`SpecInfo`          TODO                    `basicTypes/IdInfo.hs(SpecInfo)`   Records the available specializations of the identifier
+`OS`                `OS=OneShot`                                               Records that the identifier will be used precisely once TODO
+`Str`               `Str=DmdType <S(L...)`  `basicTypes/Demand.hs(DmdType)`    The result of demand analysis
+`Occ`               `Occ=Dead`              TODO                               The result of occurrence analysis
+
+## Unfolding templates
+
+Unfolding (sometimes known as inlining (TODO)) is one of the central
+optimizations performed by GHC's Core optimizer. In this optimization, identifier occurrences are substituted by the
+right-hand side of their respective definition.
+```haskell
+Unf=Unf{Src=InlineStable, TopLvl=True, Value=True, ConLike=True,
+        WorkFree=True, Expandable=True,
+        Guidance=ALWAYS_IF(arity=1,unsat_ok=True,boring_ok=False)
+        Tmpl= \ (ds_daj5 [Occ=Once!] :: Memcpy2Dargs) ->
+                case ds_daj5
+                of _ [Occ=Dead]
+                { Memcpy2Dargs _ [Occ=Dead] ds2_daj7 [Occ=Once] _ [Occ=Dead]
+                               _ [Occ=Dead] _ [Occ=Dead] _ [Occ=Dead] _ [Occ=Dead] _ [Occ=Dead]
+                               _ [Occ=Dead] _ [Occ=Dead] ->
+                ds2_daj7
+                }}]
+```
+
+`Src`
+
+## How are values used?
+
+GHC uses a variety of analyses to determine various ways function arguments are used (or not). These include,
+
+  * demand (or strictness) analysis: Is an argument definitely forced (partially or completely) by a function?
+  * absence analysis: Is
+  * occurrence analysis
+
+### Demand analysis
+
+[Demand analysis][DemandPaper] is an analysis which attempts to determine how
+the arguments of a function are used by its definition. The result of the
+analysis is a *demand signature*
+
+signature      description
+-----------    --------------------
+`L`            *lazy*. As far as the analysis could tell, the argument isn't demanded
+`S`            *head-strict*. The analysis determined that the argument will be evaluated at least to head-normal form.
+`S`            *structured dema
+`1*`           *used once*. The argument is used precisely once.
+`A`            *C*
+`B`            *hyper-strict*.
+`C`            *hyper-strict*.
+
+Let's consider a few examples (stolen from [the paper][DemandPaper],
+```
+-- Demand signature: <S,1*U>
+null :: [a] -> Bool
+null v = case v of []   -> True
+                   x:xs -> False
+```
+Clearly this
+
+
+### Absence analysis
+
+
+## Trick: Finding `Outputable` instances
+As GHC Core is an internal representation there is a tendency for
+documentation to fall behind what GHC actually emits. For this reason, it can be
+useful to quickly find the `Outputable` instance defintion from which a given
+piece of output originated. `ghci` is quite handy for this purpose,
+```
+$ ghci
+GHCi, version 7.10.2.20151118: http://www.haskell.org/ghc/  :? for help
+λ> :set -package ghc
+package flags have changed, resetting and loading new packages...
+λ> import GHC
+λ> :info Dmd
+
+<interactive>:1:1: Not in scope: ‘Dmd’
+λ> :info Outputable
+
+<interactive>:1:1: Not in scope: ‘Outputable’
+λ> import Outputable
+λ> :info Outputable
+class Outputable a where
+  ppr :: a -> SDoc
+  pprPrec :: Rational -> a -> SDoc
+    -- Defined in ‘Outputable’
+instance Outputable BreakInfo -- Defined in ‘ByteCodeInstr’
+instance Outputable Type -- Defined in ‘TypeRep’
+instance Outputable TyThing -- Defined in ‘TypeRep’
+instance Outputable TyCon -- Defined in ‘TyCon’
+instance Outputable ClsInst -- Defined in ‘InstEnv’
+```
+
+
+[Demand]: https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/Demand
+[DemandPaper]: http://research.microsoft.com/en-us/um/people/simonpj/papers/demand-anal/demand.ps
+[CPR]: http://research.microsoft.com/en-us/um/people/simonpj/Papers/cpr/index.htm
+
+## Optimizations
+### Float-out
+### Float-in
+### Float-
+
+[IdInfo]: https://git.haskell.org/ghc.git/blob/a6f0f5ab45b2643b561e0a0a54a4f14745ab2152:/compiler/basicTypes/IdInfo.hs#l144
+
+In brackets: [IdInfo][]
+
+
+Role annotations
+
+
+
+[paper]: http://www.haskell.org/ghc/docs/6.10.4/html/ext-core/core.pdf
+[stackoverflow]: http://stackoverflow.com/questions/6121146/reading-ghc-core
+[tekmo]: http://www.haskellforall.com/2012/10/hello-core.html
+[ghc-core]: http://hackage.haskell.org/package/ghc-core
+[ghc-core-html]: http://hackage.haskell.org/package/ghc-core-html
