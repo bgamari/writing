@@ -1,7 +1,7 @@
 ---
 title: Performance implications of software RAID
 date: 2015-04-27
-description: How many CPU cycles does software RAID actually require?
+description: How many cycles does software RAID actually require?
 tags: raid, md
 ---
 
