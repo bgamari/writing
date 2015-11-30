@@ -17,7 +17,17 @@ in master mode. Unfortunately, this attempt was largely a failure,
 This was with a Compex WLE600V5-27 adapter supported by the
 [ath10k](https://wireless.wiki.kernel.org/en/users/Drivers/ath10k).
 
-## Regulatory
+## Regulatory things
+Wireless regulation enforcement is necessarily
+[complex](https://wireless.wiki.kernel.org/en/developers/Regulatory/processing_rules).
+Unfortunately my card, like many others, was shipped from the factory with its
+EEPROM set for use in the United States. This is problematic since I live in
+Germany, which uses different radar detection scheme (ETSI) than that used in
+the US (which, as it turns out, doesn't even appear to be supported by
+`ath10k`).
+
+[Working around this][blog2] essentially amounts to replacing the regulatory
+database entry describing the US region with that of Germany.
 ```
 $ git clone git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-regdb.git
 $ cd wireless-regdb
@@ -40,3 +50,13 @@ Add `CFLAGS := -fpic` to `debian/rules`.
 [crda]: http://www.linuxwireless.org/en/developers/Regulatory/CRDA/#Build_requirements
 [blog1]: http://pisarenko.net/blog/2015/02/01/beginners-guide-to-802-dot-11ac-setup/
 [blog2]: http://pisarenko.net/blog/2015/05/05/updates-to-the-802-dot-11ac-guide/
+
+
+## Other things I learned
+
+Regarding the meaning of `vht_oper_centr_freq_seg0_idx` (see
+[here](http://lists.infradead.org/pipermail/ath10k/2014-May/002190.html)):
+
+> VHT requires a generic center frequency (or rather channel number in hostapd)
+> to be provided. Since you have channel=36 then the center frequency for 80MHz
+> bandwidth is 36+6 = 42.
