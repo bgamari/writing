@@ -51,6 +51,8 @@ main = hakyll $ do
         match "posts/*.mkd" $ do
                 route   $ setExtension "html"
                 compile $ pandocMathCompiler
+                        >>= loadAndApplyTemplate "templates/post.html"
+                                                 (defaultContext <> renderTagList' "tagsList" (const $ fromFilePath "error/404"))
                         >>= loadAndApplyTemplate "templates/default.html" defaultContext
                         >>= relativizeUrls
 
