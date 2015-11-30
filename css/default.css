@@ -96,11 +96,11 @@ ul.tags {
 
 ul.tags li {
     display: inline;
-    padding: 0 0.3em;
+    padding: 0.2em 0.3em;
     color: #444;
     background-color: #eee;
     margin: 0.1em;
-    border-radius: 0.5em;
+    border-radius: 0.8em;
 }
 
 div.figure {
