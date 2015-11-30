@@ -11,10 +11,20 @@ body {
 
 h1 {
     font-weight: normal;
+    font-size: 22pt;
 }
 
 h2 {
-    font-weight: normal;
+    font-weight: bold;
+    font-size: 18pt;
+    padding-top: 1em;
+    border-bottom: solid #eee 2px;
+}
+
+h3 {
+    font-weight: bold;
+    font-size: 14pt;
+    border-bottom: solid #eee 2px;
 }
 
 a {
