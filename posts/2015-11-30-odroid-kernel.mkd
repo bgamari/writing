@@ -1,0 +1,52 @@
+---
+title: Cross-compiling a kernel for the Odroid XU4 on Debian
+date: 2015-11-30
+tags: kernel,arm,debian,notes,work-in-progress
+description: Cross-compiling a kernel for the Odroid XU4
+---
+
+These are notes from my trying experience bringing up a recent kernel on an
+Odroid XU4 running Debian Wheezy.
+
+You'll need a compiler toolchain on the build machine,
+```
+sudo apt-get install build-essential kernel-package u-boot-tools
+```
+
+Grab the configuration from [here](/media/linux-4.4-rc2.odroidxu4.config) and
+place it in the kernel tree as `.config`. Now build the kernel,
+```
+export ARCH=arm
+export DEB_HOST_ARCH=armhf
+export CONCURRENCY_LEVEL=6
+fakeroot make-kpkg --arch=arm --cross-compile arm-linux-gnueabihf- --initrd kernel_image kernel_headers
+```
+
+Now copy the resulting `.deb` to the target and install it,
+```
+$ scp
+$ sudo dpkg -i linux-image-4.4.0-rc2+_4.4.0-rc2+-10.00.Custom_armhf.deb
+```
+
+Unfortunately the post-install hooks included in Odroid's Debian distribution
+are a bit of a disaster. Ultimately I found it necessary to hack
+`/etc/kernel/postinst.d/odroid-boothelper`, replacing the `cp` lines responsible
+for moving the kernel image to `/boot` (which isn't necessary with `kernel-package`-generated packages)
+with,
+```
+if [ ! -f /boot/${zimage} ]; then
+    cp -f /lib/modules/${version}/boot/${zimage} /boot
+elif [ ! -d /lib/modules/${version} -o ! -f /lib/modules/${version}/boot/${zimage} ]; then
+    cp -f /boot/${zimage} /lib/modules/${version}/boot
+fi
+if [ ! -f /boot/${fdtbin} ]; then
+    cp -f /lib/modules/${version}/boot/${fdtbin} /boot
+fi
+```
+
+Sadly even this wasn't enough and my patience was running thin. I just ran the
+script without `bash -e` to ensure it ran to completion,
+```
+bash -x /etc/kernel/postinst.d/odroid-boothelper 4.4.0-rc2+ /boot/vmlinuz-4.4.0-rc2+
+```
+Rebooting, I had a new kernel.
