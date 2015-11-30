@@ -55,6 +55,7 @@ pre code {
     padding: 1em;
     overflow-x: auto;
 }
+
 code {
     background-color: #fafafa;
     border: 1px solid #c8c8c8;
@@ -98,6 +99,21 @@ div.figure {
     text-align: center;
 }
 
+table {
+    border-collapse: collapse;
+}
+
+th {
+    padding: 0 1em;
+    /*border-left: solid #ccc 1px;
+    border-right: solid #ccc 1px;*/
+    border-bottom: solid #ccc 1px;
+}
+
 td {
     padding: 0 1em;
+}
+
+dt {
+    font-style: italic;
 }
