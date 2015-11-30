@@ -72,16 +72,29 @@ these annotations mean. A brief summary of the IdInfo annotations used by GHC
 7.10 is included below although these will likely change with future compiler
 versions.
 
-annotation          example                 definition                         meaning
-------------        ------------------      -----------------                  --------------------------------------------------------------
-`Caf`               `Caf=NoCafRefs`         `basicTypes/IdInfo.hs(CafInfo)`    The value is a a function or static constructor that refers to no CAFs
-`Arity`             `Arity=1`               `basicTypes/IdInfo.hs(ArityInfo)`  An `ArityInfo` of $n$ tells us that partial application of the value to up to $n-1$ value arguments does essentially no work.
-`GlbId`             `GblId[[RecSel]]`       TODO                               TODO
-`Unf`               `Unf=Unf{...}`                                             The value has an associated unfolding template.
-`SpecInfo`          TODO                    `basicTypes/IdInfo.hs(SpecInfo)`   Records the available specializations of the identifier
-`OS`                `OS=OneShot`                                               Records that the identifier will be used precisely once TODO
-`Str`               `Str=DmdType <S(L...)`  `basicTypes/Demand.hs(DmdType)`    The result of demand analysis
-`Occ`               `Occ=Dead`              TODO                               The result of occurrence analysis
+----------------------------------------------------------------------------------------
+annotation          example                 meaning
+-----------         ------------------      --------------------------------------------
+`Caf`               `Caf=NoCafRefs`         The value is a a function or static constructor that refers to no CAFs
+                                            *defined in* `basicTypes/IdInfo.hs(CafInfo)`.
+
+`Arity`             `Arity=1`               An `ArityInfo` of $n$ tells us that partial application of the value to up to $n-1$ value arguments does essentially no work.
+                                            *defined in* `basicTypes/IdInfo.hs(ArityInfo)`
+
+`GlbId`             `GblId[[RecSel]]`       TODO
+
+`Unf`               `Unf=Unf{...}`          The value has an associated unfolding template.
+
+`SpecInfo`          TODO                    Records the available specializations of the identifier
+                                            *defined in* `basicTypes/IdInfo.hs(SpecInfo)`.
+
+`OS`                `OS=OneShot`            Records that the identifier will be used precisely once TODO
+
+`Str`               `Str=DmdType <S(L...)`  The result of demand analysis. *defined in* `basicTypes/Demand.hs(DmdType)`.
+
+`Occ`               `Occ=Dead`              The result of occurrence analysis
+
+----------------------------------------------------------------------------------------
 
 ### Unfolding templates
 
@@ -150,7 +163,7 @@ analysis is a *demand signature*
 -------------------------------------------------------------------------------
 signature      description
 -------------  ----------------------------------------------------------------
-*strictness*
+**strictness**
 
 `L`            *lazy*. As far as the analysis could tell, the argument
                isn't demanded
@@ -162,9 +175,9 @@ signature      description
                head-normal form and the values within it (e.g. its fields) will be
                evaluated to at least the given strictness.
 
-*usage*
+**absence**
 
-`U`            *used*: the
+`U`            *used*. the
 
 `1*`           *used once*. The argument is used precisely once.
 
@@ -174,7 +187,7 @@ signature      description
 
 `C`            *call*. Applied to functio
 
-*suffixes*
+**suffixes**
 
 `m`            *returns a constructed product result*.
 
