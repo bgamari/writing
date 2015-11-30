@@ -2,6 +2,7 @@
 title: Installing ZenBurn
 date: 2015-08-10
 tags: konsole
+description: Configuring the ZenBurn theme in Konsole.
 ---
 
 Recently I got stuck for quite a while trying to use the Zenburn colorscheme in
