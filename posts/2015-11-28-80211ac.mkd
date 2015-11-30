@@ -1,0 +1,42 @@
+---
+title: 802.11ac with ath10k
+date: 2015-11-28
+tags: wireless,ath10k
+description: Notes from a failed attempt at bringing up an 802.11ac adapter in master mode
+---
+
+These are my notes from an attempt at bringing up an 802.11ac wireless adapter
+in master mode. Unfortunately, this attempt was largely a failure,
+
+ 1. Two Android devices and a Roku were unable to see the network at all
+ 2. Range was rather disappointing (largely due to the fact that I was operating at 5GHz)
+ 3. Convincing the driver that in fact lived in Germany and could therefore
+    initiate radiation on the 5GHz band required a great deal of fragile
+ 4. Throughput was not worth the complexity that 802.11ac wrought
+
+This was with a Compex WLE600V5-27 adapter supported by the
+[ath10k](https://wireless.wiki.kernel.org/en/users/Drivers/ath10k).
+
+## Regulatory
+```
+$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/linville/wireless-regdb.git
+$ cd wireless-regdb
+$ openssl req -x509  -nodes -days 365 -sha256 -newkey rsa:2048 -keyout ben.pem -out ben.pem
+$ DISTRO_PRIVKEY=ben.pem DISTRO_PUBKEY=ben.pem make
+$ sudo PREFIX= make install
+```
+Now modify `db.txt`.
+```
+$ sudo apt-get install python-m2crypto libgcrypt11-dev
+$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/crda.git
+$ cd crda
+$ PUBKEY_DIR=/lib/crda/pubkeys RUNTIME_PUBKEY_DIR=$PUBKEY_DIR make
+$ sudo PREFIX= make install
+$ ln -s debian-example debian
+```
+
+Add `CFLAGS := -fpic` to `debian/rules`.
+
+[crda]: http://www.linuxwireless.org/en/developers/Regulatory/CRDA/#Build_requirements
+[blog1]: http://pisarenko.net/blog/2015/02/01/beginners-guide-to-802-dot-11ac-setup/
+[blog2]: http://pisarenko.net/blog/2015/05/05/updates-to-the-802-dot-11ac-guide/
