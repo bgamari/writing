@@ -4,10 +4,12 @@ date: 2015-11-29
 tags: ghc,core,work-in-progress
 description: Everything you really need to know to understand GHC's Core
 ---
+**This document is a work-in-progress.** If there is something that you would
+like to see discussed feel free to let me know.
 
 While there have been a variety of writings about GHC's Core representation, the
 language is a living entity which changes quickly in ways that aren't always
-documented in
+well documented. This
 
 ## What is Core?
 
@@ -98,9 +100,9 @@ annotation          example                 meaning
 
 ### Unfolding templates
 
-Unfolding (sometimes known as inlining (TODO)) is one of the central
-optimizations performed by GHC's Core optimizer. In this optimization, identifier occurrences are substituted by the
-right-hand side of their respective definition.
+Unfolding (sometimes known as inlining) is one of the central optimizations
+performed by GHC's Core optimizer. In this optimization, identifier occurrences
+are substituted by the right-hand side of their respective definition.
 ```haskell
 Unf=Unf{Src=InlineStable, TopLvl=True, Value=True, ConLike=True,
         WorkFree=True, Expandable=True,
@@ -156,9 +158,9 @@ We will discuss the meaning of these annotations in the following sections.
 
 #### Demand analysis
 
-[Demand analysis][DemandPaper] (or strictness analysis) is an analysis which attempts to determine how
-the arguments of a function are used by its definition. The result of the
-analysis is a *demand signature*
+[Demand analysis][DemandPaper] (or strictness analysis) is an analysis which
+attempts to determine how the arguments of a function are used by its
+definition. The result of the analysis is a *demand signature*
 
 -------------------------------------------------------------------------------
 signature      description
