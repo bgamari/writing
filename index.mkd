@@ -1,20 +1,25 @@
-# About
+# About Me
 
 <div style="float: right; padding: 2em;">
   <img alt="A picture of Ben" src="/media/ben-in-berlin.jpeg" style="width: 200px;"/>
 </div>
 
-My name is Ben Gamari. I am a graduate student in the Physics
+My name is Ben Gamari. I am a software consultant working for
+[Well-Typed](http://www.well-typed.com/), where I am lucky enough to spend much
+of my day contributing to the
+[Glasgow Haskell Compiler](https://ghc.haskell.org/).
+
+In a previous life I was a graduate student in the Physics
 Department at the University of Massachussetts Amherst where
-I am studying the properties of biological polymers through
+I studied the properties of biological polymers through
 single-molecule spectroscopy in
 the [group](http://goldnerlab.physics.umass.edu/wiki/)
-of Professor Lori Goldner. In my [research](/research.html) I seek to further
-understanding of the conformational properties of biopolymers
-through fluorescence spectroscopy coupled with machine-learning-inspired
-analysis techniques.
+of Professor Lori Goldner. In my [research](/research.html) I sought to further
+understanding of the conformational properties of biopolymers through
+fluorescence spectroscopy coupled with novel instrumentation and
+machine-learning-inspired analysis techniques.
 
-I am also an open-source advocate, programmer, and
+I am also an open-source software advocate, hiker, and
 [turtle](/media/t-eating-bone.jpeg) owner. In my spare time I enjoy
 [building](http://www.publiclab.org/wiki/riffle)
 [things](http://www.reprap.org/),
@@ -30,5 +35,6 @@ source projects.
 
 <ul>
   <li style="list-style-type: none;"><b>Email</b>: <a href="mailto:bgamari@gmail.com">bgamari@gmail.com</a></li>
+  <li style="list-style-type: none;">Residing in: Mannheim, Germany</li>
 </ul>
 
