@@ -11,24 +11,38 @@ documented in
 
 ## What is Core?
 
-GHC Core is a relative of the System FC and is the first of a series of
-intermediate representations used by GHC to turn Haskell into machine code (the
-others being STG and C--).
+GHC Core is a close relative of the [System FC][SystemFC] language and the
+first of a series of intermediate representations used by GHC to turn Haskell
+into machine code (the others being STG and C--).
 
-The resemblence between Core and Haskell is quite obvious,
-
-```haskell
-
-```
-
-Like Haskell, Core
+While on face value Core appears very similar to Haskell, there are a few
 
 Type application
 
 ## Coercions
 
-Core preserves `newtypes` as types unique from their representation. The operation of wrapping or unwrapping a newtype value is
-`~R#`
+Core preserves `newtypes` as types unique from their representation (e.g. the
+type that they wrap). Wrapping and unwrapping of `newtype` values are
+represented by applications of the `cast` function. This essentially has the type,
+
+```haskell
+data Coercion a b
+
+cast :: a -> Coercion a b -> b
+```
+
+`Coercion`s are GHC's internal representation for type equalities[^coercions]. On account of
+various
+
+[^coercions]: GHC's Core language is known in the literature as [System FC](SystemFC), owing to the
+fact that it is closely related to [System F][SystemF]. In fact, the "C" in "FC" stands
+for "coercion", indicative of the fact that System FC is simply System F with
+coercions.
+
+[SystemF]: https://en.wikipedia.org/wiki/System_F
+[SystemFC]: http://research.microsoft.com/en-us/um/people/simonpj/papers/ext-f/fc-tldi.pdf
+
+TODO `~R#`
 
 TODO: What is `@~`?
 
@@ -38,7 +52,9 @@ TODO: What is `@~`?
 
 `Sub`
 
-`<ty>_R` is a type parameter with representational role. Roughly speaking this means that given a type constructor `T` and types `A` and `B`, `T <A>_R` and `T <B>_R` are representationally distinct.
+`<ty>_R` is a type parameter with representational role. Roughly speaking this
+means that given a type constructor `T` and types `A` and `B`, `T <A>_R` and `T
+<B>_R` are representationally distinct.
 `@~`
 
 
@@ -50,14 +66,14 @@ brackets in Core's textual representation. In the event that you just want to
 merely see the "shape" of a program `IdInfo` annotations are often noise that
 can be safely suppressed with `-dsuppress-idinfo`.
 
-IdInfo can be useful when examining the optimization with respect to specific
+The information in `IdInfo` can be useful when examining the optimization with respect to specific
 passes. In this case it can be useful hto have a rough understanding of what
 these annotations mean. A brief summary of the IdInfo annotations used by GHC
 7.10 is included below although these will likely change with future compiler
 versions.
 
 annotation          example                 definition                         meaning
-------------        ------------------      --------------------------------   --------------------
+------------        ------------------      -----------------                  --------------------------------------------------------------
 `Caf`               `Caf=NoCafRefs`         `basicTypes/IdInfo.hs(CafInfo)`    The value is a a function or static constructor that refers to no CAFs
 `Arity`             `Arity=1`               `basicTypes/IdInfo.hs(ArityInfo)`  An `ArityInfo` of $n$ tells us that partial application of the value to up to $n-1$ value arguments does essentially no work.
 `GlbId`             `GblId[[RecSel]]`       TODO                               TODO
@@ -67,7 +83,7 @@ annotation          example                 definition                         m
 `Str`               `Str=DmdType <S(L...)`  `basicTypes/Demand.hs(DmdType)`    The result of demand analysis
 `Occ`               `Occ=Dead`              TODO                               The result of occurrence analysis
 
-## Unfolding templates
+### Unfolding templates
 
 Unfolding (sometimes known as inlining (TODO)) is one of the central
 optimizations performed by GHC's Core optimizer. In this optimization, identifier occurrences are substituted by the
@@ -88,44 +104,122 @@ Unf=Unf{Src=InlineStable, TopLvl=True, Value=True, ConLike=True,
 
 `Src`
 
-## How are values used?
+### How are values used?
 
-GHC uses a variety of analyses to determine various ways function arguments are used (or not). These include,
+GHC uses a variety of local [analyses][DemandPaper] to determine various ways
+function arguments are used (or unused). These analyses include,
 
-  * demand (or strictness) analysis: Is an argument definitely forced (partially or completely) by a function?
-  * absence analysis: Is
-  * occurrence analysis
+  * demand (or strictness) analysis: Is an argument definitely forced (partially
+    or completely) by a function?
+  * absence analysis: Is an argument entirely unused in the body?
+  * occurrence analysis:
 
-### Demand analysis
+When optimization is enabled GHC runs these analyses on all top-level bindings
+and records the results in the binding's `IdInfo`. These results are then
+examined by later stages of compilation to help guide further optimizations
+(notably the worker-wrapper transformation).
 
-[Demand analysis][DemandPaper] is an analysis which attempts to determine how
+In the external Core output, the results of demand analysis can be found in the
+`Str=` section of `IdInfo`,
+
+```haskell
+foldl' :: forall a b. (b -> a -> b) -> b -> [a] -> b
+[Str=DmdType <L,C(C1(U))><S,1*U><S,1*U>]
+foldl' = ...
+```
+
+Here we see the `IdInfo` of the usual strict left fold on list. Here we see that
+GHC has associated with each argument a tuple enclosed in angle brackets. These
+tuples consist of the strictness and usage annotations of the argument. Let's
+look at each,
+
+argument type     demand annotation
+--------------    -------------------------------------------------
+`b -> a -> a`     `<L,C(C1(U))>`
+`b`               `<S,1*U>`
+`[a]`             `<S,1*U>`
+
+We will discuss the meaning of these annotations in the following sections.
+
+#### Demand analysis
+
+[Demand analysis][DemandPaper] (or strictness analysis) is an analysis which attempts to determine how
 the arguments of a function are used by its definition. The result of the
 analysis is a *demand signature*
 
+-------------------------------------------------------------------------------
 signature      description
------------    --------------------
-`L`            *lazy*. As far as the analysis could tell, the argument isn't demanded
-`S`            *head-strict*. The analysis determined that the argument will be evaluated at least to head-normal form.
-`S`            *structured dema
-`1*`           *used once*. The argument is used precisely once.
-`A`            *C*
-`B`            *hyper-strict*.
-`C`            *hyper-strict*.
+-------------  ----------------------------------------------------------------
+*strictness*
 
-Let's consider a few examples (stolen from [the paper][DemandPaper],
-```
+`L`            *lazy*. As far as the analysis could tell, the argument
+               isn't demanded
+
+`S`            *head-strict*. The analysis determined that the argument
+                will be evaluated at least to head-normal form.
+
+`S(...)`       *structured demand*. The argument will itself be evaluated to at least
+               head-normal form and the values within it (e.g. its fields) will be
+               evaluated to at least the given strictness.
+
+*usage*
+
+`U`            *used*: the
+
+`1*`           *used once*. The argument is used precisely once.
+
+`A`            *definitely unused*. Indicates that the binder is certainly not used.
+
+`B`            *hyper-strict*.
+
+`C`            *call*. Applied to functio
+
+*suffixes*
+
+`m`            *returns a constructed product result*.
+
+`b`            *bottoming*. The function is known to diverge.
+-------------------------------------------------------------------------------
+
+Let's consider a few examples (stolen from [the paper][DemandPaper]),
+```haskell
 -- Demand signature: <S,1*U>
 null :: [a] -> Bool
 null v = case v of []   -> True
                    x:xs -> False
 ```
-Clearly this
+The `S` here arises from the case-analysis, which implies that if we evaluate
+`null v` then `v` must be evaluated to at least WHNF.
+
+```haskell
+-- Demand signature: <S(SL),1*U(1*U,A)>
+fst :: (a,b) -> a
+fst p = case p of (x,_) -> x
+```
+
+```haskell
+-- Demand signature: <S,1*U(U,U)>m
+swap :: (a,b) -> (b,a)
+swap p = case p of (x,y) -> (y,x)
+```
+
+```haskell
+-- Demand signature: <S,1*U(U)><L,A>m
+f :: Int -> Int -> Int
+f x y = x + 1
+```
+
+```haskell
+-- Demand signature: <L,C(C1(U))><S,1*U><S,1*U>
+foldl' :: (a -> b -> a) -> a -> [b] -> a
+foldl' f x0
+```
 
 
-### Absence analysis
+#### Absence analysis
 
 
-## Trick: Finding `Outputable` instances
+## Trick: Locating `Outputable` instances
 As GHC Core is an internal representation there is a tendency for
 documentation to fall behind what GHC actually emits. For this reason, it can be
 useful to quickly find the `Outputable` instance defintion from which a given
@@ -136,12 +230,6 @@ GHCi, version 7.10.2.20151118: http://www.haskell.org/ghc/  :? for help
 λ> :set -package ghc
 package flags have changed, resetting and loading new packages...
 λ> import GHC
-λ> :info Dmd
-
-<interactive>:1:1: Not in scope: ‘Dmd’
-λ> :info Outputable
-
-<interactive>:1:1: Not in scope: ‘Outputable’
 λ> import Outputable
 λ> :info Outputable
 class Outputable a where
@@ -172,6 +260,18 @@ In brackets: [IdInfo][]
 
 Role annotations
 
+
+## Glossary
+
+binding
+
+:   the introduction of a name for a value. For instance, `let hello = 5 in ...`
+    is a binding.
+
+binder
+
+:   the name of a binding. For instance, in `let hello = 5 in ...` `hello` is the
+    binder
 
 
 [paper]: http://www.haskell.org/ghc/docs/6.10.4/html/ext-core/core.pdf
