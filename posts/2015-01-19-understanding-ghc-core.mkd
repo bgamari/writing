@@ -20,6 +20,10 @@ into machine code (the others being STG and C--).
 While on face value Core appears very similar to Haskell, there are a few
 
 Type application
+[A transformation-based optimiser for Haskell][OptimizerPaper]
+
+[OptimizerPaper]: http://research.microsoft.com/apps/pubs/default.aspx?id=67064
+
 
 ## Coercions
 
@@ -44,9 +48,10 @@ coercions.
 [SystemF]: https://en.wikipedia.org/wiki/System_F
 [SystemFC]: http://research.microsoft.com/en-us/um/people/simonpj/papers/ext-f/fc-tldi.pdf
 
-TODO `~R#`
+TODO `~R#` 
 
-TODO: What is `@~`?
+`@~`: type application of a coercion. For instance `myFunction @~ (<a>_N :: a GHC.Prim.~# a)` means
+that `myFunction` is being given a coercion argument `<a>_N`, a nominal coercion between `a` and `a`.
 
 `cast`
 
@@ -124,9 +129,9 @@ Unf=Unf{Src=InlineStable, TopLvl=True, Value=True, ConLike=True,
 GHC uses a variety of local [analyses][DemandPaper] to determine various ways
 function arguments are used (or unused). These analyses include,
 
-  * demand (or strictness) analysis: Is an argument definitely forced (partially
-    or completely) by a function?
-  * absence analysis: Is an argument entirely unused in the body?
+  * strictness (or sometimes called demand) analysis: Is an argument
+    forced (partially or completely) by a function?
+  * absence analysis: Is an argument entirely unused by the function?
   * occurrence analysis:
 
 When optimization is enabled GHC runs these analyses on all top-level bindings
@@ -179,11 +184,12 @@ signature      description
 
 **absence**
 
-`U`            *used*. the
+`U`            *used*. The binder is used
 
 `1*`           *used once*. The argument is used precisely once.
 
-`A`            *definitely unused*. Indicates that the binder is certainly not used.
+`A`            *absent == definitely unused*. Indicates that the binder is
+               certainly not used.
 
 `B`            *hyper-strict*.
 
@@ -233,6 +239,23 @@ foldl' f x0
 
 #### Absence analysis
 
+Consider the function,
+```haskell
+f :: (Int, Int) -> Int
+f (a,_) = a + 42
+```
+The strictness analysis discussed above allows us to determine that the first
+element of the tuple argument is demanded strictly. This observation allows to
+perform the [worker-wrapper transformation][worker-wrapper] on `f`, resulting
+in,
+```haskell
+f_workerer
+```
+
+However, what of the second
+element?
+
+It is quite obvious that the second element is not called for at all
 
 ## Trick: Locating `Outputable` instances
 As GHC Core is an internal representation there is a tendency for
