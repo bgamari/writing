@@ -1,10 +1,9 @@
 ---
-title: Compressor comparison for GHC distributions
+title: Compressor comparison for GHC binary distributions
 date: 2016-02-04
 tags: data compression
 description: Some notes from an unscientific comparison of gzip, bzip2, and xz
 ---
-# Compression comparison for GHC distributions
 
 Recently I noticed that [GHC's](http://haskell.org/ghc) validation script spends
 a significant portion of its runtime preparing a compressed binary distribution
