@@ -24,7 +24,9 @@ fakeroot make-kpkg --arch=arm --cross-compile arm-linux-gnueabihf- --initrd kern
 
 Now copy the resulting `.deb` to the target and install it,
 ```
-$ scp
+$ scp ben-server.local:linux-image-4.4.0-rc2... .
+$ scp ben-server.local:linux-2.6/arch/arm/boot/dts/exynos5422-odroidxu4.dtb .
+$ sudo mv exynos5422-odroidxu4.dtb /boot/exynos5422-odroidxu4-4.4.0-rc2+.dtb
 $ sudo dpkg -i linux-image-4.4.0-rc2+_4.4.0-rc2+-10.00.Custom_armhf.deb
 ```
 
