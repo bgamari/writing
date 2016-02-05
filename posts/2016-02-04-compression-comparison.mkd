@@ -1,0 +1,68 @@
+---
+title: Compressor comparison for GHC distributions
+date: 2016-02-04
+tags: data compression
+description: Some notes from an unscientific comparison of gzip, bzip2, and xz
+---
+# Compression comparison for GHC distributions
+
+Recently I noticed that [GHC's](http://haskell.org/ghc) validation script spends
+a significant portion of its runtime preparing a compressed binary distribution
+with `xz`. This perhaps shouldn't be surprising as the build system uses the
+extremely aggressive `-9e` flag set.
+
+The obvious next question is what all of this ~~carbon emission~~CPU time buys
+us. To quantify this I took an uncompressed GHC binary distribution tarball
+(around 1.1 gigabytes of tar'd binaries and some text) and compressed it with
+various configurations of `gzip`, `bzip2`, and `xz`, recording the user-space
+runtime, final size, and maximum resident set size of each,
+```bash
+(for i in $(seq 1 9); do
+    cat ghc-8.0.0.20160111-i386-centos67-linux.tar
+        | /usr/bin/time -f "%U %M" -o time.log gzip -$i
+        | wc -c >| size.log;
+    echo "$i $(cat time.log) $(cat size.log)";
+done) | tee results.log
+```
+After cleaning up the results I arrived at the following,
+
+![a comparison of compression ratio and compressor runtime of gzip, bzip2, and xz on a GHC binary distribution.](/media/compression-comparison/runtime-comparison.svg)
+
+There aren't many surprises here (with the usual caveats: this is an
+unscientific study of a particular workload, etc.),
+
+ * `gzip` compresses better than `bzip2`, which compresses better than `xz`
+ * Investing more time in compression helps all compressors, although to varying degrees
+ * Additional compression comes at a significant cost in the case of `xz`
+ * Perhaps most surprising, `xz -e` hardly makes a difference, despite being *significantly* more expensive
+ * Unsurprisingly, `xz`'s improved compression does come at a significant cost
+   in memory consumption; while all other compressors have a roughly constant
+   memory consumption of a few megabytes, `xz` continues to balloon as the
+   compression level is raised, reaching nearly 700 megabytes at `-9`.
+
+# Code and data.
+
+The raw data of this study is available
+[here](/media/compression-comparison/comparison.csv).
+Results were plotted thusly.
+```python
+import numpy as np
+import matplotlib.pyplot as pl
+
+d = np.genfromtxt('comparison.csv', names=True, dtype=None)
+uncomp_size = d[0]['output_size_bytes']
+d = d[1:]
+comp_ratio = 1. * d['output_size_bytes'] / uncomp_size
+
+compressors = np.unique(d['compressor'])
+print compressors
+for color, compressor in zip('rgbc', compressors):
+    ds = d['compressor'] == compressor
+    pl.scatter(d[ds]['user_time_sec'], comp_ratio[ds], color=color, label=compressor)
+
+pl.xlabel('user time (seconds)')
+pl.ylabel('compression ratio')
+pl.legend()
+pl.xlim(0, None)
+pl.show()
+```
