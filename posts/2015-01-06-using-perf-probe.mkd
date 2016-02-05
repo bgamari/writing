@@ -1,0 +1,29 @@
+---
+title: Using perf probe for fun and profit
+date: 2015-01-06
+description: Using perf probe to debug gtk performance degradation
+tags: gtk, perf
+---
+Gnome Terminal has for a long time now exhibited a peculiar and annoying
+tendency to leak X11 resources. Over the course of weeks it will accrue hundreds
+of thousands of resources which `xrestop` could only describe as
+"Miscellaneous". Eventually I broke down and found that these are
+`SyncCounters`. The challenge was then to determine why this was happening.
+
+A bit of poking around in `gdb` indicated that `gnome-terminal-server` calls
+`XSyncCreateCounter` and `XSyncDestroyCounter` are when one would roughly expect
+(namely window creation and destruction). So where is this leak coming from?
+
+The obvious way to approach this is be to capture callgraphs to calls to these
+functions and see if we can find missing frees. It turns out that `perf` has
+just the tool for this task: `perf probe`.
+
+```
+$ sudo chown ben /sys/kernel/debug -R
+$ ~/bin/perf probe  -x /usr/lib/x86_64-linux-gnu/libXext.so --add XSyncCreateCounter
+$ ~/bin/perf probe  -x /usr/lib/x86_64-linux-gnu/libXext.so --add XSyncDestroyCounter
+~/bin/perf record -e probe_libXext:XSyncCreateCounter,probe_libXext:XSyncDestroyCounter /usr/lib/gnome-terminal/gnome-terminal-server
+```
+
+This lead to the opening (and, happily, resolution) of Gnome ticket
+[#760188](https://bugzilla.gnome.org/show_bug.cgi?id=760188).
