@@ -298,6 +298,17 @@ In brackets: [IdInfo][]
 
 Role annotations
 
+# A language deeper: STG
+
+STG is a Haskell-like language which Core is lowered to. While it doesn't
+technically fit in this article, I've plopped it here regardless.
+
+let-no-escape
+closure update flags
+   * `\r`: re-entrant
+   * `\s`: single-entry
+   * `\u`: updatable
+
 
 ## Glossary
 
