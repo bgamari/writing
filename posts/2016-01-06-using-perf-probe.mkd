@@ -1,6 +1,6 @@
 ---
 title: Using perf probe for fun and profit
-date: 2015-01-06
+date: 2016-01-06
 description: Using perf probe to debug gtk performance degradation
 tags: gtk, perf
 ---
