@@ -30,7 +30,7 @@ After cleaning up the results I arrived at the following,
 There aren't many surprises here (with the usual caveats: this is an
 unscientific study of a particular workload, etc.),
 
- * `gzip` compresses better than `bzip2`, which compresses better than `xz`
+ * `xz` compresses better than `bzip2`, which compresses better than `gzip`
  * Investing more time in compression helps all compressors, although to varying degrees
  * Additional compression comes at a significant cost in the case of `xz`
  * Perhaps most surprising, `xz -e` hardly makes a difference, despite being *significantly* more expensive
