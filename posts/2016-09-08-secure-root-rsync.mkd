@@ -1,0 +1,34 @@
+---
+title: Securely copying with escalated privileges with rsync
+date: 2016-09-08
+tags: rsync, sudo, ssh
+---
+# Securely copying with escalated privileges with rsync
+
+Recently I had to migrate some files from one machine to another. As usual,
+`rsync` was the first tool I reached for, but a few considerations complicated matters:
+ 1. both the source and destination locations required escalated privileges to access
+ 2. remote `root` logins were not allowed on either machine, ruling out `sudo
+    rsync $path root@$dest`
+ 3. passwordless `sudo` was not allowed on either machine, ruling out `sudo
+    rsync --rsync-path='sudo rsync'`.
+    
+Consequently, the solution here is to use `rsync`'s daemon mode. However, it's
+obviously undesireable to start a privileged `rsync` daemon on the open
+internet. For this reason, we run the `rsync` daemon over an `ssh` tunnel. Here
+is how,
+
+ 1. on the destination: `ssh -L 9000:127.0.0.1:9000 \$src_host`
+ 2. on the source: create an `rsyncd.conf`,
+ ```
+ $ cat >rsyncd.conf <<EOF
+ use chroot = false
+ port = 9000
+ [src]
+ path = $src_path
+ uid = $user
+ gid = $group
+ EOF
+ ```
+ 3. on the source: `sudo rsync --daemon --config=rsyncd.conf --no-detach`
+ 4. on the destination: `sudo rsync -a --info=progress2 rsync://127.0.0.1:9000:\$src_path \$dest_path`
