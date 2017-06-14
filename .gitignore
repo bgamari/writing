@@ -1,3 +1,9 @@
+dist
+dist-newstyle
+.ghc.environment.*
+.emacs.desktop
+*.o
+*.hi
 cabal-dev
 _cache
 _site
