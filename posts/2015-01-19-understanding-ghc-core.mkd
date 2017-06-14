@@ -305,10 +305,10 @@ technically fit in this article, I've plopped it here regardless.
 
 let-no-escape
 closure update flags
-   * `\r`: re-entrant
-   * `\s`: single-entry
-   * `\u`: updatable
-
+   * `\r`: re-entrant: may be entered multiple times and therefore shouldn't be updated or black-hole'd
+   * `\s`: single-entry: will be entered at most once and therefore needn't be updated
+   * `\u`: updatable: should be updated after evaluation (and may be blackhole'd during evaluation)
+`sat-only`: Marks a closure that will only be used in fully-saturated applications.
 
 ## Glossary
 
@@ -321,6 +321,16 @@ binder
 
 :   the name of a binding. For instance, in `let hello = 5 in ...` `hello` is the
     binder
+
+MFE (Maximal Free Expression)
+
+:   A maximal free expression (or MFE) of a lambda abstraction is an expression
+    which contains no occurrences of the variable bound by the abstraction, and is
+    not a sub-expression of a larger expression with this property.
+    
+    For instance, of the expression, `\x -> (4 * 3) + x`, `(4 * 3)` is an MFE
+    as it contains no references to `x`.
+
 
 
 [paper]: http://www.haskell.org/ghc/docs/6.10.4/html/ext-core/core.pdf
