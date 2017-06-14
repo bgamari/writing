@@ -1,0 +1,278 @@
+---
+title: In the trenches: Debugging GHC evaluation
+date: 2017-06-06
+author: Ben Gamari
+references:
+- id: implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine
+  type: article-journal
+  author:
+  - family: Peyton Jones
+    given: Simon
+  issued:
+  - year: '1992'
+    month: July
+  title: 'Implementing lazy functional languages on stock hardware: The spineless
+    tagless g-machine'
+  title-short: Implementing lazy functional languages on stock hardware
+  container-title: Journal of Functional Programming
+  publisher: Cambridge University Press
+  page: '127-202'
+  volume: '2'
+  abstract: The Spineless Tagless G-machine is an abstract machine designed to support
+    non- strict higher-order functional languages. This presentation of the machine
+    falls into three parts. Firstly, we give a general discussion of the design issues
+    involved in implementing non-strict functional languages. Next, we present the
+    STG language, an austere but recognisably-functional language, which as well as
+    a denotational meaning has a well-defined operational semantics. The STG language
+    is the machine code" for the Spineless Tagless G-machine. Lastly, we discuss the
+    mapping of the STG language onto stock hardware. The success of an abstract machine
+    model depends largely on how efficient this mapping can be made, though this topic
+    is often relegated to a short section. Instead, we give a detailed discussion
+    of the design issues and the choices we have made. Our principal target is the
+    C language, treating the C compiler as a portable assembler.
+  URL: https://www.microsoft.com/en-us/research/publication/implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine/
+
+---
+
+# Debugging concurrency issues in GHC
+
+This will be a collection of notes from my efforts debugging GHC bug [#13615](https://ghc.haskell.org/trac/ghc/ticket/13615),
+a nasty concurrency issue leading to non-deterministic incorrect evaluation in
+some parallel programs. 
+
+This post will not be an introduction to `gdb`, although will rely on it. Moreover, we will assume some knowledge of GHC internals, in particular a working understanding of STG machine. See @stg. 
+
+
+
+A fairly nice reproducer can be
+found
+[here](https://github.com/bgamari/cuddly-bassoon/blob/master/unordered-containers-0.2.8.0/Data/HashMap/Strict.hs#L90).
+In short what we have here is a program which builds a strict `HashMap` (from
+`unordered-containers`) from a list of elements evaluated in parallel (using
+`parallel`'s strategies),
+
+```haskell
+type Probably a = [(a, Rational)]
+
+regroup :: (...) => Probably a -> Probably a
+regroup xs =
+    let xs = HM.toList $ HM.fromListWith (+) xs
+    in ...
+
+winStates :: (...) => Solution state description -> Probably state
+winStates =
+    case s of
+      ...
+      Node _ _ _ ps -> regroup $ concat $ parMap rdeepseq someFunction ps
+```
+
+It turns out that when run with `+RTS -N2`, `winStates` will return an incorrect
+result. Specifically, it appears that some elements of the input list to
+`regroup` are not folded into the `HashMap`.
+
+Looking at `Data.HashMap.Strict.fromListWith` it becomes quite clear that there
+is some subtlety here as it uses internal mutation while building the `HashMap`.
+At this point it will likely be helpful to look at the representation of
+`HashMap`,
+
+```haskell
+data Leaf k v = L !k v
+    deriving (Eq)
+
+data HashMap k v
+    = Empty
+    | BitmapIndexed !Bitmap !(A.Array (HashMap k v))
+    | Leaf !Hash !(Leaf k v)
+    | Full !(A.Array (HashMap k v))
+    | Collision !Hash !(A.Array (Leaf k v))
+```
+
+`fromListWith` is implemented in terms of `unsafeInsertWith`, which, given a key
+and value to insert, traverses this tree, finds the appropriate node to insert
+into, and if possible performs an in-place insertion. This is the codepath which
+
+```haskell
+unsafeInsertWith :: (Eq k, Hashable k, NFData k, NFData v, Show k)
+                 => (v -> v -> v) -> k -> v -> HashMap k v -> ST s (HashMap k v)
+unsafeInsertWith f k0 v0 m0 = go h0 k0 v0 0 m0
+  where
+    h0 = hash k0
+    go !h !k x !_ Empty = return $! leaf h k x
+    go h k x s (Leaf hy l@(L ky y))
+        | hy == h = if ky == k
+                    then return $! leaf h k (f x y)
+                    else return $! collision h l (L k x)
+        | otherwise = two s h k x hy ky y
+    go h k x s t@(BitmapIndexed b ary)
+        | b .&. m == 0 = do
+            let ary' = A.insert ary i $! leaf h k x
+            return $! bitmapIndexedOrFull (b .|. m) ary'
+        | otherwise = do
+            st <- A.indexM ary i
+            st' <- rnf x `seq` go h k x (s+bitsPerSubkey) st
+            A.unsafeUpdateM ary i st'             -- in-place mutation
+            return t
+      where m = mask h s
+            i = sparseIndex b m
+    go h k x s t@(Full ary) = do
+        st <- A.indexM ary i
+        st' <- go h k x (s+bitsPerSubkey) st
+        A.unsafeUpdateM ary i st'                 -- in-place mutation
+        return t
+      where i = index h s
+    go h k x s t@(Collision hy v)
+        | h == hy   = return $! Collision h (updateOrSnocWith f k x v)
+        | otherwise = go h k x s $ BitmapIndexed (mask hy s) (A.singleton t)
+```
+
+We can show that in-place mutation is responsible by changing both the
+references to `A.unsafeUpdateM` to safe copy-and-modify updates. Doing this
+indeed appears to hide the issue.
+
+So, the question then becomes why this in-place modification results in
+non-deterministic behavior. Given that parallelism is involved, one concern is
+that we have multiple threads performing mutable updates on the same array
+concurrently. There are a few ways we can test this,
+
+ * Compile `Data.HashMap.Strict` with `-feager-blackholing` to ensure that
+   multiple threads aren't evaluating some thunk whole code mutates, resulting
+   in multiple racing mutable updates
+
+ * Wrap `unsafeInsertWith` with a `noDuplicate`, essentially forcing a more
+   localized blackholing check
+   
+Indeed both of these options seem to fix the issue. This is somewhat surprising;
+afterall, no `unsafeInsertWith` thunks should be leaking out of `fromListWith`,
+which is essentially a strict fold over the input list producing a result in
+normal form. Given this, it's hard to imagine how we are entering such a thunk more than once.
+
+## Catching the program in the act
+
+To determine how we end up with multiple entry we'll want to catch when it
+occurs. We can then pause the program and poke at its state in `gdb`.
+To catch this, we'll write some sanity checking logic to wrap `unsafeInsertWith`
+with ensuring that only one thread is in our critical section at once,
+
+```haskell
+data Status = AllOut   -- ^ no one is in the critical section
+            | OneIn    -- ^ one thread is currently in the critical section
+            | TwoIn    -- ^ a second thread tried to enter
+            deriving (Eq)
+
+failOnDuplicate :: IORef Status -> b -> ST s a -> ST s a
+failOnDuplicate ref obj action = do
+    a <- unsafeIOToST $ atomicModifyIORef' ref $ \x -> (OneIn, x)
+    -- Is someone already in our critical section?
+    when (a == OneIn) $ unsafeIOToST $ do
+        writeIORef ref TwoIn
+        -- if so log some details and hang
+        logWord 0x22
+        logThreadId
+        logWord 0x22
+        logPointer obj
+        forever $ return ()
+
+    !r <- action
+
+    a' <- unsafeIOToST $ atomicModifyIORef' ref $ \x -> (AllOut, x)
+    -- did a second thread try to enter the 
+    when (a' == TwoIn) $ unsafeIOToST $ do
+        logWord 0x44
+        logThreadId
+        logWord 0x44
+        logPointer obj
+        breakpoint
+    return r
+
+unsafeInsertWith :: (Eq k, Hashable k, NFData k, NFData v, Show k)
+                 => IORef Status -> (v -> v -> v) -> k -> v -> HashMap k v -> ST s (HashMap k v)
+unsafeInsertWith ref f k0 v0 m0 = failOnDuplicate ref m0 $ go h0 k0 v0 0 m0
+  where
+    ...
+```
+
+Where the `log*` and `breakpoint` functions come from a utility module that I
+carry around from times like these. Respectively they call to C to log machine
+words to a ring-buffer, and fire an `int $3` to break into GDB.
+
+Compiling and running the program within `gdb` indeed breaks, again confirming
+our multi-entry hypothesis.
+```
+Thread 13 "ghc_worker" received signal SIGTRAP, Trace/breakpoint trap.
+[Switching to Thread 0x7fffd17fa700 (LWP 10758)]
+0x00000000004569f1 in c_breakpoint () at cbits/breakpoint.c:19
+19	  __asm__("int $3");
+
+(gdb) info threads
+  Id   Target Id         Frame 
+...
+  15   Thread 0x7fffd1ffb700 (LWP 10803) "ghc_worker" rxSQ_info () at ./Data/HashMap/Strict.hs:100
+...
+* 17   Thread 0x7fffd17fa700 (LWP 10805) "ghc_worker" 0x00000000004569f1 in c_breakpoint () at cbits/breakpoint.c:19
+...
+```
+Here we clearly see the two threads in play: thread 15 is looping at the
+`forever $ return ()` whereas thread 17 fired the breakpoint. Looking at the log
+ringbuffer sheds a bit more light,
+
+```
+(gdb) x/-8xg word_log + log_idx
+0x7de2e0 <word_log>:	0x0000000000000022	0x00007fffd0ff9700
+0x7de2f0 <word_log+16>:	0x0000000000000022	0x0000004200cc09c2
+0x7de300 <word_log+32>:	0x0000000000000044	0x00007fffd27fc700
+0x7de310 <word_log+48>:	0x0000000000000044	0x0000004200cc09c2
+```
+
+Here we see that we have a `44` type message, indicating that a thread (namely
+thread 15) tried to insert into the map which was already being inserted into.
+We also have a `44` message, from the thread who was inserting, thread 17.
+Most importantly we see that both of these calls are acting upon the same
+`HashMap` object, located at `0x0000004200cc09c2` (note that this isn't always
+the case; often we seem to get two calls entering the critical section acting on
+two different `HashMap`s. However, we'll focus on the case where both calls are
+acting on the same object as I suspect this will be a bit easier to
+reason about). 
+
+Let's take a moment to examine the `HashMap` object.
+
+## Examining heap objects in GDB
+
+From the `HashMap` pointer we can immediately tell from the tag (contained in
+the pointer's bottom three bits, e.g. 2) that it is a `BitmapIndexed`
+constructor. Clearing the tag, we can view the heap object itself,
+
+```
+(gdb) x/3a 0x0000004200cc09c0
+0x4200cc09c0:	0x456928 <unorderedzmcontainerszm0zi2zi8zi0zminplace_DataziHashMapziBase_BitmapIndexed_con_info>	0x4200cc0998
+0x4200cc09d0:	0x800
+```
+
+Here we see the `Bitmap` field (having a value of `0x800`), and a pointer to the
+node's `Array`. Note how the field order is inverted here: this is due to GHC's
+convention of placing pointer fields first, then non-pointers. Next let's
+examine the node's `Array` (which follows the layout described by `struct
+StgMutArrPtrs` in `includes/rts/storage/Closures.h`),
+```
+(gdb) x/4a 0x4200cc0998
+0x4200cc0998:	0x55f2b8 <stg_MUT_ARR_PTRS_FROZEN0_info>	0x1
+0x4200cc09a8:	0x2	0x4200cc0982
+```
+Here we can tell from the info pointer that the array is of the `FROZEN0`
+variety, with length 1 (the 0x2 is the length including the size of the card
+table, which directly follows the pointer content). The first (and only) element
+of the array is found at `0x4200cc0982`,
+```
+(gdb) x/4a 0x4200cc0980
+0x4200cc0980:	0x456928 <unorderedzmcontainerszm0zi2zi8zi0zminplace_DataziHashMapziBase_BitmapIndexed_con_info>	0x4200cc0958
+```
+
+If we link against the debug RTS (with GHC's `-debug` option) we can also use
+the RTS's `printClosure` function, which makes interpretation much easier,
+```
+(gdb) print printClosure(0x4200cc0980)
+unordered-containers-0.2.8.0-inplace:Data.HashMap.Base.BitmapIndexed(0x4200cc0998, 0x800#)
+```
+
+## Examining the stack
+
+The STG evaluation stack 
