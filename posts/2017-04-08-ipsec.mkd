@@ -1,0 +1,123 @@
+---
+title: A simple IPsec tunnel with StrongSwan
+date: 2017-04-08
+description: Setting up a simple IPsec tunnel
+---
+
+# A simple IPsec tunnel with StrongSwan
+
+This assumes Debian `stretch`.
+
+First let's configure the server-side.
+
+## Server
+
+```
+$ sudo apt-get install strongswan strongswan-pki
+```
+Now let's create the certificate authority and keys for our client and server,
+```
+$ mkdir swan
+$ cd swan
+$ cat <<EOF > setup.sh
+
+org="smart-cactus"
+ipsec=/usr/sbin/ipsec
+
+$ipsec pki --gen --outform pem > ca.key.pem
+$ipsec pki --self --in ca.key.pem --dn "C=CN, O=$org, CN=smart-cactus ca" --ca --outform pem > ca.cert.pem
+
+server_key() {
+        hostname=$1
+        $ipsec pki --gen --outform pem > $hostname.key.pem
+        $ipsec pki --pub --in $hostname.key.pem | $ipsec pki --issue --cacert ca.cert.pem --cakey ca.key.pem --dn "C=CN, O=$org, CN=$hostname" --san=$hostname --outform pem > $hostname.cert.pem
+        servers="$servers $hostname"
+}
+
+client_key() {
+        hostname=$1
+        $ipsec pki --gen --outform pem > $hostname.key.pem
+        $ipsec pki --pub --in $hostname.key.pem | $ipsec pki --issue --cacert ca.cert.pem --cakey ca.key.pem --dn "C=CN, O=$org, CN=$hostname" --outform pem > $hostname.cert.pem
+}
+
+install() {
+        sudo cp ca.cert.pem /etc/ipsec.d/cacerts
+        for server in $servers; do
+                sudo cp $server.cert.pem /etc/ipsec.d/certs
+                sudo cp $server.key.pem /etc/ipsec.d/private
+        done
+}
+
+server_key home.smart-cactus.org
+client_key ben-laptop.smart-cactus.org
+install
+EOF
+$ bash -ex setup.sh
+```
+
+Now we can configure the VPN itself,
+```
+$ cat <<EOF >/etc/ipsec.d/vpn.conf
+conn ben-server
+        left=%defaultroute
+        leftcert=home.smart-cactus.org.cert.pem
+        auto=add
+        leftsubnet=192.168.2.0/24
+        rightsubnetwithin=0.0.0.0/0
+        right=%any
+        compress=yes
+        type=tunnel
+        dpddelay=30
+        dpdtimeout=120
+        dpdaction=clear
+EOF
+$ sudo systemctl restart strongswan.service
+$ sudo journalctl -f -u strongswan.service
+```
+
+Finally, we'll need to add firewall rules allowing traffic on IP protocol 50
+(for encrypted traffic), and UDP ports 500 and 4500 (for negotiation and NAT
+traversal, respectively).
+
+Now we can turn our attention to the client.
+
+
+## Client
+
+You'll need to grab the CA certificate, client key, and client certificate files
+from the server (e.g. `swan/ca.cert.pem`,
+`swan/ben-laptop.smart-cactus.org.cert.pem`, and
+`swan/ben-laptop.smart-cactus.org.key.pem` above).
+
+`network-manager` has excellent support for the sort of IKEv2 tunnel we are configuring here via the
+`strongswan-nm` package,
+```
+$ sudo apt-get install strongswan-nm
+```
+
+Now create a new NetworkManager IKEv2 connection, specifying the appropriate CA
+cerfificate, selecting "Certificate/private-key" as the authentication
+mechanism, and the appropriate client key and certificate.
+
+At this point you should be able to connect.
+We should now have the ability for the client to tunnel to the server, seeing a
+view of the server's network as though it were sitting on the same network
+segment (except it won't receive broadcast traffic,
+which
+[can be addressed](https://wiki.strongswan.org/projects/strongswan/wiki/Forecast) although
+we won't do so here). However, hosts on the network won't be able to see the
+tunneled client. To fix this we'll need to give it an IP address.
+
+## Assigning Virtual IPs
+
+To make tunneled clients addressable on the network we'll first need an address
+range from which we can assign. Let's say this range is `192.168.10.0/24`. To
+assign from this range, we simply add a `rightsourceip` key to the `conn` in
+`vpn.conf`,
+```
+conn ben-server
+    ...
+    rightsourceip=192.168.10.0/24
+```
+
+That's all that's too it.

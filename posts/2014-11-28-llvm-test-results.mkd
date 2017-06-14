@@ -1,5 +1,5 @@
 ---
-title: GHC and LLVM: Tests
+title: "GHC and LLVM: Tests"
 date: 2014-11-28
 tags: ghc, llvm, arm
 description: Results from compatbility tests between LLVM and GHC.

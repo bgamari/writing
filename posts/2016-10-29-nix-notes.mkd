@@ -1,0 +1,38 @@
+---
+title: Nix notes
+date: 2016-10-29
+description: Some notes-to-myself on Nix
+---
+
+## Enabling debugging for a package,
+```
+wireshark = pkgs.wireshark.override {
+  gtk = pkgs.enableDebugging pkgs.gtk;
+  libnl = pkgs.enableDebugging pkgs.libnl;
+};
+```
+
+## Finding the definition of an attribute
+For instance, of `enableDebugging`,
+```
+builtins.unsafeGetAttrPos "enableDebugging" pkgs
+```
+
+## Default builder
+
+The definition of the default builder script can be found here,
+
+https://github.com/NixOS/nixpkgs/blob/56904d7c423f2b13b37fbd29f39bbb4b52bc7824/pkgs/stdenv/generic/setup.sh
+
+## Basic syntax
+
+There are a few types in Nix,
+ * Sets (really a dictionary it seems): `{ hello: "world"; theAnswer: 42; }`
+ * Lists: `[ 1 2 3 ]`
+ * Strings: `"hello world"`
+ * Booleans: `true`
+ * Numbers: `42`
+ * Lambdas: `x: y`
+ 
+Lambda syntax is a bit odd: in Haskell what we would write as `\\x -> y` you would write in Nix as `x: y`
+

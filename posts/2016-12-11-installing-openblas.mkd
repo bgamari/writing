@@ -1,0 +1,20 @@
+---
+title: Building OpenBLAS on Debian 8
+date: 2016-12-11
+description: Installing OpenBLAS on Debian 8
+---
+
+# Building OpenBLAS on Debian 8
+
+```
+$ wget http://github.com/xianyi/OpenBLAS/archive/v0.2.19.tar.gz
+$ tar -xf v0.2.19.tar.gz
+$ cd OpenBLAS-0.2.19
+$ make
+$ sudo cp libopenblas* /usr/local/lib
+$ sudo update-alternatives --install /usr/lib/liblapack.so liblapack.so /usr/local/lib/libopenblas.so.0.2 50
+$ sudo update-alternatives --install /usr/lib/liblapack.so.3 liblapack.so.3 /usr/local/lib/libopenblas.so.0.2 50
+$ sudo update-alternatives --install /usr/lib/libblas.so libblas.so /usr/local/lib/libopenblas.so.0.2 50
+$ sudo update-alternatives --install /usr/lib/libblas.so.3 libblas.so.3 /usr/local/lib/libopenblas.so.0.2 50
+```
+`
