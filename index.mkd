@@ -34,7 +34,7 @@ source projects.
 ## Contact
 
 <ul>
-  <li style="list-style-type: none;"><b>Email</b>: <a href="mailto:bgamari@gmail.com">bgamari@gmail.com</a></li>
-  <li style="list-style-type: none;">Residing in: Mannheim, Germany</li>
+  <li style="list-style-type: none;"><b>Email</b>: <a href="mailto:ben@smart-cactus.org">ben@smart-cactus.org</a></li>
+  <li style="list-style-type: none;">Residing in: Portsmouth, New Hampshire</li>
 </ul>
 
