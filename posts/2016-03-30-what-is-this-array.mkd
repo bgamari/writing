@@ -1,0 +1,45 @@
+---
+title: The many arrays of GHC
+date: 2016-03-30
+tags: ghc, haskell, array
+description: A brief summary of the many array types you'll find in a Haskell heap profile
+---
+# What is this `ARR_WORDS`?
+
+Sometimes when profiling Haskell code you will find yourself wondering how some
+large array will manifest itself in the cost-center profiler (namely in the
+"closure description" heap profile variety, `+RTS -hd`). Here is a brief summary.
+
+Type                                           What appears in `-hd` profile?      Size
+-------------------                            -------------------------------     ----------------------
+*Primitive arrays*
+`GHC.Prim.ArrayArray#`                         `ARR_PTRS`                          $n$ words
+`GHC.Prim.MutableArrayArray#`                  `MUT_ARR_PTRS_*`                    $n$ words
+`GHC.Prim.SmallArray#`                         `SMALL_ARR_PTRS_*`                  $n$ words
+`GHC.Prim.SmallMutableArray#`                  `SMALL_MUT_ARR_PTRS_*`              $n$ words
+`GHC.Prim.ByteArray#`                          `ARR_WORDS`                         $n$ bytes
+`GHC.Prim.MutableByteArray#`                   `MUT_ARR_WORDS_*`                   $n$ bytes
+`GHC.Prim.Array#`                              `ARR_PTRS`                          $n$ words
+`GHC.Prim.MutableArray#`                       `MUT_ARR_PTRS_*`                    $n$ words
+*`array` package*
+`Data.Array`                                   `ARR_WORDS`
+*`bytestring` package
+`Data.ByteString.ByteString`                   `ARR_WORDS`                         $n$ bytes
+`Data.ByteString.Short.ShortByteString`        `ARR_WORDS`                         $n$ bytes
+*`vector` package*
+`Data.Vector.Vector`                           `ARR_PTRS`                          $s * n$ bytes + $n$ words
+`Data.Vector.Vector.Mutable.MVector`           `ARR_PTRS`                          $s * n$ bytes + $n$ words
+`Data.Vector.Storable.Vector`                  `ARR_WORDS`                         $s * n$ bytes
+`Data.Vector.Storable.Vector.Mutable.MVector`  `ARR_WORDS`                         $s * n$ bytes
+`Data.Vector.Unboxed.Vector`                   `ARR_WORDS`                         $s * n$ bytes
+`Data.Vector.Unboxed.Vector.Mutable.MVector`   `ARR_WORDS`                         $s * n$ bytes
+*`text` package*
+`Data.Text.Text`                               `ARR_WORDS`                         $\approx 2*n$ bytes
+
+In the above $n$ refers to the length of the array, $s$ refers to the element
+size in bytes (where appropriate).
+
+Of course, it would be great if the profiler could give us more helpful output.
+This issue has been tracked
+as [GHC #7275](https://ghc.haskell.org/trac/ghc/ticket/7275) for several years
+now. Maybe you could be the one to fix it!
