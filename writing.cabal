@@ -12,7 +12,7 @@ cabal-version:       >=1.10
 
 executable writing
   main-is:             hakyll.hs
-  build-depends:       base >=4.9 && <4.10,
+  build-depends:       base >=4.9 && <4.11,
                        containers,
                        pandoc,
                        pandoc-citeproc,
