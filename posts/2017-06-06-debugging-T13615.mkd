@@ -1,48 +1,22 @@
 ---
-title: In the trenches: Debugging GHC evaluation
+title: "In the trenches: Debugging GHC evaluation"
 date: 2017-06-06
 author: Ben Gamari
-references:
-- id: implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine
-  type: article-journal
-  author:
-  - family: Peyton Jones
-    given: Simon
-  issued:
-  - year: '1992'
-    month: July
-  title: 'Implementing lazy functional languages on stock hardware: The spineless
-    tagless g-machine'
-  title-short: Implementing lazy functional languages on stock hardware
-  container-title: Journal of Functional Programming
-  publisher: Cambridge University Press
-  page: '127-202'
-  volume: '2'
-  abstract: The Spineless Tagless G-machine is an abstract machine designed to support
-    non- strict higher-order functional languages. This presentation of the machine
-    falls into three parts. Firstly, we give a general discussion of the design issues
-    involved in implementing non-strict functional languages. Next, we present the
-    STG language, an austere but recognisably-functional language, which as well as
-    a denotational meaning has a well-defined operational semantics. The STG language
-    is the machine code" for the Spineless Tagless G-machine. Lastly, we discuss the
-    mapping of the STG language onto stock hardware. The success of an abstract machine
-    model depends largely on how efficient this mapping can be made, though this topic
-    is often relegated to a short section. Instead, we give a detailed discussion
-    of the design issues and the choices we have made. Our principal target is the
-    C language, treating the C compiler as a portable assembler.
-  URL: https://www.microsoft.com/en-us/research/publication/implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine/
-
+bibliography: "2017-06-06-debugging-T13615.bib"
+link-citations: true
+description: A pseudo-tutorial walking through the debugging process of GHC #13615.
 ---
 
-# Debugging concurrency issues in GHC
+This will be a collection of notes from my efforts debugging GHC
+bug [#13615](https://ghc.haskell.org/trac/ghc/ticket/13615), a nasty concurrency
+issue leading to non-deterministic incorrect evaluation in some parallel
+programs.
 
-This will be a collection of notes from my efforts debugging GHC bug [#13615](https://ghc.haskell.org/trac/ghc/ticket/13615),
-a nasty concurrency issue leading to non-deterministic incorrect evaluation in
-some parallel programs. 
-
-This post will not be an introduction to `gdb`, although will rely on it. Moreover, we will assume some knowledge of GHC internals, in particular a working understanding of STG machine. See @stg. 
-
-
+This post will not be an introduction to `gdb`, although will rely on it.
+Moreover, we will assume some knowledge of GHC internals, in particular a
+working understanding of STG machine. See
+@implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine
+for details.
 
 A fairly nice reproducer can be
 found
@@ -275,4 +249,57 @@ unordered-containers-0.2.8.0-inplace:Data.HashMap.Base.BitmapIndexed(0x4200cc099
 
 ## Examining the stack
 
-The STG evaluation stack 
+The head of the STG evaluation stack is located at the address held in the
+`$rbp` register on amd64,
+```
+(gdb) x/16a $rbp
+0x42002f0678:	0x5477e8 <stg_ap_v_info>	0x45e390 <base_GHCziBase_zdfApplicativeIO2_info+64>
+0x42002f0688:	0x4200144e00	0x4a8f30 <r1rC_info+64>
+0x42002f0698:	0x42001449e8	0x4a8c08 <r1rB_info+64>
+0x42002f06a8:	0x42001437b1	0x4a8fd8 <base_GHCziST_runST_info+56>
+0x42002f06b8:	0x4124e0 <srlH_info+184>	0x4200142288
+0x42002f06c8:	0x7b0708	0x4200142220
+0x42002f06d8:	0x4200142240	0x4200142250
+0x42002f06e8:	0x42001421e0	0x540da0 <stg_upd_frame_info>
+```
+However, this is one area where a
+little
+[help from the debugger](http://github.com/bgamari/ghc-utils/tree/master/ghc-gdb.py) helps
+immensely,
+```
+(gdb) ghc-backtrace -n25 
+0: RET_SMALL
+  return=0x5477e8 <stg_ap_v_info> (rts/dist/build/AutoApply.cmm:8)
+1: RET_SMALL
+  return=0x45e390 <base_GHCziBase_zdfApplicativeIO2_info+64> (libraries/base/GHC/Base.hs:1195)
+  field 0: Ptr  0x4200144e00  : BLACKHOLE
+2: RET_SMALL
+  return=0x4a8f30 <r1rC_info+64> (libraries/base/GHC/ST.hs:66)
+  field 0: Ptr  0x42001449e8  : THUNK
+3: RET_SMALL
+  return=0x4a8c08 <r1rB_info+64> (libraries/base/GHC/ST.hs:74)
+  field 0: Ptr  0x42001437b1  : FUN_2_0
+4: RET_SMALL
+  return=0x4a8fd8 <base_GHCziST_runST_info+56> (libraries/base/GHC/ST.hs:136)
+5: RET_SMALL
+  return=0x4124e0 <srlH_info+184> (src/Solver.hs:96)
+  field 0: Ptr  0x4200142288  : THUNK_1_0
+  field 1: Ptr  0x7b0708      : off-heap(0x7b0708)
+  field 2: Ptr  0x4200142220  : THUNK_2_0
+  field 3: Ptr  0x4200142240  : THUNK
+  field 4: Ptr  0x4200142250  : THUNK
+  field 5: Ptr  0x42001421e0  : BLACKHOLE
+6: UPDATE_FRAME(0x4200141a98: THUNK_2_0) 
+7: RET_SMALL
+  return=0x45f528 <s5BF_info+168> (libraries/base/GHC/Base.hs:860)
+  field 0: Ptr  0x4200141348  : THUNK_2_0
+8: UPDATE_FRAME(0x4200140d60: THUNK_2_0) 
+9: RET_SMALL
+  return=0x411ca0 <srkh_info+96> (src/Solver.hs:87)
+  field 0: Ptr  0x4200140e20  : THUNK
+  field 1: Ptr  0x4200140ef1  : CONSTR_1_0
+  field 2: Ptr  0x4200140fb9  : CONSTR_1_0
+  field 3: Ptr  0x4200140fc9  : FUN
+...
+```
+

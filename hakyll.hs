@@ -9,6 +9,7 @@ import Hakyll.Web.Tags
 import Data.Monoid (mempty, mconcat, (<>))
 
 import Text.Pandoc
+import Text.CSL.Pandoc
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html ((!), toHtml, toValue)
 import qualified Text.Blaze.Html5 as H
@@ -24,15 +25,19 @@ feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
 
 pandocMathCompiler :: Compiler (Item String)
 pandocMathCompiler =
-    let mathExtensions = [Ext_tex_math_dollars, Ext_tex_math_double_backslash,
-                          Ext_latex_macros]
+    let mathExtensions = S.fromList [Ext_tex_math_dollars, Ext_tex_math_double_backslash,
+                                     Ext_latex_macros]
         defaultExtensions = writerExtensions defaultHakyllWriterOptions
-        newExtensions = foldr S.insert defaultExtensions mathExtensions
+        newExtensions = defaultExtensions <> mathExtensions <> S.singleton Ext_citations
         writerOptions = defaultHakyllWriterOptions {
                           writerExtensions = newExtensions,
                           writerHTMLMathMethod = MathJax ""
                         }
-    in pandocCompilerWith defaultHakyllReaderOptions writerOptions
+        readerOptions = defaultHakyllReaderOptions {
+                          readerExtensions = newExtensions
+                        }
+        doCitations = unsafeCompiler . processCites'
+    in pandocCompilerWithTransformM readerOptions writerOptions doCitations
 
 main :: IO ()
 main = hakyll $ do

@@ -15,6 +15,7 @@ executable writing
   build-depends:       base >=4.9 && <4.10,
                        containers,
                        pandoc,
+                       pandoc-citeproc,
                        blaze-html,
                        hakyll
   default-language:    Haskell2010
