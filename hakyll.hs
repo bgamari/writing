@@ -7,6 +7,7 @@ import Hakyll
 import Hakyll.Web.Feed
 import Hakyll.Web.Tags
 import Data.Monoid (mempty, mconcat, (<>))
+import Control.Exception
 
 import Text.Pandoc
 import Text.CSL.Pandoc
@@ -25,10 +26,13 @@ feedConfig = FeedConfiguration { feedTitle = "bgamari.github.com"
 
 pandocMathCompiler :: Compiler (Item String)
 pandocMathCompiler =
-    let mathExtensions = S.fromList [Ext_tex_math_dollars, Ext_tex_math_double_backslash,
-                                     Ext_latex_macros]
+    let mathExtensions = extensionsFromList
+            [ Ext_tex_math_dollars
+            , Ext_tex_math_double_backslash
+            , Ext_latex_macros
+            ]
         defaultExtensions = writerExtensions defaultHakyllWriterOptions
-        newExtensions = defaultExtensions <> mathExtensions <> S.singleton Ext_citations
+        newExtensions = pandocExtensions <> mathExtensions <> extensionsFromList [Ext_citations]
         writerOptions = defaultHakyllWriterOptions {
                           writerExtensions = newExtensions,
                           writerHTMLMathMethod = MathJax ""
@@ -36,7 +40,9 @@ pandocMathCompiler =
         readerOptions = defaultHakyllReaderOptions {
                           readerExtensions = newExtensions
                         }
-        doCitations = unsafeCompiler . processCites'
+        doCitations doc = unsafeCompiler $ do doc' <- handle (\(SomeException e) -> print e >> throw e) $ processCites' doc
+                                              print doc'
+                                              return doc'
     in pandocCompilerWithTransformM readerOptions writerOptions doCitations
 
 main :: IO ()
