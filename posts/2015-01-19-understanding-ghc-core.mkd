@@ -17,7 +17,10 @@ GHC Core is a close relative of the [System FC][SystemFC] language and the
 first of a series of intermediate representations used by GHC to turn Haskell
 into machine code (the others being STG and C--).
 
-While on face value Core appears very similar to Haskell, there are a few
+While on its face Core appears to be very similar to Haskell, there are a few important differences:
+
+ * type applications are always explicit
+ * 
 
 Type application
 [A transformation-based optimiser for Haskell][OptimizerPaper]
@@ -164,8 +167,30 @@ We will discuss the meaning of these annotations in the following sections.
 #### Demand analysis
 
 [Demand analysis][DemandPaper] (or strictness analysis) is an analysis which
-attempts to determine how the arguments of a function are used by its
-definition. The result of the analysis is a *demand signature*
+attempts to determine how the arguments of a function or binders of a let-block
+are used by its right-hand side. The result of the analysis is a *demand signature*.
+Note that demand signatures are computed for both let-bound and lambda-bound
+(argument) binders; however, for the sake of simplicity we will talk only about
+arguments below. Most everything applies equally to let-bound binders as well.
+
+Note that demand analysis is necessarily conservative; GHC can not conclude
+that a value is forced unless all possible code-paths force it. Afterall, we may
+otherwise perform unnecessary work or, even worse, force a bottoming expression.
+
+Demand signatures consist of two parts:
+
+ * a **strictness** signature denoting how much of the value is forced
+
+ * an **absence** (or usage) signature denoting how many times the value might
+   be used
+   
+In GHC Core syntax demand signatures are rendered inside angle brackets (e.g.
+`<...>`) and separated by a comma, e.g.,
+
+    <strictness1, usage1> <strictness2, usage2> ... <strictnessN, usageN> suffixes
+
+where there is one signature pair per argument. The strictness and absence signatures
+themselves are rendered in abbreviated form,
 
 -------------------------------------------------------------------------------
 signature      description
@@ -178,63 +203,109 @@ signature      description
 `S`            *head-strict*. The analysis determined that the argument
                 will be evaluated at least to head-normal form.
 
-`S(...)`       *structured demand*. The argument will itself be evaluated to at least
-               head-normal form and the values within it (e.g. its fields) will be
-               evaluated to at least the given strictness.
+`S(...)`       *strict product demand*. The argument (which must be a product) will 
+               itself be evaluated to at least head-normal form and each of
+               its fields will be evaluated to at least the strictnesses given
+               in parentheses.
+
+`C`            *strict call*. The binder (which must be a function) is applied to 
+               arguments and the result is forced.
+
+`B`            *hyper-strict*. All codepaths which force the argument will 
+               eventually diverge.
+               
+`x...`         *handles exceptions*. This isn't a demand itself, but rather *modifies* 
+               a strict demand, denoting that while the argument is forced, its divergence
+               does not imply that the function will diverge (e.g. the function may catch
+               exceptions thrown during evaluation of the argument).
 
 **absence**
 
 `U`            *used*. The binder is used
 
-`1*`           *used once*. The argument is used precisely once.
+`C`            *used as function*. The argument is 
+
+`S(...)`       *product usage*. The argument (which must be a product)
+               and some portion of its fields are used.
 
 `A`            *absent == definitely unused*. Indicates that the binder is
                certainly not used.
 
-`B`            *hyper-strict*.
+`1*...`        *used once*. Not a usage but rather modifies a "used" demand
+               denoting that the argument is used precisely once.
 
-`C`            *call*. Applied to functio
-
-**suffixes**
-
-`m`            *returns a constructed product result*.
-
-`b`            *bottoming*. The function is known to diverge.
 -------------------------------------------------------------------------------
 
-Let's consider a few examples (stolen from [the paper][DemandPaper]),
+In addition, following the argument signatures there may also be a variety of
+miscellaneous flags that describe the result of the functionm,
+
+-------------------------------------------------------------------------------
+signature      description
+-------------  ----------------------------------------------------------------
+`m`            *returns a constructed product result*.
+
+`b`            *bottoming*. The result of the function (when saturated) is known
+               to be bottom.
+-------------------------------------------------------------------------------
+
+Let's consider a few examples (including several stolen from [the paper][DemandPaper]),
 ```haskell
 -- Demand signature: <S,1*U>
 null :: [a] -> Bool
 null v = case v of []   -> True
                    x:xs -> False
 ```
-The `S` here arises from the case-analysis, which implies that if we evaluate
-`null v` then `v` must be evaluated to at least WHNF.
+The `S` (strict) strictness here arises from the case-analysis, which implies
+that if we evaluate `null v` then `v` must be evaluated to at least WHNF. The
+`1*U` usage signature means that the binder occurs in exactly one context
+(namely as the scrutinee of the case).
 
+Now let's look at a slightly tricker example,
 ```haskell
 -- Demand signature: <S(SL),1*U(1*U,A)>
 fst :: (a,b) -> a
 fst p = case p of (x,_) -> x
 ```
+Here we see that the strictness signature of `p` is `S(SL)`, meaning that the
+`(,)` constructor will be forced to WHNF, as will its first field. The usage
+signature suggests that, as one would expect, `p` and its first field are used
+precisely once. The second field of `p` has a lazy (`L`) strictness and
+absent (`A`) usage, as it is nowhere mentioned in `fst`'s right-hand
+side.
 
 ```haskell
 -- Demand signature: <S,1*U(U,U)>m
 swap :: (a,b) -> (b,a)
 swap p = case p of (x,y) -> (y,x)
 ```
+Here we see that `p` is evaluated to WHNF, however neither of the fields will be
+further forced despite the fact that they are both mentioned. Additionally, we
+see that swap returns a [constructed product result][@cpr].
 
 ```haskell
 -- Demand signature: <S,1*U(U)><L,A>m
 f :: Int -> Int -> Int
-f x y = x + 1
+f x y = case x of 
+          I# x# -> I# (x# +# 1#)
 ```
+This is another simple case: the first argument, `x`, has a demand of
+`<S,1*U(U)>`, owing to the fact that it is scrutinized by the case. 
 
+Now let's look at a combinator involving a higher-order function,
 ```haskell
--- Demand signature: <L,C(C1(U))><S,1*U><S,1*U>
+-- Demand signature: <L,C(C1(U))><L,U><S,1*U>
 foldl' :: (a -> b -> a) -> a -> [b] -> a
-foldl' f x0
+foldl' f y xs =
+    case xs of
+      []    -> y
+      x:xs' -> foldl' f (f y x) xs'
 ```
+The first thing to notice here is the lazy strictness on `f`; this is due to the
+conservative nature of strictness analysis. Afterall, evaluating `foldl' f` to an
+empty list will never force `f`. However, we nevertheless see that `f`'s usage
+signature reflects that it is called with two arguments: .
+
+Exceptions tend to make 
 
 
 #### Absence analysis
