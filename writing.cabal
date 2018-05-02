@@ -14,7 +14,7 @@ executable writing
   main-is:             hakyll.hs
   build-depends:       base >=4.9 && <4.11,
                        containers,
-                       pandoc >= 2.2,
+                       pandoc >= 2.0,
                        pandoc-citeproc,
                        blaze-html,
                        hakyll
