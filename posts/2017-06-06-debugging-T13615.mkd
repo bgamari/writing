@@ -2,7 +2,7 @@
 title: "In the trenches: Debugging GHC evaluation"
 date: 2017-06-06
 author: Ben Gamari
-bibliography: "2017-06-06-debugging-T13615.bib"
+bibliography: posts/2017-06-06-debugging-T13615.bib
 link-citations: true
 description: A pseudo-tutorial walking through the debugging process of GHC #13615.
 ---
@@ -14,12 +14,9 @@ programs.
 
 This post will not be an introduction to `gdb`, although will rely on it.
 Moreover, we will assume some knowledge of GHC internals, in particular a
-working understanding of STG machine. See
-@implementing-lazy-functional-languages-on-stock-hardware-the-spineless-tagless-g-machine
-for details.
+working understanding of STG machine. See @stg for details.
 
-A fairly nice reproducer can be
-found
+A fairly nice reproducer can be found
 [here](https://github.com/bgamari/cuddly-bassoon/blob/master/unordered-containers-0.2.8.0/Data/HashMap/Strict.hs#L90).
 In short what we have here is a program which builds a strict `HashMap` (from
 `unordered-containers`) from a list of elements evaluated in parallel (using
@@ -118,7 +115,8 @@ concurrently. There are a few ways we can test this,
 Indeed both of these options seem to fix the issue. This is somewhat surprising;
 afterall, no `unsafeInsertWith` thunks should be leaking out of `fromListWith`,
 which is essentially a strict fold over the input list producing a result in
-normal form. Given this, it's hard to imagine how we are entering such a thunk more than once.
+normal form. Given this, it's hard to imagine how we are entering such a thunk
+more than once.
 
 ## Catching the program in the act
 
@@ -205,7 +203,7 @@ Most importantly we see that both of these calls are acting upon the same
 the case; often we seem to get two calls entering the critical section acting on
 two different `HashMap`s. However, we'll focus on the case where both calls are
 acting on the same object as I suspect this will be a bit easier to
-reason about). 
+reason about).
 
 Let's take a moment to examine the `HashMap` object.
 
