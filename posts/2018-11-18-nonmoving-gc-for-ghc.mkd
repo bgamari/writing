@@ -1,0 +1,13 @@
+---
+title: Talk: A low-latency garbage collector for GHC
+description: A talk given at Munihac providing a high-level overview of my concurrent mark & sweep garbage collector design for the Glasgow Haskell Compiler.
+tags: garbage collection, GHC, compilers
+date: 2018-11-18
+---
+
+# Talk: A low-latency garbage collector for GHC
+
+[Slides](/media/2018-11-18-nonmoving-gc-for-ghc.pdf)
+
+Recorded talk to be announced
+
