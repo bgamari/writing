@@ -9,4 +9,4 @@ git commit -a -m "Automatic push"
 git push
 cd ..
 
-rsync _site/ smart-cactus.org:public_html -a
+rsync _site/ ben@smart-cactus.org:public_html -a

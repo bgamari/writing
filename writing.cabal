@@ -12,10 +12,10 @@ cabal-version:       >=1.10
 
 executable writing
   main-is:             hakyll.hs
-  build-depends:       base >=4.9 && <4.11,
+  build-depends:       base >=4.9 && <4.13,
                        containers,
                        pandoc >= 2.0,
                        pandoc-citeproc,
                        blaze-html,
-                       hakyll
+                       hakyll >= 4.12
   default-language:    Haskell2010

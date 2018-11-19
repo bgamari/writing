@@ -9,7 +9,7 @@ rec {
     src = ./.;
     buildInputs = [ tool ];
     buildPhase = ''
-      LANG=en_us.UTF-8 ${tool}/bin/writing build
+      LANG=en_US.UTF-8 ${tool}/bin/writing build
     '';
     installPhase = " cp -R _site $out ";
   };
