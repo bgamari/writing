@@ -2,14 +2,17 @@
 
 with nixpkgs;
 rec {
-  tool = haskellPackages.callCabal2nix "writing" ./. {};
+  tool = haskellPackages.callCabal2nix "writing" ./generator {};
   site = stdenv.mkDerivation {
     name = "writing-site";
     #src = fetchgit { url = ./.; sha256 = null; };
+    preferLocalBuilds = true;
     src = ./.;
-    buildInputs = [ tool ];
+    nativeBuildInputs = [ tool glibcLocales ];
+    LC_ALL = "en_US.UTF-8";
+    LOCALE_ARCHIVE = "${glibcLocales}/lib/locale/locale-archive";
     buildPhase = ''
-      LANG=en_US.UTF-8 ${tool}/bin/writing build
+      ${tool}/bin/writing build
     '';
     installPhase = " cp -R _site $out ";
   };

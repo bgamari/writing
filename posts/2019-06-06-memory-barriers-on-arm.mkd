@@ -1,6 +1,7 @@
 ---
 title: "Nifty features of the ARM architecture"
 tags: memory barriers, ARM, compilers
+description: "Some features of the ARM architecture that I found neat."
 date: 2019-06-06
 ---
 
@@ -41,6 +42,7 @@ Ensure that store succeeded, loop if necessary:
   1e:	d1f7      	bne.n	10 <hello+0x10>
 Issue full barrier:
   20:	f3bf 8f5b 	dmb	ish                  (1)
+Function epilogue:
   24:	bf0c      	ite	eq                   (3)
   26:	2301      	moveq	r3, #1
   28:	2300      	movne	r3, #0
@@ -130,7 +132,7 @@ if (x == 0) {
   p[0] = z
 }
 ```
-this can be lowered as the follow svelte instruction sequence:
+this can be lowered as the following svelte instruction sequence:
 ```assembler
 cmp r0, #0         # x == 0?
 ittte eq
