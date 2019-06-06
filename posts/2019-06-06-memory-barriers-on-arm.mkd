@@ -94,7 +94,8 @@ designer:
 For someone used to IA-32's rather boring atomic primitives, ARM is a breath of
 fresh air. IA-32 provides a handful of instructions implementing
 a selection of atomic operations (e.g. atomic add, subtract, AND, OR, etc.) via
-the `LOCK` prefix. By constrast, ARM provides a far more flexible mechanism
+the `LOCK` prefix. By constrast, ARM provides a 
+[far more flexible mechanism](https://en.wikipedia.org/wiki/Load-link/store-conditional)
 consisting of two instructions:
 
  * `ldrex`: This is similar to the typical `ldr` instruction, loading an address
