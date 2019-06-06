@@ -29,21 +29,21 @@ Function prelude:
    8: 687b        ldr r3, [r7, #4]
    a: 2201        movs  r2, #1
 Issue full barrier:
-   c: f3bf 8f5b   dmb ish                  (1)
+   c: f3bf 8f5b   dmb ish                         (1)
 Load value and claim exclusive access:
-  10: e853 1f00   ldrex r1, [r3]           (2)
+  10: e853 1f00   ldrex r1, [r3]                  (2)
 Compare, loop if necessary:
   14: 2900        cmp r1, #0
   16: d103        bne.n 20 <hello+0x20>
 Store value and possibly cede exclusive access:
-  18: e843 2000   strex r0, r2, [r3]       (2)
+  18: e843 2000   strex r0, r2, [r3]              (2)
 Ensure that store succeeded, loop if necessary:
   1c: 2800        cmp r0, #0
   1e: d1f7        bne.n 10 <hello+0x10>
 Issue full barrier:
-  20: f3bf 8f5b   dmb ish                  (1)
+  20: f3bf 8f5b   dmb ish                         (1)
 Function epilogue:
-  24: bf0c        ite eq                   (3)
+  24: bf0c        ite eq                          (3)
   26: 2301        moveq r3, #1
   28: 2300        movne r3, #0
   2a: 4618        mov r0, r3
