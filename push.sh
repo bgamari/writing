@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-./hakyll build
+cabal new-run writing build
 
 cp -R _site/* github
 cd github
