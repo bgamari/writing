@@ -22,35 +22,35 @@ $ arm-linux-gnueabihf-gcc -c hi.c
 This produced the following assembler:
 ```assembler
 Function prelude:
-   0:	b480      	push	{r7}
-   2:	b083      	sub	sp, #12
-   4:	af00      	add	r7, sp, #0
-   6:	6078      	str	r0, [r7, #4]
-   8:	687b      	ldr	r3, [r7, #4]
-   a:	2201      	movs	r2, #1
+   0: b480        push  {r7}
+   2: b083        sub sp, #12
+   4: af00        add r7, sp, #0
+   6: 6078        str r0, [r7, #4]
+   8: 687b        ldr r3, [r7, #4]
+   a: 2201        movs  r2, #1
 Issue full barrier:
-   c:	f3bf 8f5b 	dmb	ish                  (1)
+   c: f3bf 8f5b   dmb ish                  (1)
 Load value and claim exclusive access:
-  10:	e853 1f00 	ldrex	r1, [r3]           (2)
+  10: e853 1f00   ldrex r1, [r3]           (2)
 Compare, loop if necessary:
-  14:	2900      	cmp	r1, #0
-  16:	d103      	bne.n	20 <hello+0x20>
+  14: 2900        cmp r1, #0
+  16: d103        bne.n 20 <hello+0x20>
 Store value and possibly cede exclusive access:
-  18:	e843 2000 	strex	r0, r2, [r3]       (2)
+  18: e843 2000   strex r0, r2, [r3]       (2)
 Ensure that store succeeded, loop if necessary:
-  1c:	2800      	cmp	r0, #0
-  1e:	d1f7      	bne.n	10 <hello+0x10>
+  1c: 2800        cmp r0, #0
+  1e: d1f7        bne.n 10 <hello+0x10>
 Issue full barrier:
-  20:	f3bf 8f5b 	dmb	ish                  (1)
+  20: f3bf 8f5b   dmb ish                  (1)
 Function epilogue:
-  24:	bf0c      	ite	eq                   (3)
-  26:	2301      	moveq	r3, #1
-  28:	2300      	movne	r3, #0
-  2a:	4618      	mov	r0, r3
-  2c:	370c      	adds	r7, #12
-  2e:	46bd      	mov	sp, r7
-  30:	f85d 7b04 	ldr.w	r7, [sp], #4
-  34:	4770      	bx	lr
+  24: bf0c        ite eq                   (3)
+  26: 2301        moveq r3, #1
+  28: 2300        movne r3, #0
+  2a: 4618        mov r0, r3
+  2c: 370c        adds  r7, #12
+  2e: 46bd        mov sp, r7
+  30: f85d 7b04   ldr.w r7, [sp], #4
+  34: 4770        bx  lr
 ```
 There are a few things here that I found interesting, parenthesized above and
 discussed in detail below.
@@ -147,7 +147,7 @@ followed by three condition switches (`tte`; where `t` should be read as "then"
 This is a remarkably efficient encoding for this common idiom.
 
 
-[1]:
+[^1]:
   In particular, the documentation does not state with any certainty
   whether the operation implies a full memory barrier. Unfortunately it seems
   to be a pattern that memory ordering operations are woefully underdocumented

@@ -6,7 +6,7 @@ rec {
   site = stdenv.mkDerivation {
     name = "writing-site";
     #src = fetchgit { url = ./.; sha256 = null; };
-    preferLocalBuilds = true;
+    preferLocalBuild = true;
     src = ./.;
     nativeBuildInputs = [ tool glibcLocales ];
     LC_ALL = "en_US.UTF-8";
