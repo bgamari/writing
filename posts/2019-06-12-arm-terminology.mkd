@@ -1,0 +1,126 @@
+---
+title: "An ARM Glossary"
+tags: ARM
+description: "Trying to make sense of the slew of ARM architecture and ABI variants."
+date: 2019-06-12
+---
+
+As someone who works on compilers, I am often faced with sorting through ARM's
+endless collection of architectures, instruction sets, ABIs, and the like.
+This page is my attempt to bring some order to the madness.
+
+## Architectures
+
+There are several ARM architecture currently found in the wild.
+Each defines a set of architectural state and one (or more) [instruction
+sets](#instruction-sets). We will overlook the ancient history that is
+everything prior to ARMv6.
+
+ARMv6
+
+: The 6th version of the ARM architecture. This is a 32-bit-only architecture
+  and is [today only
+  found](https://en.wikipedia.org/wiki/ARM_Cortex-M#Instruction_sets) in Cortex
+  M0, M0+, and M1 embedded devices.
+
+ARMv7
+
+: The 7th version of the ARM architecture. Like ARMv6, this is a 32-bit-only
+  architecture and is generally what is found in most consumer devices made
+  before 2016.  Being a 32-bit architecture, these devices generally support up
+  to 4GB of physical memory [^LPAE]. Note that floating-point hardware (the ARM
+  Vector Floating Point, VFP, unit) is optional for ARMv7 devices.
+
+ARMv8 ([wikichip](https://en.wikichip.org/wiki/arm/armv8)).
+
+: The 8th version of the ARM architecture. This architecture defines
+  two modes of execution: AArch64 (a 64-bit mode using the new A64
+  instruction set) and AArch32 (a 32-bit mode admitting the T32 and
+  A32 instruction sets). Implementations may support AArch32, AArch64, or
+  both (most implementations support exclusively AArch64 or both execution
+  modes).
+
+  In addition, ARMv8 defined a set of profiles:
+   
+   * [ARMv8-A][] (Application)
+   * [ARMv8-R][] (Real-time)
+   * [ARMv8-M][] (Microcontroller)
+
+  In typical consumer and server environments one most often finds ARMv8-A
+  devices. Unlike ARMv7, the ARMv8-A profile unconditionally provides
+  floating-point hardware (the ARMv8-R and ARMv8-M profiles makes
+  floating-point optional).
+
+  
+[^LPAE]:
+  While technically the Large Physical Address Extension (LPAE) extends
+  ARMv7 to allow up to 48-bits of physical address space, I have never once
+  seen a silicon implementation of this extension.
+
+[ARMv8-A]: https://developer.arm.com/architectures/cpu-architecture/a-profile
+[ARMv8-R]: https://developer.arm.com/architectures/cpu-architecture/r-profile
+[ARMv8-M]: https://developer.arm.com/architectures/cpu-architecture/m-profile
+
+## Instruction sets
+
+The ARM architectures each can support several instruction sets.
+
+ARM (abbreviated A32)
+
+: This is the "native" fixed-width (32-bit opcode length) instruction set used by ARMv7 and
+  earlier.
+
+[Thumb][]
+
+: This is a compressed subset of the typical A32 instruction set introduced in
+  the ARMv7 era. The encoding is still fixed-width, but 16-bits per opcode.
+
+[Thumb-2][] (abbreviated T32)
+
+: This extends the Thumb instruction set with additional 32-bit instructions.
+
+A64
+
+: This is the 64-bit instruction set used by AArch64
+  ([wikichip](https://en.wikichip.org/wiki/arm/a64)). It has a fixed 32-bit
+  encoding.
+
+
+[Thumb]: https://en.wikipedia.org/wiki/ARM_architecture#Thumb
+[Thumb-2]: https://en.wikipedia.org/wiki/ARM_architecture#Thumb-2
+
+## Typical ARM triples
+
+When working with ARM hardware you see a dizzying array of triples. This is an
+attempt to make sense of them.
+
+See [Linaro's
+documentation](https://collaborate.linaro.org/display/TCWGPUB/ARM+and+AArch64+Target+Triples).
+
+The ABI used on ARMv7 is defined by
+the [ARM EABI specification][EABI spec]
+
+[EABI spec]: http://infocenter.arm.com/help/topic/com.arm.doc.ihi0036b/IHI0036B_bsabi.pdf
+
+
+Triple                        Architecture     Endianness     Floating point   ABI
+----------------------------  ------------     ----------     --------------   --------
+**ARMv8**                   
+`aarch64-linux-gnu`           AArch64          Little         Hard             Linux
+`armv8l-linux-gnu`            AArch32          Little         Hard             Linux
+**ARMv7**                   
+`armv7l-linux-gnueabi`        ARMv7            Little         Soft             Linux
+`armv7l-linux-gnueabihf`      ARMv7            Little         Hard             Linux
+`armv7a-linux-gnueabi`        ARMv7            Little         Soft             Linux
+`armv7a-linux-gnueabihf`      ARMv7            Little         Hard             Linux
+`armv7-linux-androideabi`     ARMv7            Little         Soft?            Linux
+**ARMv6**                   
+`arm-linux-gnueabi`           ARMv6            Little         Soft             Linux
+`arm-linux-gnueabihf`         ARMv6            Little         Hard             Linux
+`arm-none-eabi`               ARMv6            Little         Soft             Embedded
+`arm-none-eabihf`             ARMv6            Little         Hard             Embedded
+**Debian ports**            
+Debian's `armel` port         ARMv7            Little         Soft             Linux
+Debian's `armhf` port         ARMv7            Little         Hard             Linux
+Debian's `arm64` port         AArch64          Little         Hard             Linux
+
