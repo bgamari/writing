@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-rm -f result
+rm -Rf _site _cache
+rm -f result result-*
 nix build
 
 cp -R result/* github
@@ -10,4 +11,4 @@ git commit -a -m "Automatic push"
 git push
 cd ..
 
-rsync result/ ben@smart-cactus.org:public_html -a
+rsync -av ./result/ ben@smart-cactus.org:public_html
