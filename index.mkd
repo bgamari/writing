@@ -6,17 +6,17 @@
 
 My name is Ben Gamari. I am a consultant primarily working for
 [Well-Typed](http://www.well-typed.com/), where I am lucky enough to spend much
-of my day contributing to the
-[Glasgow Haskell Compiler](https://ghc.haskell.org/).
+of my day improving the
+Glorious [Glasgow Haskell Compiler](https://ghc.haskell.org/).
 
-I also have skills ranging from electrical design of [scientific
+I also have skills ranging from the design of [scientific
 instrumentation](http://scitation.aip.org/content/aapt/journal/ajp/82/7/10.1119/1.4869188)
 to [statistical machine
-learning](http://people.cs.umass.edu/~dietz/delayer/dietz-cameraready.pdf). I
-have worked on projects from design and implementation of a [concurrent garbage
+learning](/media/papers/icswm2012-delayering.pdf). I
+have worked on projects ranging from design and implementation of a [concurrent garbage
 collector](http://www.smart-cactus.org/~ben/posts/2018-11-18-nonmoving-gc-for-ghc.html)
-to end-to-end design of data acquisition and control systems. I am available
-for consulting on any of these matters.
+to digital logic design, to end-to-end design of data acquisition and real-time
+control systems. I am available for consulting on any of these matters.
 
 In a previous life I was a graduate student in the Physics
 Department at the University of Massachussetts Amherst where
@@ -38,7 +38,8 @@ learning [programming](http://www.haskell.org/)
 [being](http://en.wikipedia.org/wiki/Metacomet-Monadnock_Trail)
 [outdoors](http://en.wikipedia.org/wiki/Mount_Washington_\(New_Hampshire\)). I
 also participate in a [variety](http://www.github.com/bgamari) of open
-source projects.
+source projects. I am also married to my life partner and colleague, [Laura
+Dietz](https://www.cs.unh.edu/~dietz/)
 
 ## Contact
 
