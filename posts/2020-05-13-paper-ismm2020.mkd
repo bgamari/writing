@@ -1,0 +1,39 @@
+---
+title: "Paper: Alligator Collector: A Latency-Optimized Garbage Collector for Functional Programming Languages"
+description: I will be presenting our concurrent garbage collector at ISMM 2020.
+date: 2020-05-13
+tags: paper, garbage collection
+---
+
+As I have [reported previously](/posts/2018-11-18-nonmoving-gc-for-ghc.html),
+over the past two years, I (along with my colleague Ömer Sinan Ağacan) have
+been working through the design and implementation of a concurrent garbage
+collector for the [Glasgow Haskell Compiler](https://www.haskell.org/ghc/).
+Happily, the result can be found in GHC 8.10.1 (with further improvements
+coming in future releases).
+
+Further details (and some quantitative evaluation of the collector's
+performance) can be found in our recently-accepted [ISMM
+2020](https://conf.researchr.org/track/ismm-2020/ismm-2020) paper,
+*Alligator Collector: A Latency-Optimized Garbage Collector for Functional
+Programming Languages*
+([preprint](/media/papers/ismm2020-alligator-collector.pdf)):
+
+> Modern hardware and applications require runtime systems that can operate
+> under large-heap and low-latency requirements. In particular, for many
+> client/server or interactive applications, reducing average and maximum pause
+> times is more important than maximizing throughput.
+>
+> Since version 8.10.1, the GHC Haskell runtime system offers a new
+> latency-optimized garbage collector as an alternative to the existing
+> throughput-optimized copying garbage collector. This paper details the
+> latency-optimized GC design, which is a generational collector integrates
+> GHC's existing collector and bump-pointer allocator with a non-moving
+> collector and non-moving heap suggested by Ueno and Ohori. We provide an
+> empirical analysis on the latency/throughput tradeoffs. We augment the
+> established nofib micro benchmark with a response-time focused benchmark that
+> simulates real-world applications such as LRU caches, web search, and
+> key-value stores.
+
+If you are curious about the name: don't waste too much thought on it; I like
+reptiles and hate thinking of names.
