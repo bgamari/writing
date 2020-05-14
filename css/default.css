@@ -127,3 +127,9 @@ td {
 dt {
     font-style: italic;
 }
+
+blockquote {
+    border-left: 0.25em solid #eee;
+    padding-left: 1em;
+    margin: 0;
+}
