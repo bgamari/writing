@@ -4,8 +4,6 @@ date: 2013-11-17
 description: Bringing up the v3.12 kernel on the PandaBoard
 ---
 
-# Running a modern kernel on the PandaBoard
-
 Several years ago TI began offering the [PandaBoard][], a dual-core
 ARM7 development board based around the OMAP 4430. The relatively fast
 OMAP made this board an excellent substrate for development (in my

@@ -5,8 +5,6 @@ tags: openocd, gdb, gcc, arm
 description: A brief tutorial 
 ---
 
-# Semihosting with ARM, GCC, and OpenOCD
-
 One of the many nice features of the ARM Cortex microcontrollers is
 the ability to use the JTAG debug interface as a sink for `printf`
 messages. This capability is known as *semihosting*. It's actually

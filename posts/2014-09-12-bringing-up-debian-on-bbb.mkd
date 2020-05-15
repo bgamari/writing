@@ -4,7 +4,6 @@ description: Bringing up a BeagleBone Black with Debian
 date: 2014-09-12
 tags: bbb, debian
 ---
-# Bringing up Debian on a BeagleBone Black
 
 BeagleBoard.org has recently been gradually playing with the idea of
 replacing the long-used [Angstrom][] distribution to

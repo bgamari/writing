@@ -4,7 +4,6 @@ date: 2016-03-30
 tags: ghc, haskell, array
 description: A brief summary of the many array types you'll find in a Haskell heap profile
 ---
-# What is this `ARR_WORDS`?
 
 Sometimes when profiling Haskell code you will find yourself wondering how some
 large array will manifest itself in the cost-center profiler (namely in the

@@ -5,8 +5,6 @@ date: 2012-06-25
 tags: mchck, arm
 ---
 
-# Getting started with mchck
-
 ## Note
 
 This describes my work with an older revision (r2) of the MC HCK

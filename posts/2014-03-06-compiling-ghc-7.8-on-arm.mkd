@@ -4,7 +4,6 @@ description: A brief history of my efforts in bringing first-class ARM support t
 tags: GHC,ARM,linking
 date: 2014-03-06
 ---
-# The state of GHC on ARM
 
 tl;dr, GHC 7.8 should run well on ARM with the LLVM code generator and
 dynamic linking. The process of building GHC itself might be a bit

@@ -5,8 +5,6 @@ description: A tutorial for bringing up the HackRF Jawbreaker
 date: 2013-06-15
 ---
 
-# Getting started with HackRF Jawbreaker
-
 This was done on Ubuntu 13.04. We'll assume that `$ROOT` is set to the
 directory within which you will be working. For this you'll need (at
 very least) the `build-essential` and `cmake` packages.

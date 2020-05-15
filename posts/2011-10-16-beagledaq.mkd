@@ -5,8 +5,6 @@ tags: beagledaq, linaro
 date: 2011-10-16
 ---
 
-# Building BeagleDAQ and Tracker environment
-
 ## BeagleDAQ
 ### Introduction
 

@@ -5,8 +5,6 @@ tags: jtag, buspirate, arm
 date: 2012-03-28
 ---
 
-# JTAG debugging with a Bus Pirate, OpenOCD, and LPC1768
-
 This was done on an LPCXpresso LPC1769 board.
 The debug harness was wired as follows,
 

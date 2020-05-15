@@ -5,8 +5,6 @@ date: 2012-01-27
 tags: ghc, llvm, arm
 ---
 
-# Installing LLVM and GHC on ARM
-
 Recently GHC's LLVM backend gained [registerized build support for
 ARM](http://hackage.haskell.org/trac/ghc/wiki/Building/ARMLinuxGnuEABI). This
 could result in as much as a doubling of performance on ARM, meaning Haskell

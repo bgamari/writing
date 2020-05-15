@@ -5,8 +5,6 @@ tags: ghc, llvm, arm
 description: A status update on GHC's LLVM code generation backend.
 ---
 
-# GHC and LLVM: A status update
-
 GHC and LLVM have had a long and somewhat tumultuous relationship. At
 this point David Terei's lovely LLVM code generation backend has been
 with us now for almost five years and nine LLVM releases. GHC has

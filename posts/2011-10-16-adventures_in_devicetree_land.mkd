@@ -5,8 +5,6 @@ date: 2011-10-16
 tags: devicetree, kernel, beagleboard, linaro
 ---
 
-# Adventures in devicetree land
-
 Building kernel with following script,
 
     #!/bin/bash

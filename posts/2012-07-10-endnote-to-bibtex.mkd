@@ -4,7 +4,6 @@ description: In which an Endnote bibliography is converted to BibTeX
 tags: endnote, bibtex, bibliography
 date: 2012-07-10
 ---
-# Endnote to Bibtex without pain
 
 For others set with the unfortunate task of converting an Endnote
 database to Bibtex: fear not the command line.

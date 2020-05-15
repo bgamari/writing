@@ -5,8 +5,6 @@ description: My methodology for PCB etching via toner transfer
 date: 2012-01-20
 ---
 
-# Toner transfer PCB etching in a (bio)physics laboratory
-
 While with the recent advent of [batch PCB services](http://www.batchpcb.com)
 one-off PCB etching has become remarkable inexpensive. That being said,
 sometimes you need the board yesterday. Also PCB etching can be quite

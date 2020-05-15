@@ -5,8 +5,6 @@ tag: lpc43xx,openocd,jtag
 description: Some of my notes taken while bringing up the LPC4330 with OpenOCD
 ---
 
-# Notes concerning LPC43xx and OpenOCD
-
 The LPC43xx seems to be pretty finicky when it comes to its JTAG. interface.
 Here are a few things that I found helped in getting the LPC and
 OpenOCD to talk,

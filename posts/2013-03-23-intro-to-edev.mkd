@@ -5,8 +5,6 @@ description: Some notes on embedded development written up for a friend.
 date: 2013-03-23
 ---
 
-# A brief introduction to embedded development
-
 ## Prelude
 
 This was the product of an email conversation to a friend. Embedded

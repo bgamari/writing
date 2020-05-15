@@ -5,8 +5,6 @@ description: Testing mesa from git on Ubuntu
 date: 2012-08-30
 ---
 
-# Running mesa from git on Ubuntu
-
 This was written against Ubuntu 12.04 although it's unlikely things
 will change appreciably. You should know what you are doing (and have
 a good reason to need mesa from git) if you are going to follow these

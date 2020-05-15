@@ -4,8 +4,6 @@ date: 2016-12-11
 description: Installing OpenBLAS on Debian 8
 ---
 
-# Building OpenBLAS on Debian 8
-
 ```
 $ wget http://github.com/xianyi/OpenBLAS/archive/v0.2.19.tar.gz
 $ tar -xf v0.2.19.tar.gz

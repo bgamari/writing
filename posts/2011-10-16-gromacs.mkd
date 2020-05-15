@@ -5,8 +5,6 @@ tags: openmm, gromacs, ubuntu, amber
 date: 2011-10-16
 ---
 
-# Installing OpenMM and GROMACS with AMBER force-field
-
 ## Installing OpenMM
 GROMACS relies on the OpenMM library for its CUDA support. We'll use binaries
 provided by the OpenMM folks. Grab the latest [binary

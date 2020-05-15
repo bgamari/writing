@@ -5,8 +5,6 @@ description: A brief introduction to Bayesian probability
 tags: bayes, probability, statistics
 ---
 
-# Bayes theorem, Bayesian probability, and inference
-
 A colleague recently wrote asking the following,
 
 > Most of the sources I have came across explain the use of Bayes' Theorem

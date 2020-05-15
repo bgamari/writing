@@ -5,8 +5,6 @@ tags: linaro, kernel, arm
 date: 2012-03-01
 ---
 
-# Self-built kernels on Linaro
-
 Tried compiling kernel with `.config` from (http://elinux.org/Panda_How_to_kernel_3_3_rcx).
 
      $ make CROSS_COMPILE=arm-linux-gnueabi- ARCH=arm uImage

@@ -4,8 +4,6 @@ date: 2017-04-08
 description: Setting up a simple IPsec tunnel
 ---
 
-# A simple IPsec tunnel with StrongSwan
-
 This assumes Debian `stretch`.
 
 First let's configure the server-side.

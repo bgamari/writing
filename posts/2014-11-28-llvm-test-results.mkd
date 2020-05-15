@@ -5,8 +5,6 @@ tags: ghc, llvm, arm
 description: Results from compatbility tests between LLVM and GHC.
 ---
 
-# GHC-LLVM compatibility tests
-
 Here are results from a series of compatibility tests of GHC's LLVM
 backend.  See the
 [main article](/posts/2014-11-28-state-of-llvm-backend.html) for

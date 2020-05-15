@@ -4,6 +4,7 @@ date: 2015-11-29
 tags: ghc,core,work-in-progress
 description: Everything you really need to know to understand GHC's Core
 ---
+
 **This document is a work-in-progress.** If there is something that you would
 like to see discussed feel free to let me know.
 

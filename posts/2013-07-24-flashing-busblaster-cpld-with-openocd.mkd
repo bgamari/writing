@@ -4,7 +4,6 @@ date: 2013-07-24
 tags: openocd,busblaster,jtag,cpld
 description: Flashing the Bus Blaster JTAG adapter's CPLD buffer with OpenOCD
 ----
-# Flashing the Bus Blaster JTAG adapter's CPLD buffer with OpenOCD
 
 Recently an unfortunate incident involving 20V and a slipped probe
 resulted in a small plume of smoke rising from my Bus Blaster, followed

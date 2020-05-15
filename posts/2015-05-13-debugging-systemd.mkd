@@ -5,8 +5,6 @@ tags: systemd, debugging
 description: First impressions on debugging the systemd boot process
 ---
 
-# First experiences debugging systemd
-
 I use an [Odroid XU]() running Debian Jessie as an ARM target for
 [GHC]() and a variety of other projects. Recently Debian switched over
 to the infamous [systemd]() init system. Up to this point I've had

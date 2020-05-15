@@ -4,7 +4,6 @@ date: 2016-09-08
 tags: rsync, sudo, ssh
 description: Securely protected files with rsync and minimal privileges
 ---
-# Securely copying with escalated privileges with rsync
 
 Recently I had to migrate some files from one machine to another. As usual,
 `rsync` was the first tool I reached for, but a few considerations complicated matters:
