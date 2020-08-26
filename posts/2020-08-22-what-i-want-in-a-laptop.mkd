@@ -1,0 +1,92 @@
+---
+title: What I want in a laptop
+date: 2020-08-22
+tags: hardware
+description: "Notes from considering my priorities when looking for a new laptop"
+---
+
+Recently I have been rather disappointed by the state of the laptop market.
+While I have been wanting to replace my aging Dell Latitude E7470 (an otherwise
+great laptop), either vendors have badly misunderstood how technical users use
+their products or I am somehow have extraordinarily strange requirements.
+
+In an effort to help determine which of these is possibilities is the case, I
+thought it would be helpful to put in writing my criteria.  In the unlikely
+event that someone working for one of these companies stumbles across this,
+below is my rubric for evaluating laptops, roughly in order of
+importance. Hopefully this should shed light on what constitutes a usable
+machine to someone such as myself
+
+* *32 gigabytes of RAM*. Looking at my current session, Firefox alone is chewing
+  through 8 gigabytes; a Jupyter notebook session another 3 gigabytes, various
+  other processes constitute another 4 gigabytes. 16 gigabytes of memory in 2020
+  is utterly inadequate. I don't mind performing the memory upgrade myself but
+  sadly with the recent trend of soldered-in RAM this is not always an option.
+
+* *a bright, reasonably high resolution display.* I often work outside;
+  anything less than 400 nits is painful at best. Likewise, I work with text: I
+  don't need high fidelity color or ultra-fast response-time. Just give me a
+  bright panel with enough pixels to comfortably display a few columns of code
+  in `vim`. 1920 x 1080 is the minimum that I would use.
+
+  My last few Latitudes have spoiled me with touchscreens, although this is
+  not strictly necessary.
+
+* *14-inch form-factor and reasonable weight*. I bring my laptop everywhere;
+  it should be tote-able and of a reasonable weight (3 pounds is fine; I'd much
+  rather have sufficient robustness and cooling than something lighter-than-air)
+
+* *for the love of all that is good, no nVidia GPU.* I've been subjected to the
+  torture that is nVidia's Linux support before; this is not a mistake I am
+  willing to repeat. Integrated or discrete, I don't care; it just needs to
+  work.
+
+* *functional firmware.* I shouldn't need to say this but this means no ACPI
+  quirks; S3 suspend and S4 hibernation should just work. The fact that I do
+  not use Windows is not an excuse for the machine does not running as
+  advertised.
+
+* *a usable keyboard*. I really don't have high expectations; I'm not a
+  mechnical keyboard afficianato. However, it shouldn't feel like I'm typing on
+  porridge. Equally bad is the sub-micron key actuation distance of
+  recent Apple hardware. Needless to say, a keyboard must be tolerant of crumbs
+  and the occassional splash.
+
+  A keyboard backlight is invaluable for working in dark areas.
+
+* *solid build quality*. The machine will be used. Indoors, outdoors, in tents,
+  on boats, on hikes, sideways, upside-down... It will not have an easy life
+  and drops happen. A plastic chassis is unlikely to cut the mustard. Chassis creaking
+  is a very bad sign. The display should not oscillate due to typing vibrations.
+
+* *battery capacity*. It should be possible to edit code away from an outlet
+  for at least eight hours. Thankfully, with today's hardware this isn't a
+  particularly difficult requirement to meet.
+
+* *A sensible array of ports*. At very least:
+  * two display outputs (preferably one HDMI, one DisplayPort). 
+  * three USB
+  * ideally gigabit Ethernet
+  * combined analog headphone/microphone 3.5mm jack
+
+  I don't particularly care how the device is charged; perhaps USB-PD would be
+  nice but have not felt particularly burdened by having a dedicated charger.
+  Moreover, a dedicated charge port has the advantage of side-stepping the
+  compatibility and labelling nightmare that is USB.
+
+* *repairable*. I do not believe in throw-away items, especially in something
+  as environmentally damaging as a computer. Consequently, I expect this
+  investment to last for at least five years. Things will break; it should be
+  possible to fix them. Parts need to be readily available.  Disassembly should
+  be reasonably easy and not require special tools.
+
+* *mature industrial design*. A laptop is a tool, not a Las Vegas light show.
+  Gaudy "gamer" aesthetics are an immediate disqualifier.
+
+* *a fast-ish CPU*. I usually work via SSH but it is still sometimes necessary to
+  run a build locally. With AMD's recent Renoir CPUs, there is no excuse not to
+  have a reasonably speedy CPU.
+
+* *a touchpoint*: A good touchpoint is far easier to control than a touchpad
+  (particularly relative to click-pads) and is accessible from the home-row.
+  Sadly (and somewhat inexplicably) these are becoming somewhat rare.
