@@ -1,6 +1,9 @@
-{ nixpkgs ? (import <nixpkgs> {}) }:
+let
+  sources = import nix/sources.nix;
+  pkgs = import sources.nixpkgs {};
+in
 
-with nixpkgs;
+with pkgs;
 rec {
   tool = haskellPackages.callCabal2nix "writing" ./generator {};
   site = stdenv.mkDerivation {

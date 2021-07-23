@@ -1,6 +1,7 @@
 ---
 title: IDE support when working on GHC
 date: 2021-07-23
+description: Some notes on how I configure nvim for IDE support when working on GHC
 ---
 
 Here are some notes for how I configure Neovim, `haskell-language-server`, and
