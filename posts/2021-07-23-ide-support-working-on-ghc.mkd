@@ -1,0 +1,43 @@
+---
+title: IDE support when working on GHC
+date: 2021-07-23
+---
+
+Here are some notes for how I configure Neovim, `haskell-language-server`, and
+`clangd` for an IDE-like experience when working on GHC:
+
+* start using this an up-to-date
+  [ghc.nix](https://gitlab.haskell.org/ghc/ghc.nix/-/commit/4e69ca6894fe21bf1c6f4ed98ff406dbf9d6541c)
+* start a `ghc.nix` shell: `nix-shell ../ghc.nix --arg withIde true`
+* configure `nvim-lspconfig`'s HLS support to correctly identify the root
+  directory of a GHC source tree:
+  ```lua
+  lspconfig.hls.setup{
+      root_dir = function(fname)
+          local util = lspconfig.util
+          local x = util.root_pattern("hadrian")(fname)
+          if x then
+              return x
+          end
+
+          return util.root_pattern("*.cabal", "stack.yaml", "cabal.project", "package.yaml", "hie.yaml")(fname)
+        end;
+  }
+  ```
+* configure `nvim-lspconfig` use `clangd`:
+  ```lua
+  lspconfig.clangd.setup{}
+  ```
+* create a `compile_flags.txt` for `clangd` (ideally this would be upstreamed
+  as a `.clangd` file but this mechanism [doesn't appear to
+  work](https://github.com/clangd/clangd/issues/649)):
+  ```
+  -xc
+  -Iincludes
+  -Irts
+  -I.hie-bios/stage0/lib
+  ```
+* Run `haskell-language-server-wrapper compiler/GHC.hs` to ensure that things
+  work (and generate various things in `.hie-bios`)
+* Enjoy
+
