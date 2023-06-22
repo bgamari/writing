@@ -5,7 +5,7 @@
   (published at SIGIR '22)
 
 * B. Gamari, L. Dietz. ["Alligator Collector: A Latency-Optimised Garbage
-  Collector for Functional Programming Languages."](/media/papers/ismm2020-alligator-collector.pdf) (published at International
+  Collector for Functional Programming Languages."](/media/papers/alligator-collector.pdf) (published at International
   Symposium on Memory Management, 2020).
 
 * S. Rahmanseresht, *et al.* "Observation of a Change in Twist of an RNA
