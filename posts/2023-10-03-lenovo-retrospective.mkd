@@ -1,0 +1,191 @@
+---
+title: Retrospective on the Thinkpad T14s
+date: 2023-10-03
+tags: hardware
+description: "My experiences with the Thinkpad T14s"
+---
+
+Around three years ago I wrote a
+[post](2020-08-22-what-i-want-in-a-laptop.html) describing my criteria for
+selecting a laptop, a post I wrote that post while in the process of selecting
+a replacement for my Dell Latitude E7470. The outcome of that search was the
+generation 1 ThinkPad T14s AMD. This post will be a retrospective on my
+experiences with this laptop.
+
+## Hardware compromises
+
+The ThinkPad T14s was, at best, a compromise. As I do lots of [rather heavy GHC
+builds](https://gitlab.haskell.org/ghc/ghc) I generally work on larger machines
+via SSH. However, this laptop was an experiment to determine whether AMD's
+(then) new Zen architecture was enough of a performance uptick to make working
+locally viable.
+
+When I bought this laptop in 2020 good AMD-based options were somewhat few and
+far between. This is especially true due to my strong preference to stay within
+the set of "corporate fleet" models [^1]. Consequently, I had to give up a few
+points in my usual criteria:
+
+ * LCD panel: the T14s's panel is 1920x1080, the bare minimum of what I
+   consider to be acceptable. Furthermore, the brightness is marginal at best.
+   Working in the sun is not easy.
+
+ * Ethernet: The T14s has a "dongle" but no in-built RJ-45 jack. While I can
+   see why this is the case given the geometry of the chassis, I find this
+   trend towards "thinner at all costs" to be unfortunate
+
+ * touch screen: I quite liked the touch screen of my E7470; it was a very
+   convenient (and less strain-inducing) mode of interaction (especially for
+   gross movements like scrolling)
+
+ * repairability: The Lenovo is not great, which is a point I will come to
+
+Despite these shortcomings, the Thinkpad has been an decent machine. Battery
+life is not stellar but better than my last machine (although battery quality wasn't
+great; I noticed palmrest bulging around 18 months into the life of the machine
+which rompted battery replacement). The firmware is largely bug free and does
+what it should do (at least after disabling suspend-to-idle). CPU performance
+is good and while the machine does get warm it does not throttle even during a
+long GHC build.
+
+I found that the lack of ports was manageable with a USB C docking
+station. Unfortunately, the fact that the primary USB C port is used
+for both docking station and standalone charging is a durability concern. I
+have already had one motherboard replacement due to the USB C port becoming
+unmanagably finicky and I expect another will be necessary in less than 18 months.
+
+The USB C problem is frustrating as it is completely predictable; there is no
+way that a 9mm-by-3mm connector carrying dozens of Watts and several gigabytes
+per second over a handful of differential pairs can maintain its design
+parameters for more than a couple of years with several actuations per day *and*
+the mechanical rigors that a charging port sees. I still miss the days of
+dedicated, robust charging ports.
+
+In addition to having to give up RJ45 for thickness, chassis geometry also
+apparently required some compromises in internal connectors as the
+motherboard's m.2 slot does not comfortably accomodate double-sided SSDs. This
+greatly limits SSD options at higher capacities and is particularly problematic
+as most drive vendors do not clearly mark whether a particular model is single- or
+double-sided.
+
+## Build quality
+
+Ultimately, the biggest problems with the T14s are its build
+quality and serviceability. While machine's magnesium chassis gives it a solid first impression, its durability has left much to be desired. The first failure I had less
+than a year into the life of the machine, when the backspace key became
+intermittent.
+
+Like most modern laptops, keyboard replacement on the T14s is a pain as it
+requires removing the screen assembly, battery and motherboard (that is, nearly every component of the machine). However, Lenovo takes this a bit
+further by rivetting the keyboard to the palmrest, turning what is
+usually a $30 USD keyboard replacement into a > $100 palmrest/touchpad/keyboard
+assembly. While this is Lenovo's cost to bear and not mine, I am not pleased with the
+thought of this entire assembly unnecessarily entering a landfill.
+This design decision suggests that the machine has been excessively
+cost-optimised; I would happily pay the extra $2 for a few threaded inserts
+and some M2.5 screws.
+
+To make matters worse, this "intermittent backspace" problem has started to
+recur less than two years later. It appears
+[that](https://www.reddit.com/r/thinkpad/comments/oee9od/space_enter_backspace_randomly_failing_in_t14s/)
+[this](https://www.reddit.com/r/thinkpad/comments/mlfcn4/issue_with_t14s_keyboard/)
+[failure](https://www.reddit.com/r/thinkpad/comments/ky2gxv/t14s_amd_issue_with_unresponsive_returnbackspace/)
+[mode](https://www.reddit.com/r/thinkpad/comments/ownqq8/t14s_amd_enter_and_backspace_stop_working/)
+[is](https://www.reddit.com/r/thinkpad/comments/ipghgi/t14s_backspace_and_enter_key_drops_out/)
+*extremely* common. To say that flaky keyboard input from a $1900 machine is
+merely "disappointing" would be a tremendous understatement.
+
+To make matters worse the screen assembly, while rigid (i.e. does not oscillate
+during typing), is quite weakly coupled to the hinges. I found this out the
+hard way when the placing the machine firmly on a table while the screen was
+wide open: The sudden torque this placed on the hinges was enough to cause one
+side of the bezel to fail which lead to an eventual LCD panel failure.
+This is the sort of failure that one that simply should not happen and seems
+directly tied to the machine's thin design.
+
+## Service
+
+Throughout my experience with the laptop,  my experience with Lenovo's service
+department has been poor. Repair of the LCD failure took no less than
+two months and four service visits (during much of which the machine was usable
+only via external display). The first keyboard repair took one month and three
+visits; the I am still waiting on a service visit for the second keyboard
+failure. In both cases, repeated logistical failures (that is, sending the
+*wrong* part or not sending *enough* parts) as well as long part lead times
+contributed heavily to the poor experience.
+
+Sadly Lenovo, in contrast to Dell, does not seem to support parts-only
+self-service. This is a shame since parts-only service seems like a win for
+both sides:
+
+ * the OEM does not need to pay for an expensive field service technician
+ * the customer does not need to coordinate time-and-place with the technician
+ * the customer does not need to wait for technician availability and can
+   perform the repair as soon as parts are available
+ * the customer can perform the repair without time pressure
+
+I bring up the last point in particular because the two-month LCD failure
+ordeal was greatly worsened by the fact that the LCD assembly replacement was
+escalated to a motherboard replacement due to the breakage of the eDP connector.
+To be clear, the technician is not to blame here; rather, I the problem
+is an incentive structure which places technicians on a fixed schedule to
+perform repairs of unknown duration. Mistakes become more likely when you are
+approaching the end of your time-box for a given customer's repair and still
+need to eat lunch and make it to your next appointment on time.
+
+I recognize that not all laptop users can or should be working inside of their
+machines, but as someone who has performed countless repairs on everything from
+laptops, to dishwashers, to cell phones, I greatly appreciate having the option
+available.
+
+## The future
+
+Modern electronics exact a severe cost on our planet. Moreover, the majority
+of a laptop's environment impact has already been committed by the time it
+arrives at the customer's door: the embodied carbon of a modern laptop is
+roughly 350 kg-CO2eq whereas the "variable cost" of operating it is
+relatively small (in the US, 5W of electricity costs roughly 10 kg-CO2eq per year).
+For this reason, I typically prefer to have laptops to last at least five years.
+
+However, while my T14s is only barely three years old, I am growing tired of the
+Lenovo experiment: Both the machine itself and Lenovo support have lost my trust.
+Naturally, as Murphy would predict, failures inevitably happen directly
+prior to travel. This situation is simply untenable.
+
+On the other hand, I am thrilled that there is finally a vendor,
+[Framework](https://frame.work/), which seems to align with my preferences. A
+few months ago I put in an order for an AMD-based Framework 13. Initial
+indications seem to suggest that the hardware is solid; time will tell.
+
+
+[^1]:
+    This preference for corporate fleet laptops was a lesson from my days of
+    using Dell models where I found that "consumer" and "professional" support
+    departments are (at least in the case of Dell) completely different
+    divisions of the company which have vastly different stances towards their
+    users.
+
+    The Dell support consumer/professional support distinction is not merely an
+    organizational difference: in my experience attempting to extract a repair
+    out of the consumer support department was invariably an arduous exercise of
+    being walked through an lengthy (and largely inapplicable) diagnosis script
+    by someone who spends their days working with a largely
+    technically-illiterate user-base. May the gods help you if you
+    inadvertently admit to the rep that the machine is not running Windows.
+ 
+    By contrast, my interactions with Dell's corporate support department were
+    largely efficient and unproblematic. Generally I would tell them my
+    self-diagnosis of the problem and they would dispatch a service call or,
+    even better, just parts for self-service; no further discussion needed.
+    This is because these reps are conditioned to expect technically competent
+    corporate IT department employees on the other end of the line. They
+    understand that the machine is a vital tool for the user, not an appliance
+    for occassionally watching cat videos and must work ASAP. They are not
+    (quite as) surprised by non-Windows environments, and generally
+    recognize when an issue is clearly operating-system agnostic.
+
+    This difference, coupled with the fact that my first laptop, a Dell
+    Inspiron, suffered from *extremely* poor build quality resulted in my
+    current stance.
+
+[^2]:
+    To make matters worse, Lenovo
